@@ -1,0 +1,89 @@
+name: Refresh Instagram analytics
+
+# Pulls fresh numbers from the Instagram Graph API, regenerates the page data,
+# and commits only if something actually changed. GitHub Pages redeploys on the
+# commit, so the site updates itself.
+#
+# Requires one repository secret:
+#   IG_TOKEN  - a long-lived Instagram Graph API token (starts IGAA...)
+#               Settings -> Secrets and variables -> Actions -> New repository secret
+#
+# Instagram long-lived tokens expire after 60 days, so this refreshes the token
+# on every run. A token that has not been used for 60 days is dead and has to be
+# reissued by hand; running weekly keeps it alive comfortably inside that window.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"      # Mondays, 06:17 UTC
+  workflow_dispatch:           # and whenever you press the button
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-analytics
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pull fresh numbers
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: |
+          if [ -z "$IG_TOKEN" ]; then
+            echo "::error::IG_TOKEN secret is not set. See the header of this workflow."
+            exit 1
+          fi
+          python3 tools/refresh_data.py
+
+      - name: Rotate the access token
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          # Instagram hands back a NEW token with a fresh 60 days. Refreshing
+          # without storing it is pointless, so if a GH_PAT secret exists we
+          # write the new value straight back into IG_TOKEN and the site keeps
+          # running indefinitely. Without GH_PAT this only reports the time left.
+          set -o pipefail
+          NEW=$(python3 tools/refresh_data.py --rotate-token 2>/tmp/rot.err) || {
+            echo "::warning::token rotation failed"
+            sed -e 's/IGAA[A-Za-z0-9_-]*/<TOKEN>/g' /tmp/rot.err
+            exit 0
+          }
+          echo "::add-mask::$NEW"
+          DAYS=$(sed -n 's/.*valid ~\([0-9]*\).*/\1/p' /tmp/rot.err)
+
+          if [ -n "${GH_TOKEN:-}" ]; then
+            printf '%s' "$NEW" | gh secret set IG_TOKEN --app actions
+            echo "Token rotated and stored. Valid ~${DAYS:-?} more days." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Rotated but not stored - no GH_PAT secret, so IG_TOKEN still expires in ~${DAYS:-?} days."
+            echo "Token valid ~${DAYS:-?} more days. Add a **GH_PAT** secret to make rotation permanent." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Commit if anything moved
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- data desmos/data.js; then
+            echo "No change in the numbers." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          s = json.load(open("data/summary.json"))
+          print(f"Updated to **{s['total_plays']:,} plays**, "
+                f"{s['total_watch_hours']:,} watch hours across {s['posts']} posts.")
+          PY
+          git add data desmos/data.js
+          git commit -m "Refresh Instagram analytics [skip ci]"
+          git push

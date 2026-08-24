@@ -15,7 +15,7 @@
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="Desmos Guy — an automated video-to-Desmos pipeline">
-    <meta property="og:description" content="Tracing, chunk-gated expressions, a screenshot bug that shipped for months, and 12,597 hours of watch time in a week.">
+    <meta property="og:description" content="Tracing, chunk-gated expressions, a screenshot bug that shipped for months, and millions of plays once it worked.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/desmos/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
@@ -108,8 +108,8 @@
                     <div class="stat__l">To render a 13.8 s clip,<br>down from 171 s</div>
                 </div>
                 <div class="stat">
-                    <div class="stat__n">12,597<small> h</small></div>
-                    <div class="stat__l">Watched in seven days,<br>once it was working</div>
+                    <div class="stat__n"><span data-dg="total_watch_hours">12,837</span><small> h</small></div>
+                    <div class="stat__l">Watched so far,<br>once it was working</div>
                 </div>
             </div>
 
@@ -573,6 +573,15 @@
                         back as HTTP 400 and doesn't contain the word "quota" anywhere. My handler
                         checked for "quota". It missed, and burned 30 doomed uploads in a row.
                     </p>
+
+                    <h3 class="block__sub">How long a clip can safely be</h3>
+                    <p>
+                        <strong>2 of 140 uploads got Content-ID blocked. Both were over 89 seconds.
+                        Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds,
+                        which costs me nothing, because the entire top ten by plays is under 32
+                        seconds anyway. That cap is the single setting doing the most to keep this
+                        thing running unattended.
+                    </p>
                 </div>
             </section>
 
@@ -639,87 +648,79 @@
             </section>
 
             <!-- ============ 08 ============ -->
+            <!-- Every Instagram figure below is bound to desmos/data.js via
+                 data-dg="..." and filled in by charts.js. Refresh the numbers
+                 with `python3 tools/refresh_data.py` - do not retype them here. -->
             <section class="block" id="instagram" data-reveal>
                 <div class="block__no">08</div>
                 <div class="block__body">
                     <h2 class="block__h">What it did on Instagram</h2>
                     <p class="lede">
-                        Seven days, 81 posts on Instagram and 140 uploads on YouTube.
-                        <strong>12,597 hours of watch time</strong>. That's 524 days, or about a year
-                        and five months of continuous viewing, produced in a week.
+                        <span data-dg="window_days">8</span> days, <span data-dg="posts">85</span>
+                        posts on Instagram and <span data-dg="youtube_uploads">140</span> uploads on
+                        YouTube. <strong><span data-dg="total_watch_hours">12,837</span> hours of
+                        watch time</strong>. That's <span data-dg="total_watch_days">534.9</span>
+                        days, or about <span data-dg="watch_span">1 year 5 months</span> of
+                        continuous viewing, off <span data-dg="posts">85</span> clips.
                     </p>
 
                     <div class="stats">
-                        <div class="stat"><div class="stat__n">2,395,195</div><div class="stat__l">Plays</div></div>
-                        <div class="stat"><div class="stat__n">2,438,643</div><div class="stat__l">Reach</div></div>
-                        <div class="stat"><div class="stat__n">279,919</div><div class="stat__l">Likes</div></div>
-                        <div class="stat"><div class="stat__n">95,729</div><div class="stat__l">Shares</div></div>
+                        <div class="stat"><div class="stat__n" data-dg="total_plays">4,331,143</div><div class="stat__l">Plays</div></div>
+                        <div class="stat"><div class="stat__n" data-dg="total_reach">2,493,180</div><div class="stat__l">Reach</div></div>
+                        <div class="stat"><div class="stat__n" data-dg="total_likes">284,505</div><div class="stat__l">Likes</div></div>
+                        <div class="stat"><div class="stat__n" data-dg="total_shares">97,274</div><div class="stat__l">Shares</div></div>
                     </div>
 
                     <p>
                         Watch time and plays are different numbers and I keep having to correct
-                        people on it, including myself. 12,597 is hours watched. Plays were 2.4
-                        million.
+                        people on it, including myself.
+                        <span data-dg="total_watch_hours">12,837</span> is hours watched. Plays are
+                        <span data-dg="plays_m">4.3 million</span>.
+                    </p>
+
+                    <h3 class="block__sub">People are watching them twice</h3>
+                    <p>
+                        The stat I didn't expect: <strong>average watch time is
+                        <span data-dg="mean_watch_s">19.6</span> seconds</strong>, and plenty of
+                        these clips are only 9 to 16 seconds long. People are getting to the end and
+                        starting again without leaving. That's the thing Instagram's ranking actually
+                        rewards, and it's the strongest signal in the whole dataset.
                     </p>
                     <p>
-                        The stat I didn't expect: <strong>mean watch per play is 18.9 seconds</strong>,
-                        and plenty of these clips are only 9 to 16 seconds long. People are watching
-                        them more than once without leaving. That's the thing Instagram's ranking
-                        actually rewards, and it's the strongest signal in the whole dataset.
+                        The other one I keep coming back to is shares.
+                        <strong><span data-dg="total_shares">97,274</span> shares</strong> works out
+                        at <span data-dg="share_rate_pct">2.25</span>% of all plays, which is a lot
+                        of people deciding a graphing calculator drawing Peter Griffin was worth
+                        sending to somebody.
                     </p>
 
-                    <h3 class="block__sub">Three posts are most of it</h3>
-
-                    <figure class="fig">
-                        <div id="fig-concentration"></div>
-                        <div class="c-legend">
-                            <span><i class="acc"></i>Top three posts</span>
-                            <span><i></i>The other 78</span>
-                            <span><i class="acc"></i>Cumulative share of watch time</span>
-                        </div>
-                        <figcaption>
-                            Bars are linear, not log, on purpose — the flat tail is the point and a
-                            log axis would hide it.
-                        </figcaption>
-                    </figure>
-
+                    <h3 class="block__sub">Keeping these numbers current</h3>
                     <p>
-                        Median post: <strong>6.82 hours</strong>. Mean post: <strong>155 hours</strong>.
-                        The top post on its own is 40% of all the watch time, the top three are 82%,
-                        and seventy-one posts round to nothing.
+                        Every figure in this section is pulled from the Instagram Graph API by
+                        <code>tools/refresh_data.py</code>, which writes <code>data/</code> and
+                        regenerates the page's data file. A GitHub Action runs it weekly, commits
+                        only if something actually moved, and the site rebuilds itself. The access
+                        token lives in repo secrets and gets rotated by the same workflow, since
+                        Instagram's long-lived tokens expire after 60 days.
                     </p>
                     <p>
-                        Nothing went wrong there. That's just how short-form distribution works. But
-                        it's also why the picker section above ends the way it does.
-                        <em>If three posts out of 81 carry everything, getting slightly better at
-                        ranking the other 78 was never going to matter.</em>
+                        The part that took a second attempt: none of these numbers are typed into
+                        the sentences. They're <code>&lt;span data-dg="total_plays"&gt;</code>
+                        placeholders filled in from the data file at load, so refreshing the data
+                        rewrites the prose too. Otherwise the stat tiles update and the paragraph
+                        next to them keeps confidently stating last month's figure.
                     </p>
 
-                    <h3 class="block__sub">Everything settles at 48 hours</h3>
-
-                    <figure class="fig">
-                        <div id="fig-settling"></div>
-                        <figcaption>
-                            Two insight pulls, 53 hours apart, bucketed by how old each post already
-                            was.
-                        </figcaption>
-                    </figure>
-
-                    <p>
-                        Anything past 48 hours moved a median of <strong>+0.7%</strong>. This explains
-                        a false alarm I kept giving myself: a batch posted today always looks like a
-                        flop tomorrow. Of the 1,202 hours gained across those two days, 62% came from
-                        posts still inside their first 48 hours and only 7% from the posts published
-                        in between.
-                    </p>
-
-                    <h3 class="block__sub">Copyright, measured</h3>
-                    <p>
-                        <strong>2 of 140 uploads got Content-ID blocked. Both were over 89 seconds.
-                        Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds,
-                        which costs me nothing, because the entire top ten by plays is under 32
-                        seconds anyway.
-                    </p>
+                    <div class="callout">
+                        <strong>One thing worth knowing if you read these numbers anywhere else.</strong>
+                        Meta retired <code>plays</code> and replaced it with <code>views</code>, and
+                        <code>views</code> counts about <strong>1.8× more events</strong> than the
+                        metric watch time is measured against. So dividing total watch time by total
+                        plays gives you roughly 10 seconds, which is wrong. The
+                        <span data-dg="mean_watch_s">19.6</span> s above is Instagram's own
+                        average-watch-time metric, weighted by watch time, which is the comparison
+                        that actually holds.
+                    </div>
                 </div>
             </section>
 
@@ -729,9 +730,9 @@
                 <div class="block__body">
                     <h2 class="block__h">Still broken</h2>
                     <ul class="dlist">
-                        <li><strong>Seven days of data, one account, one show.</strong> None of this generalises anywhere, and every correlation above is computed on a sample where three posts dominate every total.</li>
+                        <li><strong>About a week of data, one account, one show.</strong> None of this generalises anywhere, and the correlations above come from a small sample of a single genre.</li>
                         <li><strong>The source-popularity signal is untested.</strong> It's a hypothesis. The test is written and currently reports <code>n = 0</code>. I have not shown it works.</li>
-                        <li><strong>Instagram posting is still manual.</strong> YouTube is fully automatic. The platform that produced all 12,597 hours is the one I still upload by hand, which is a funny place for the automation to stop.</li>
+                        <li><strong>Instagram posting is still manual.</strong> YouTube is fully automatic. The platform that produced all <span data-dg="total_watch_hours">12,837</span> hours is the one I still upload by hand, which is a funny place for the automation to stop.</li>
                         <li><strong><code>yt-dlp</code> is a single point of failure.</strong> Whenever YouTube changes something, harvest breaks. At least it breaks loudly and skips the run instead of posting garbage.</li>
                         <li><strong>Content-ID risk scales with automation.</strong> Two of 140 got blocked; a 45-second cap is a mitigation, not a guarantee.</li>
                     </ul>

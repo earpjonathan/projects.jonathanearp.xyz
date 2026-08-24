@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jonathan Earp — Projects</title>
-    <meta name="description" content="Side projects by Jonathan Earp. Small systems built end to end and measured properly, starting with Desmos Guy, an automated pipeline that renders video as graphing-calculator animation.">
+    <meta name="description" content="Side projects by Jonathan Earp. Small systems built end to end, starting with Desmos Guy, an automated pipeline that renders video as graphing-calculator animation.">
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="canonical" href="https://projects.jonathanearp.xyz/">
@@ -16,7 +16,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="Jonathan Earp — Projects">
-    <meta property="og:description" content="Small systems built end to end and measured honestly — starting with a pipeline that turns video into Desmos animation.">
+    <meta property="og:description" content="Small systems built end to end, starting with a pipeline that turns video into Desmos animation.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
@@ -25,7 +25,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Jonathan Earp — Projects">
-    <meta name="twitter:description" content="Small systems built end to end and measured honestly.">
+    <meta name="twitter:description" content="Small systems built end to end, with the methods and results written up.">
     <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta name="twitter:creator" content="@JonathanEarp_">
 
@@ -36,7 +36,7 @@
       "@id": "https://projects.jonathanearp.xyz/#page",
       "url": "https://projects.jonathanearp.xyz/",
       "name": "Jonathan Earp — Projects",
-      "description": "Side projects built end to end and measured honestly.",
+      "description": "Side projects built end to end, with the methods and results written up.",
       "isPartOf": { "@type": "WebSite", "@id": "https://jonathanearp.xyz/#website" },
       "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
       "hasPart": [
@@ -92,13 +92,13 @@
             <div class="hero__eyebrow mono" data-reveal>
                 <span><span class="dot">●</span> Side projects / 2026—</span>
                 <span>Built end to end</span>
-                <span>Measured, not estimated</span>
+                <span>Code and write-ups</span>
             </div>
             <h1 class="hero__title" data-reveal style="--i:1">Projects</h1>
             <p class="hero__lead" data-reveal style="--i:2">
-                Stuff I build outside of class, mostly to find out whether an idea actually
-                works. Each one ships, gets <b>measured</b>, and the numbers usually disagree
-                with whatever I assumed going in.
+                Things I build outside of class, mostly to find out whether an idea actually
+                works. Each one ships and gets <b>measured</b>, and the write-up covers what
+                the numbers turned out to be.
             </p>
 
             <div class="metastrip" data-reveal style="--i:3">
@@ -115,8 +115,8 @@
                     <span class="metastrip__v">Python</span>
                 </div>
                 <div class="metastrip__cell">
-                    <span class="metastrip__k">Rule</span>
-                    <span class="metastrip__v">Publish the failures too</span>
+                    <span class="metastrip__k">Data</span>
+                    <span class="metastrip__v">Refreshed weekly</span>
                 </div>
             </div>
 
@@ -151,8 +151,8 @@
                         </div>
                     </div>
                     <div class="prow__stats">
-                        <div class="prow__stat"><b>12,597</b><span>Hours watched<br>in seven days</span></div>
-                        <div class="prow__stat"><b>2.4M</b><span>Plays</span></div>
+                        <div class="prow__stat"><b data-dg="total_watch_hours">12,940</b><span>Hours watched<br>in <span data-dg="window_days">8</span> days</span></div>
+                        <div class="prow__stat"><b data-dg="plays_m">4.4M</b><span>Plays</span></div>
                         <div class="prow__stat"><b>1.55×</b><span>Faster after<br>the render fix</span></div>
                     </div>
                     <span class="prow__go" aria-hidden="true">↗</span>
@@ -161,8 +161,7 @@
             </div>
 
             <p class="callout" data-reveal>
-                More in progress. <strong>Nothing goes up here until I have numbers to put
-                next to it.</strong>
+                More in progress; they'll be added here as they're finished.
             </p>
         </section>
 
@@ -200,5 +199,29 @@
 
     <script src="topo.js"></script>
     <script src="script.js"></script>
+
+    <!-- The two live tiles above read the same generated file as the case study,
+         so the weekly refresh updates this page too. Typing the numbers in here
+         is how they went stale the first time. -->
+    <script src="desmos/data.js"></script>
+    <script>
+    (function () {
+      var S = (window.DG && window.DG.summary) || {};
+      if (!S.total_plays) return;
+      var days = 0;
+      if (S.window && S.window.first && S.window.last) {
+        days = Math.round((Date.parse(S.window.last) - Date.parse(S.window.first)) / 864e5) + 1;
+      }
+      var V = {
+        total_watch_hours: (S.total_watch_hours || 0).toLocaleString("en-US"),
+        plays_m: ((S.total_plays || 0) / 1e6).toFixed(1) + "M",
+        window_days: days
+      };
+      Object.keys(V).forEach(function (k) {
+        var n = document.querySelectorAll('[data-dg="' + k + '"]');
+        for (var i = 0; i < n.length; i++) n[i].textContent = V[k];
+      });
+    })();
+    </script>
 </body>
 </html>

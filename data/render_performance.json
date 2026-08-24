@@ -1,0 +1,142 @@
+[
+ {
+  "clip": "auto_s17e02",
+  "clip_s": 16.6,
+  "render_s": 193,
+  "ratio": 11.6,
+  "run": 1
+ },
+ {
+  "clip": "auto_s04e04",
+  "clip_s": 9.3,
+  "render_s": 94,
+  "ratio": 10.1,
+  "run": 1
+ },
+ {
+  "clip": "auto_s23e07",
+  "clip_s": 30.1,
+  "render_s": 360,
+  "ratio": 11.9,
+  "run": 1
+ },
+ {
+  "clip": "auto_s03e13",
+  "clip_s": 39.1,
+  "render_s": 483,
+  "ratio": 12.4,
+  "run": 1
+ },
+ {
+  "clip": "auto_s10e07",
+  "clip_s": 44.7,
+  "render_s": 597,
+  "ratio": 13.4,
+  "run": 1
+ },
+ {
+  "clip": "auto_s19e10",
+  "clip_s": 40.5,
+  "render_s": 566,
+  "ratio": 14.0,
+  "run": 1
+ },
+ {
+  "clip": "auto_s07e05",
+  "clip_s": 36.6,
+  "render_s": 267,
+  "ratio": 7.3,
+  "run": 1
+ },
+ {
+  "clip": "auto_s15e20",
+  "clip_s": 32.0,
+  "render_s": 381,
+  "ratio": 11.9,
+  "run": 1
+ },
+ {
+  "clip": "auto_s04e05",
+  "clip_s": 27.2,
+  "render_s": 422,
+  "ratio": 15.5,
+  "run": 1
+ },
+ {
+  "clip": "auto_s04e25",
+  "clip_s": 13.8,
+  "render_s": 163,
+  "ratio": 11.8,
+  "run": 1
+ },
+ {
+  "clip": "auto_s04e15",
+  "clip_s": 42.4,
+  "render_s": 387,
+  "ratio": 9.1,
+  "run": 2
+ },
+ {
+  "clip": "auto_s11e11",
+  "clip_s": 25.5,
+  "render_s": 242,
+  "ratio": 9.5,
+  "run": 2
+ },
+ {
+  "clip": "auto_s09e12",
+  "clip_s": 37.8,
+  "render_s": 325,
+  "ratio": 8.6,
+  "run": 2
+ },
+ {
+  "clip": "auto_s11e10",
+  "clip_s": 30.3,
+  "render_s": 269,
+  "ratio": 8.9,
+  "run": 2
+ },
+ {
+  "clip": "auto_s21e15",
+  "clip_s": 42.0,
+  "render_s": 496,
+  "ratio": 11.8,
+  "run": 2
+ },
+ {
+  "clip": "auto_s07e04",
+  "clip_s": 28.5,
+  "render_s": 399,
+  "ratio": 14.0,
+  "run": 2
+ },
+ {
+  "clip": "auto_s07e05_2",
+  "clip_s": 31.3,
+  "render_s": 344,
+  "ratio": 11.0,
+  "run": 2
+ },
+ {
+  "clip": "auto_s05e02",
+  "clip_s": 23.1,
+  "render_s": 305,
+  "ratio": 13.2,
+  "run": 2
+ },
+ {
+  "clip": "auto_s20e13",
+  "clip_s": 43.3,
+  "render_s": 483,
+  "ratio": 11.2,
+  "run": 2
+ },
+ {
+  "clip": "auto_s10e20",
+  "clip_s": 27.4,
+  "render_s": 355,
+  "ratio": 12.9,
+  "run": 2
+ }
+]

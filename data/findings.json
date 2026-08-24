@@ -1,0 +1,60 @@
+{
+ "render_profile": {
+  "trace_s": 6.9,
+  "capture_s": 160.8,
+  "encode_s": 3.9,
+  "capture_share_pct": 94,
+  "note": "13.8s clip, 331 frames. Parallelising the tracer optimises 4% of the work."
+ },
+ "capture_correctness": {
+  "converged_at": "stable>=4",
+  "old_default": "stable=2",
+  "frames_wrong_at_old_default": "39 of 40",
+  "serial_idle_determinism": "0 of 40 differ",
+  "serial_under_load": "4 of 40 differ",
+  "four_parallel_browsers_old_settle": "22 of 40 differ"
+ },
+ "speedup": {
+  "before_s": 171.6,
+  "after_s": 110.4,
+  "factor": 1.55,
+  "per_frame_before_ms": 486,
+  "per_frame_after_ms": 318
+ },
+ "harvest": {
+  "pool_before": 81,
+  "pool_after": 120,
+  "increase_pct": 48,
+  "shorts_recovered": 46,
+  "best_channel_in_band": "16 of 40"
+ },
+ "predictability": {
+  "predicted_retention_vs_plays_r": 0.02,
+  "actual_retention_vs_plays_r": 0.4,
+  "duration_vs_plays_r": -0.15,
+  "duration_vs_retention_r": -0.74,
+  "plays_cv_r2": -0.89,
+  "retention_cv_r2": 0.49
+ },
+ "settling": {
+  "under_24h_median_growth_pct": 35.3,
+  "h24_48_pct": 12.7,
+  "h48_72_pct": 0.9,
+  "h72_96_pct": 0.6,
+  "over_96h_pct": 0.5,
+  "note": "Validates the 48h maturity cutoff used in analyze.py."
+ },
+ "linking": {
+  "dialogue_matched": "56 of 68",
+  "median_overlap": 0.95,
+  "median_margin": 0.94,
+  "duration_best_case": "26 of 68"
+ },
+ "copyright": {
+  "blocked": 2,
+  "of": 140,
+  "both_over_s": 89,
+  "nothing_under_s": 80,
+  "cap_set_at_s": 45
+ }
+}

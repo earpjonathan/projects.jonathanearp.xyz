@@ -49,6 +49,12 @@ Then open <http://localhost:8099>. There is no build step — edit and reload.
 `data.js` is generated from the JSON in `data/`, which is copied out of the
 pipeline repo's `portfolio/` folder. Instagram rows are reduced to
 `{episode, watch_hours, plays}` — no media IDs, no handles, no personal data.
+
+Everything under `data/` is served publicly by GitHub Pages, so the Instagram
+media IDs were stripped from `instagram_posts.json` on the way in: they make
+individual post permalinks derivable by anyone who finds the file. The full
+originals stay in the pipeline repo. If you re-copy the JSON, strip them again.
+
 Re-run this after refreshing the source JSON:
 
 ```bash

@@ -1,0 +1,326 @@
+/* ============================================================
+   Desmos Guy — figures.
+   Every chart is inline SVG drawn from window.DG (data.js), styled
+   entirely through CSS classes so it follows the light/dark toggle
+   with no redraw. Charts are re-rendered on resize at a 1:1 viewBox
+   so 10px labels stay 10px on a phone.
+   Palette rule (ORYZO): --fg-soft carries the mass, --accent is a
+   hairline — strokes, thin bars, and annotation only.
+   ============================================================ */
+(function () {
+  var D = window.DG;
+  if (!D) return;
+
+  /* ---------- tiny SVG helpers ---------- */
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function el(tag, attrs, kids) {
+    var s = "<" + tag;
+    for (var k in attrs) {
+      if (attrs[k] === null || attrs[k] === undefined) continue;
+      s += " " + k + '="' + attrs[k] + '"';
+    }
+    return kids !== undefined ? s + ">" + kids + "</" + tag + ">" : s + "/>";
+  }
+  function rect(x, y, w, h, cls) { return el("rect", { x: r(x), y: r(y), width: r(Math.max(0, w)), height: r(Math.max(0, h)), "class": cls }); }
+  function line(x1, y1, x2, y2, cls) { return el("line", { x1: r(x1), y1: r(y1), x2: r(x2), y2: r(y2), "class": cls }); }
+  function text(x, y, str, cls, anchor) {
+    return el("text", { x: r(x), y: r(y), "class": "c-t " + (cls || ""), "text-anchor": anchor || "start" }, esc(str));
+  }
+  function path(d, cls) { return el("path", { d: d, "class": cls }); }
+  function r(n) { return Math.round(n * 100) / 100; }
+  function fmt(n) { return n.toLocaleString("en-US"); }
+
+  /* ============================================================
+     V1 — watch-time concentration (Pareto)
+     Linear bars on purpose: a log axis would flatten the exact
+     asymmetry the chart exists to show.
+     ============================================================ */
+  function concentration(w) {
+    var posts = D.posts.slice().sort(function (a, b) { return b.watch_hours - a.watch_hours; });
+    var total = posts.reduce(function (s, p) { return s + p.watch_hours; }, 0);
+    var h = w < 560 ? 260 : 320;
+    var m = { t: 22, r: 44, b: 46, l: 52 };
+    var iw = w - m.l - m.r, ih = h - m.t - m.b;
+    var max = posts[0].watch_hours;
+    var bw = iw / posts.length;
+    var s = "";
+
+    /* y grid + labels (hours) */
+    [0, 1000, 2000, 3000, 4000, 5000].forEach(function (v) {
+      var y = m.t + ih - (v / max) * ih;
+      s += line(m.l, y, m.l + iw, y, "c-grid");
+      s += text(m.l - 8, y + 3, v === 0 ? "0" : fmt(v), "c-t--n", "end");
+    });
+
+    /* bars — top three carry the accent, the rest are mass */
+    posts.forEach(function (p, i) {
+      var bh = (p.watch_hours / max) * ih;
+      s += rect(m.l + i * bw, m.t + ih - bh, Math.max(1, bw - 1), bh, i < 3 ? "c-bar--hi" : "c-bar");
+    });
+
+    /* cumulative share line, right axis 0–100% */
+    var run = 0, pts = [];
+    posts.forEach(function (p, i) {
+      run += p.watch_hours;
+      pts.push([m.l + i * bw + bw / 2, m.t + ih - (run / total) * ih]);
+    });
+    s += path("M" + pts.map(function (p) { return r(p[0]) + " " + r(p[1]); }).join("L"), "c-line");
+    [0, 50, 100].forEach(function (v) {
+      var y = m.t + ih - (v / 100) * ih;
+      s += text(m.l + iw + 8, y + 3, v + "%", "c-t--acc c-t--n", "start");
+    });
+
+    /* Annotate the cascade. The first three points sit right on top of the
+       top-three bars, so labels are pushed into clear space and tied back to
+       their point with a leader — otherwise they read as floating. */
+    [[0, "Top 1 — 40.2%"], [2, "Top 3 — 81.6%"], [9, "Top 10 — 95.7%"]].forEach(function (a) {
+      var p = pts[a[0]];
+      var lx = Math.max(p[0] + 8, m.l + 52);
+      var ly = p[1] - 9;
+      s += el("circle", { cx: r(p[0]), cy: r(p[1]), r: 2.5, "class": "c-dot--hi" });
+      s += line(p[0] + 3, p[1], lx - 5, ly - 3, "c-ref");
+      s += text(lx, ly, a[1], "c-t--acc", "start");
+    });
+
+    /* the tail — make the invisibility legible */
+    var medX = m.l + iw * 0.5;
+    s += line(medX, m.t + ih, medX, m.t + ih - 26, "c-ref");
+    s += text(medX + 6, m.t + ih - 30, "median post = 6.82 h", "c-t--fg", "start");
+
+    /* axes */
+    s += line(m.l, m.t + ih, m.l + iw, m.t + ih, "c-axis");
+    s += text(m.l, h - 24, "81 posts, ranked by watch time →", "", "start");
+    s += text(0, m.t - 8, "Hours", "", "start");
+
+    return svg(w, h, s);
+  }
+
+  /* ============================================================
+     V2 — where render time goes, and what the fix bought
+     ============================================================ */
+  function renderProfile(w) {
+    var f = D.findings.render_profile, sp = D.findings.speedup;
+    var h = 220;
+    var m = { t: 34, r: 8, b: 20, l: 0 };
+    var iw = w - m.l - m.r;
+    var total = f.trace_s + f.capture_s + f.encode_s;
+    var s = "";
+    var barH = 34;
+
+    /* stacked bar — one 13.8 s clip, 331 frames */
+    var segs = [
+      { k: "Trace", short: "trace", v: f.trace_s, cls: "c-bar" },
+      { k: "Browser screenshot capture", short: "capture", v: f.capture_s, cls: "c-bar--hi" },
+      { k: "ffmpeg encode", short: "encode", v: f.encode_s, cls: "c-bar" }
+    ];
+    var x = m.l;
+    s += text(m.l, m.t - 14, "One render, by stage — 171.6 s total", "c-t--fg", "start");
+    segs.forEach(function (g, i) {
+      var gw = (g.v / total) * iw;
+      s += rect(x, m.t, gw - 1, barH, g.cls);
+      var pct = Math.round((g.v / total) * 100);
+      if (gw > 150) {
+        s += text(x + 10, m.t + 21, pct + "% · " + g.k + " · " + g.v + " s", "c-t--fg", "start");
+      } else {
+        /* too narrow to label inside — drop below, and anchor the last
+           segment to the right edge so it cannot run off the viewBox */
+        var last = i === segs.length - 1;
+        s += text(last ? m.l + iw : x, m.t + barH + 14,
+                  pct + "% " + g.short, "", last ? "end" : "start");
+      }
+      x += gw;
+    });
+
+    /* before / after */
+    var y2 = m.t + barH + 46;
+    s += text(m.l, y2 - 12, "Same clip, before and after parallel capture", "c-t--fg", "start");
+    var maxT = sp.before_s;
+    [{ k: "Before", v: sp.before_s, cls: "c-bar" },
+     { k: "After",  v: sp.after_s,  cls: "c-bar--hi" }].forEach(function (g, i) {
+      var y = y2 + i * 30;
+      var gw = (g.v / maxT) * (iw - 130);
+      s += text(m.l, y + 15, g.k, "", "start");
+      s += rect(m.l + 58, y, gw, 20, g.cls);
+      s += text(m.l + 58 + gw + 8, y + 15, g.v + " s", "c-t--fg c-t--n", "start");
+    });
+    s += text(m.l, y2 + 78, "1.55× faster — 486 ms → 318 ms per frame", "c-t--acc", "start");
+
+    return svg(w, h, s);
+  }
+
+  /* ============================================================
+     V4 — prediction vs reality (diverging correlations)
+     ============================================================ */
+  function predictability(w) {
+    var p = D.findings.predictability;
+    var rows = [
+      { k: "Predicted retention → plays", v: p.predicted_retention_vs_plays_r, hi: true },
+      { k: "Measured retention → plays", v: p.actual_retention_vs_plays_r },
+      { k: "Duration → plays", v: p.duration_vs_plays_r },
+      { k: "Duration → retention", v: p.duration_vs_retention_r }
+    ];
+    var rowH = 42, h = rows.length * rowH + 84;
+    var m = { t: 40, r: 12, b: 44, l: w < 700 ? 12 : 210 };
+    var iw = w - m.l - m.r;
+    var mid = m.l + iw / 2, half = iw / 2;
+    var s = "";
+
+    /* noise band |r| < 0.3 */
+    s += rect(mid - half * 0.3, m.t - 12, half * 0.6, rows.length * rowH + 12, "c-band");
+    s += text(mid, m.t - 20, "indistinguishable from noise  |r| < 0.3", "", "middle");
+
+    rows.forEach(function (row, i) {
+      var y = m.t + i * rowH;
+      var bw = Math.abs(row.v) * half;
+      var x = row.v >= 0 ? mid : mid - bw;
+      if (m.l > 100) s += text(m.l - 14, y + 18, row.k, row.hi ? "c-t--fg" : "", "end");
+      else s += text(mid, y - 2, row.k, row.hi ? "c-t--fg" : "", "middle");
+      s += rect(x, y + (m.l > 100 ? 4 : 6), bw, 18, row.hi ? "c-bar--hi" : "c-bar");
+      var lx = row.v >= 0 ? mid + bw + 8 : mid - bw - 8;
+      /* U+2212 minus, to match the axis ticks below */
+      var lbl = row.v < 0 ? "\u2212" + Math.abs(row.v).toFixed(2) : "+" + row.v.toFixed(2);
+      s += text(lx, y + 18 + (m.l > 100 ? 0 : 2), lbl,
+                (row.hi ? "c-t--acc" : "c-t--fg") + " c-t--n", row.v >= 0 ? "start" : "end");
+    });
+
+    /* zero rule + scale */
+    s += line(mid, m.t - 12, mid, m.t + rows.length * rowH, "c-axis");
+    var base = m.t + rows.length * rowH + 6;
+    s += line(m.l, base, m.l + iw, base, "c-axis");
+    [[-1, "−1"], [-0.5, "−0.5"], [0, "0"], [0.5, "+0.5"], [1, "+1"]].forEach(function (t) {
+      s += text(mid + t[0] * half, base + 16, t[1], "c-t--n", "middle");
+    });
+    s += text(m.l, h - 6, "Pearson r across 68 posts", "", "start");
+
+    return svg(w, h, s);
+  }
+
+  /* ============================================================
+     V5 — render cost vs clip length
+     ============================================================ */
+  function renderCost(w) {
+    var pts = D.render;
+    var h = w < 560 ? 280 : 330;
+    var m = { t: 20, r: 16, b: 48, l: 54 };
+    var iw = w - m.l - m.r, ih = h - m.t - m.b;
+    var maxX = 50, maxY = 640;
+    var X = function (v) { return m.l + (v / maxX) * iw; };
+    var Y = function (v) { return m.t + ih - (v / maxY) * ih; };
+    var s = "";
+
+    /* grid */
+    [0, 160, 320, 480, 640].forEach(function (v) {
+      s += line(m.l, Y(v), m.l + iw, Y(v), "c-grid");
+      s += text(m.l - 8, Y(v) + 3, v === 0 ? "0" : fmt(v), "c-t--n", "end");
+    });
+    [0, 10, 20, 30, 40, 50].forEach(function (v) {
+      s += text(X(v), m.t + ih + 18, v + (v === 50 ? " s" : ""), "c-t--n", "middle");
+    });
+
+    /* y = 12x reference */
+    s += line(X(0), Y(0), X(maxX), Y(12 * maxX), "c-ref");
+    s += text(X(46), Y(12 * 46) - 8, "12× clip length", "", "end");
+
+    /* points, run 1 hollow / run 2 accent */
+    pts.forEach(function (p) {
+      s += el("circle", {
+        cx: r(X(p.clip_s)), cy: r(Y(p.render_s)), r: 4,
+        "class": p.run === 2 ? "c-dot--hi" : "c-dot"
+      });
+    });
+
+    s += line(m.l, m.t + ih, m.l + iw, m.t + ih, "c-axis");
+    s += line(m.l, m.t, m.l, m.t + ih, "c-axis");
+    s += text(0, m.t - 6, "Render s", "", "start");
+    s += text(m.l + iw, h - 8, "Clip length →", "", "end");
+
+    return svg(w, h, s);
+  }
+
+  /* ============================================================
+     V6 — plays settle at 48 hours
+     ============================================================ */
+  function settling(w) {
+    var st = D.findings.settling;
+    var rows = [
+      { k: "< 24 h", v: st.under_24h_median_growth_pct, n: 11 },
+      { k: "24–48 h", v: st.h24_48_pct, n: 12 },
+      { k: "48–72 h", v: st.h48_72_pct, n: 12 },
+      { k: "72–96 h", v: st.h72_96_pct, n: 20 },
+      { k: "> 96 h", v: st.over_96h_pct, n: 15 }
+    ];
+    var h = w < 560 ? 250 : 280;
+    var m = { t: 34, r: 12, b: 52, l: 46 };
+    var iw = w - m.l - m.r, ih = h - m.t - m.b;
+    var max = 40;
+    var bw = iw / rows.length;
+    var s = "";
+
+    [0, 10, 20, 30, 40].forEach(function (v) {
+      var y = m.t + ih - (v / max) * ih;
+      s += line(m.l, y, m.l + iw, y, "c-grid");
+      s += text(m.l - 8, y + 3, "+" + v + "%", "c-t--n", "end");
+    });
+
+    rows.forEach(function (row, i) {
+      var bh = (row.v / max) * ih;
+      var x = m.l + i * bw + bw * 0.18;
+      var bwi = bw * 0.64;
+      s += rect(x, m.t + ih - bh, bwi, bh, i < 2 ? "c-bar--hi" : "c-bar");
+      s += text(x + bwi / 2, m.t + ih - bh - 8, "+" + row.v + "%", "c-t--fg c-t--n", "middle");
+      s += text(x + bwi / 2, m.t + ih + 18, row.k, "", "middle");
+      s += text(x + bwi / 2, m.t + ih + 32, "n = " + row.n, "", "middle");
+    });
+
+    /* the 48 h cliff — the full caption does not fit beside the rule on a
+       phone, so narrow widths get the short form */
+    var cx = m.l + bw * 2;
+    s += line(cx, m.t - 14, cx, m.t + ih, "c-ref");
+    s += w < 620
+      ? text(cx + 6, m.t - 18, "48 h cutoff", "c-t--acc", "start")
+      : text(cx + 8, m.t - 18, "48 h — data becomes trustworthy", "c-t--acc", "start");
+
+    s += line(m.l, m.t + ih, m.l + iw, m.t + ih, "c-axis");
+    s += text(0, m.t - 8, "Median growth over 53 h", "", "start");
+
+    return svg(w, h, s);
+  }
+
+  function svg(w, h, body) {
+    return el("svg", {
+      viewBox: "0 0 " + r(w) + " " + r(h),
+      width: "100%", height: h,
+      role: "img", "aria-hidden": "true", "preserveAspectRatio": "xMidYMid meet"
+    }, body);
+  }
+
+  /* ---------- mount + keep in step with the layout ---------- */
+  var charts = {
+    "fig-concentration": concentration,
+    "fig-render-profile": renderProfile,
+    "fig-predictability": predictability,
+    "fig-render-cost": renderCost,
+    "fig-settling": settling
+  };
+
+  var lastW = {};
+  function draw() {
+    Object.keys(charts).forEach(function (id) {
+      var host = document.getElementById(id);
+      if (!host) return;
+      var w = Math.max(280, Math.round(host.clientWidth));
+      if (lastW[id] === w) return;
+      lastW[id] = w;
+      host.innerHTML = charts[id](w);
+    });
+  }
+
+  draw();
+  var t = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(t);
+    t = setTimeout(draw, 120);
+  }, { passive: true });
+})();

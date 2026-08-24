@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jonathan Earp — Projects</title>
+    <meta name="description" content="Side projects by Jonathan Earp — small systems built end to end and measured honestly. Including Desmos Guy, an automated pipeline that renders video as graphing-calculator animation.">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <link rel="canonical" href="https://projects.jonathanearp.xyz/">
+    <meta name="author" content="Jonathan Earp">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+    <meta name="theme-color" content="#100904">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Jonathan Earp">
+    <meta property="og:title" content="Jonathan Earp — Projects">
+    <meta property="og:description" content="Small systems built end to end and measured honestly — starting with a pipeline that turns video into Desmos animation.">
+    <meta property="og:url" content="https://projects.jonathanearp.xyz/">
+    <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Jonathan Earp — Projects">
+    <meta name="twitter:description" content="Small systems built end to end and measured honestly.">
+    <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
+    <meta name="twitter:creator" content="@JonathanEarp_">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "@id": "https://projects.jonathanearp.xyz/#page",
+      "url": "https://projects.jonathanearp.xyz/",
+      "name": "Jonathan Earp — Projects",
+      "description": "Side projects built end to end and measured honestly.",
+      "isPartOf": { "@type": "WebSite", "@id": "https://jonathanearp.xyz/#website" },
+      "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
+      "hasPart": [
+        {
+          "@type": "CreativeWork",
+          "name": "Desmos Guy",
+          "url": "https://projects.jonathanearp.xyz/desmos/",
+          "description": "An automated pipeline that turns TV clips into Desmos graphing-calculator animations and publishes them."
+        }
+      ]
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add("js");
+        try {
+          d.dataset.theme = localStorage.getItem("theme") || "dark";
+        } catch (e) { d.dataset.theme = "dark"; }
+      })();
+    </script>
+</head>
+<body>
+
+    <div class="vlabel" aria-hidden="true">Projects — MMXXVI</div>
+
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a href="https://jonathanearp.xyz" class="brand">Jonathan Earp <span class="brand__crumb">Projects</span></a>
+            <nav class="topnav">
+                <a href="#projects" class="topnav__link topnav__link--hide">Projects</a>
+                <a href="https://research.jonathanearp.xyz" class="topnav__link topnav__link--hide">Research ↗</a>
+                <a href="https://jonathanearp.xyz" class="topnav__link topnav__link--hide">Index ↗</a>
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle color theme">
+                    <span class="theme-toggle__dot"></span><span class="theme-toggle__label"></span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main id="top">
+
+        <!-- HERO -->
+        <section class="hero wrap">
+            <canvas id="topo" data-topo data-interactive="true" aria-hidden="true"></canvas>
+            <div class="hero__eyebrow mono" data-reveal>
+                <span><span class="dot">●</span> Side projects / 2026—</span>
+                <span>Built end to end</span>
+                <span>Measured, not estimated</span>
+            </div>
+            <h1 class="hero__title" data-reveal style="--i:1">Projects</h1>
+            <p class="hero__lead" data-reveal style="--i:2">
+                Small systems I build to find out whether an idea survives contact with data.
+                Each one ships, gets <b>measured</b>, and the measurements usually
+                disagree with what I expected.
+            </p>
+
+            <div class="metastrip" data-reveal style="--i:3">
+                <div class="metastrip__cell">
+                    <span class="metastrip__k">Live</span>
+                    <span class="metastrip__v">1 project</span>
+                </div>
+                <div class="metastrip__cell">
+                    <span class="metastrip__k">Focus</span>
+                    <span class="metastrip__v">Pipelines · Vision · Measurement</span>
+                </div>
+                <div class="metastrip__cell">
+                    <span class="metastrip__k">Written in</span>
+                    <span class="metastrip__v">Python</span>
+                </div>
+                <div class="metastrip__cell">
+                    <span class="metastrip__k">Rule</span>
+                    <span class="metastrip__v">Publish the failures too</span>
+                </div>
+            </div>
+
+            <div class="scroll-prompt" aria-hidden="true"><span>Scroll</span><span class="chev"></span></div>
+        </section>
+
+        <!-- PROJECT LIST -->
+        <section id="projects" class="section wrap">
+            <div class="shead" data-reveal>
+                <span class="shead__no">01</span>
+                <span class="shead__title">Selected Projects</span>
+                <span class="shead__meta">Newest first</span>
+            </div>
+
+            <div class="plist">
+
+                <a class="prow" href="desmos/" data-reveal>
+                    <span class="prow__no">01</span>
+                    <div>
+                        <h2 class="prow__title">Desmos Guy</h2>
+                        <p class="prow__desc">
+                            One command finds a TV clip, works out which episode it is from, traces
+                            it to line art, rebuilds it as parametric expressions inside a Desmos
+                            graphing calculator, screenshots the result frame by frame and posts
+                            the finished vertical video. ~4,100 lines of Python, no framework.
+                        </p>
+                        <div class="prow__tags">
+                            <span>Python</span><span>OpenCV</span><span>Playwright</span>
+                            <span>Whisper</span><span>ffmpeg</span><span>Automation</span>
+                        </div>
+                    </div>
+                    <div class="prow__stats">
+                        <div class="prow__stat"><b>12,597</b><span>Hours watched<br>in seven days</span></div>
+                        <div class="prow__stat"><b>2.4M</b><span>Plays</span></div>
+                        <div class="prow__stat"><b>1.55×</b><span>Faster after<br>the render fix</span></div>
+                    </div>
+                    <span class="prow__go" aria-hidden="true">↗</span>
+                </a>
+
+            </div>
+
+            <p class="callout" data-reveal>
+                More in progress. This page grows as things actually ship —
+                <strong>nothing goes up until there are numbers to put next to it.</strong>
+            </p>
+        </section>
+
+    </main>
+
+    <footer class="foot">
+        <div class="wrap">
+            <div class="foot__grid">
+                <div class="foot__col"><div class="foot__big">Build it,<br>then measure it.</div></div>
+                <div class="foot__col">
+                    <h4>Index</h4>
+                    <ul>
+                        <li><a href="https://jonathanearp.xyz">Home ↗</a></li>
+                        <li><a href="https://fpv.jonathanearp.xyz">FPV ↗</a></li>
+                        <li><a href="https://research.jonathanearp.xyz">Research ↗</a></li>
+                        <li><a href="https://resume.jonathanearp.xyz">Résumé ↗</a></li>
+                    </ul>
+                </div>
+                <div class="foot__col">
+                    <h4>Elsewhere</h4>
+                    <ul>
+                        <li><a href="https://www.linkedin.com/in/jonathan-earp-25905026b/" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+                        <li><a href="https://github.com/JEarpfpv" target="_blank" rel="noopener">GitHub ↗</a></li>
+                        <li><a href="mailto:jonathan.earp55@gmail.com">Email ↗</a></li>
+                    </ul>
+                </div>
+                <a href="#top" class="to-top">↑ Top</a>
+            </div>
+            <div class="foot__bar">
+                <span>© <span id="year">2026</span> Jonathan Earp</span>
+                <span>Projects · Pipelines · Measurement</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="topo.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

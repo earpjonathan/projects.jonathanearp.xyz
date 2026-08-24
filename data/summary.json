@@ -1,0 +1,24 @@
+{
+ "generated": "2026-08-23",
+ "window": {
+  "first": "2026-08-17",
+  "last": "2026-08-23"
+ },
+ "posts": 81,
+ "total_watch_hours": 12597,
+ "total_watch_days": 524.9,
+ "total_plays": 2395195,
+ "total_reach": 2438643,
+ "total_likes": 279919,
+ "total_shares": 95729,
+ "total_saves": 18103,
+ "mean_watch_per_play_s": 18.9,
+ "median_plays": 2413,
+ "mean_plays": 29570,
+ "median_watch_hours": 6.82,
+ "top1_share_pct": 40.2,
+ "top3_share_pct": 81.6,
+ "top10_share_pct": 95.7,
+ "hit_rate_pct": 4.9,
+ "youtube_uploads": 140
+}

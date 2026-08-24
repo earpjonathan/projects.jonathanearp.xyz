@@ -13,6 +13,7 @@ desmos/
   index.html        Case study
   data.js           Measured data, inlined (generated — see below)
   charts.js         The five figures, drawn as inline SVG
+  interactive.js    The four playable demos
 style.css           ORYZO shared base + projects-specific styles
 script.js           Theme toggle, scroll reveal, chapter nav
 topo.js             Topographic canvas background (copied verbatim from Research)
@@ -20,6 +21,27 @@ data/*.json         Source measurements, kept for provenance
 assets/             Favicon, apple-touch-icon
 CNAME               projects.jonathanearp.xyz
 ```
+
+## The interactive demos
+
+`desmos/interactive.js` holds four of them, and they run the real algorithms
+rather than faking the output:
+
+| demo | what it actually does |
+|---|---|
+| **trace** | Sobel edge detection, Moore-neighbourhood border following and Ramer–Douglas–Peucker simplification, live on a canvas |
+| **chunks** | evaluates the gate and clamped-index expressions for whatever `n` the slider is on |
+| **settle** | models one Desmos update with a ~55 ms stall in the middle, then applies the settle rule; `stable=2` captures a frame with no character in it, `stable=4` and up do not |
+| **timeline** | v0 → v4, with the measured numbers for each |
+
+The settle demo's stall is deliberately sized between 2 and 4 animation frames,
+because that is what the real measurements imply: `stable=2` was wrong on 39 of
+40 frames and `stable=4` was correct on all 40. If you ever re-measure and those
+numbers move, move the stall too.
+
+The trace demo's subject is drawn in code in `drawSubject()`. It is a cat, in
+colour, so that the grayscale step is visibly a step. **Do not swap in a real
+frame** — that would put copyrighted footage in the repo.
 
 ## Design
 

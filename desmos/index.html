@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desmos Guy — Jonathan Earp</title>
-    <meta name="description" content="An automated pipeline that turns TV clips into Desmos graphing-calculator animations. 12,597 hours of watch time in seven days — and a paper trail of hypotheses killed by measurement.">
+    <meta name="description" content="How I built a pipeline that turns TV clips into Desmos graphing-calculator animations — tracing, chunk-gated expressions, the screenshot bug that shipped for months, and what it did on Instagram.">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="canonical" href="https://projects.jonathanearp.xyz/desmos/">
@@ -15,14 +15,14 @@
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="Desmos Guy — an automated video-to-Desmos pipeline">
-    <meta property="og:description" content="One command renders TV clips as graphing-calculator animation and posts them. 12,597 hours watched in seven days.">
+    <meta property="og:description" content="Tracing, chunk-gated expressions, a screenshot bug that shipped for months, and 12,597 hours of watch time in a week.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/desmos/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Desmos Guy — an automated video-to-Desmos pipeline">
-    <meta name="twitter:description" content="12,597 hours watched in seven days, and the model that turned out not to exist.">
+    <meta name="twitter:description" content="How it works, what broke, and what it did on Instagram.">
     <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta name="twitter:creator" content="@JonathanEarp_">
 
@@ -31,7 +31,7 @@
       "@context": "https://schema.org",
       "@type": "TechArticle",
       "headline": "Desmos Guy — an automated video-to-Desmos pipeline",
-      "description": "A fully automatic pipeline that renders video clips as Desmos graphing-calculator animations, with measured results and the findings that reshaped its architecture.",
+      "description": "How a Python pipeline traces video frames, packs them into chunk-gated Desmos expressions, screenshots them, and posts the result — with the bugs found along the way.",
       "url": "https://projects.jonathanearp.xyz/desmos/",
       "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
       "isPartOf": { "@id": "https://projects.jonathanearp.xyz/#page" },
@@ -81,13 +81,13 @@
             <div class="hero__eyebrow mono" data-reveal>
                 <span><span class="dot">●</span> Project 01 / 2026</span>
                 <span>~4,100 lines of Python</span>
-                <span>Fully automatic</span>
+                <span>Runs off one command</span>
             </div>
             <h1 class="hero__title" data-reveal style="--i:1">Desmos&nbsp;Guy</h1>
             <p class="hero__lead" data-reveal style="--i:2">
-                A graphing calculator doing animation it was never meant to do — and
-                you can watch the <b>equations</b> doing it. One command harvests the
-                clips, renders them, and posts the results.
+                I made a graphing calculator do animation it was never built for, and
+                you can watch the <b>equations</b> do it. One command finds the clips,
+                renders them and posts them.
             </p>
 
             <!-- A finished reel drops in here: see README, "Adding a hero reel". -->
@@ -100,138 +100,553 @@
             <!-- headline numbers -->
             <div class="stats stats--3" data-reveal>
                 <div class="stat">
+                    <div class="stat__n">4,100</div>
+                    <div class="stat__l">Lines of Python<br>across 10 modules</div>
+                </div>
+                <div class="stat">
+                    <div class="stat__n">110<small> s</small></div>
+                    <div class="stat__l">To render a 13.8 s clip,<br>down from 171 s</div>
+                </div>
+                <div class="stat">
                     <div class="stat__n">12,597<small> h</small></div>
-                    <div class="stat__l">Watch time — 524.9 days,<br>or 1 year 5 months of continuous viewing</div>
-                </div>
-                <div class="stat">
-                    <div class="stat__n">2.4<small>M</small></div>
-                    <div class="stat__l">Plays across 81 posts</div>
-                </div>
-                <div class="stat">
-                    <div class="stat__n">7<small> days</small></div>
-                    <div class="stat__l">The whole measurement window<br>17—23 August 2026</div>
+                    <div class="stat__l">Watched in seven days,<br>once it was working</div>
                 </div>
             </div>
 
             <!-- chapter nav -->
             <nav class="chapnav" id="chapnav" aria-label="Chapters">
                 <a href="#what"><span>01</span> What it does</a>
-                <a href="#how"><span>02</span> How it draws</a>
-                <a href="#results"><span>03</span> Results</a>
-                <a href="#model"><span>04</span> The model that wasn't</a>
-                <a href="#bugs"><span>05</span> Engineering</a>
-                <a href="#cost"><span>06</span> Cost &amp; timing</a>
-                <a href="#limits"><span>07</span> Limits</a>
+                <a href="#trace"><span>02</span> Tracing a frame</a>
+                <a href="#pack"><span>03</span> Packing it into Desmos</a>
+                <a href="#shots"><span>04</span> The screenshot problem</a>
+                <a href="#versions"><span>05</span> Version by version</a>
+                <a href="#finding"><span>06</span> Finding clips</a>
+                <a href="#picker"><span>07</span> The picker that didn't work</a>
+                <a href="#instagram"><span>08</span> What it did on Instagram</a>
+                <a href="#broken"><span>09</span> Still broken</a>
             </nav>
 
-            <!-- ============ 01 WHAT IT DOES ============ -->
+            <!-- ============ 01 ============ -->
             <section class="block" id="what" data-reveal>
                 <div class="block__no">01</div>
                 <div class="block__body">
                     <h2 class="block__h">What it does</h2>
                     <p class="lede">
-                        A Family Guy clip goes in. What comes out is a 9:16 video where the top half
-                        is a Desmos graphing calculator drawing the scene as line art, expression list
-                        visible, while the original clip plays underneath.
+                        Feed it a Family Guy clip. You get back a vertical video with a Desmos
+                        graph on top drawing the scene as line art, expression list and all,
+                        and the original clip playing underneath.
                     </p>
                     <p>
-                        The pipeline is fully automatic. <code>autopilot.py --count 10</code> finds ten
-                        clips online, works out which episode each is from, rejects the ones it cannot
-                        caption, renders them, posts them to YouTube, and leaves copies plus captions
-                        in a folder. No framework — <strong>~4,100 lines of Python across 10 modules</strong>,
-                        leaning on <code>yt-dlp</code>, <code>faster-whisper</code>, <code>playwright</code>,
-                        <code>opencv</code>, <code>numpy</code> and <code>ffmpeg</code>.
+                        It all runs off one command. <code>autopilot.py --count 10</code> goes and
+                        finds ten clips, works out which episode each one is from, throws out the
+                        ones it can't caption, renders them, uploads them to YouTube, and drops the
+                        files and captions in a folder for me.
+                    </p>
+                    <p>
+                        About <strong>4,100 lines of Python across 10 modules</strong>. No framework,
+                        mostly because I didn't realise I'd want one until it was too annoying to add.
+                        It leans on <code>yt-dlp</code>, <code>faster-whisper</code>,
+                        <code>playwright</code>, <code>opencv</code>, <code>numpy</code> and
+                        <code>ffmpeg</code> to do the heavy parts.
                     </p>
 
                     <div class="pipe">
-                        <div class="pipe__s"><div class="pipe__n">01</div><div class="pipe__h">Harvest</div><p class="pipe__p">Pull candidate clips from search and a verified channel list.</p></div>
-                        <div class="pipe__s"><div class="pipe__n">02</div><div class="pipe__h">Identify</div><p class="pipe__p">Transcribe, then match dialogue against an episode index.</p></div>
-                        <div class="pipe__s"><div class="pipe__n">03</div><div class="pipe__h">Dedupe</div><p class="pipe__p">Drop anything already seen or already posted.</p></div>
-                        <div class="pipe__s"><div class="pipe__n">04</div><div class="pipe__h">Render</div><p class="pipe__p">Trace to polylines, pack into Desmos expressions, screenshot.</p></div>
-                        <div class="pipe__s"><div class="pipe__n">05</div><div class="pipe__h">Measure</div><p class="pipe__p">Profile the render and record source metadata.</p></div>
-                        <div class="pipe__s"><div class="pipe__n">06</div><div class="pipe__h">Upload</div><p class="pipe__p">Push to YouTube, verify the video is live afterwards.</p></div>
-                        <div class="pipe__s"><div class="pipe__n">07</div><div class="pipe__h">Stage</div><p class="pipe__p">Write finished files and captions for the manual Instagram post.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">01</div><div class="pipe__h">Harvest</div><p class="pipe__p">Pull candidate clips from search and a channel list.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">02</div><div class="pipe__h">Identify</div><p class="pipe__p">Transcribe it, match the dialogue to an episode.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">03</div><div class="pipe__h">Dedupe</div><p class="pipe__p">Drop anything I've already seen or posted.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">04</div><div class="pipe__h">Render</div><p class="pipe__p">Trace to polylines, pack into expressions, screenshot.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">05</div><div class="pipe__h">Measure</div><p class="pipe__p">Time the render, save where the clip came from.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">06</div><div class="pipe__h">Upload</div><p class="pipe__p">Push to YouTube, then check it's actually live.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">07</div><div class="pipe__h">Stage</div><p class="pipe__p">Write the files and captions for the manual IG post.</p></div>
                     </div>
+
+                    <p class="callout">
+                        The next four sections are the render path, in order. Each one has something
+                        you can poke at, because <strong>most of this was much easier to understand
+                        once I could see it move.</strong>
+                    </p>
                 </div>
             </section>
 
-            <!-- ============ 02 HOW IT DRAWS ============ -->
-            <section class="block" id="how" data-reveal>
+            <!-- ============ 02 ============ -->
+            <section class="block" id="trace" data-reveal>
                 <div class="block__no">02</div>
                 <div class="block__body">
-                    <h2 class="block__h">How it draws</h2>
-                    <p>
-                        The clip is decoded to grayscale frames, edges are traced to polylines,
-                        simplified, and packed into <strong>list-valued parametric expressions</strong>.
-                        A single slider <code>n</code> selects the frame.
+                    <h2 class="block__h">Tracing a frame</h2>
+                    <p class="lede">
+                        Before Desmos can draw anything, a frame has to stop being pixels and
+                        start being lines.
                     </p>
                     <p>
-                        Desmos caps how long a list can be, so frames are packed into
-                        <em>chunks</em>. Each chunk is gated by an expression that evaluates to
-                        <code>1</code> inside its own frame range and is undefined outside it. An
-                        undefined gate blanks that chunk's curve without disturbing any index
-                        arithmetic — so every chunk can keep using the same clamped index without
-                        special-casing the boundaries.
+                        Each frame gets decoded to grayscale, run through a Sobel filter to find
+                        edges, thresholded, and then I walk the edge pixels one at a time to get
+                        outlines that are actually in order. Basically a list of points you could
+                        draw with a pen without lifting it. Even a simple frame comes back with thousands of
+                        points, which is more than Desmos will happily take. So the last step throws
+                        most of them away.
+                    </p>
+
+                    <div class="demo demo--trace">
+                        <div class="demo__head">
+                            <span class="demo__k">Try it</span>
+                            <span class="demo__t">Frame → polylines</span>
+                            <span class="demo__hint">Step through the stages</span>
+                        </div>
+                        <div class="demo__ctl">
+                            <button class="sbtn" data-step type="button"><span class="sbtn__n">1</span>Frame</button>
+                            <button class="sbtn" data-step type="button"><span class="sbtn__n">2</span>Grayscale</button>
+                            <button class="sbtn" data-step type="button"><span class="sbtn__n">3</span>Sobel edges</button>
+                            <button class="sbtn" data-step type="button"><span class="sbtn__n">4</span>Traced outlines</button>
+                            <button class="sbtn" data-step type="button"><span class="sbtn__n">5</span>Simplified</button>
+                        </div>
+                        <canvas class="demo__canvas" aria-label="Edge-tracing stages, rendered live"></canvas>
+                        <div class="demo__eps srange" hidden>
+                            <span class="srange__k">Tolerance</span>
+                            <input type="range" min="0.2" max="4" step="0.1" value="1.5" aria-label="Simplification tolerance in pixels">
+                            <span class="srange__v" data-read="epsval">1.5 px</span>
+                        </div>
+                        <div class="demo__read">
+                            <span>Points <b data-read="points">—</b></span>
+                            <span><b data-read="drop">—</b></span>
+                            <span class="demo__note" data-read="note"></span>
+                        </div>
+                    </div>
+
+                    <p>
+                        That's running the real algorithms in your browser, on a cat I drew in code
+                        so there's nothing copyrighted sitting in this repo. Same Sobel operator,
+                        same border-following, same Ramer–Douglas–Peucker simplification the
+                        renderer uses.
+                    </p>
+                    <p>
+                        Push the tolerance slider around and you'll see the tradeoff I spent a while
+                        stuck on. <strong>Too tight and the expression lists get enormous and Desmos
+                        crawls. Too loose and the cat stops looking like a cat.</strong> I ended up
+                        around 1.5&nbsp;px, which drops roughly 90% of the points and still keeps
+                        the shape.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 03 ============ -->
+            <section class="block" id="pack" data-reveal>
+                <div class="block__no">03</div>
+                <div class="block__body">
+                    <h2 class="block__h">Packing it into Desmos</h2>
+                    <p class="lede">
+                        Now I've got a pile of polylines per frame, and I need Desmos to show
+                        exactly one frame at a time.
+                    </p>
+                    <p>
+                        The whole thing is list-valued parametric expressions with a single slider
+                        <code>n</code> choosing the frame. Except Desmos caps how long a list can be,
+                        so I can't dump every frame into one list. Frames get packed into
+                        <em>chunks</em> of about ten.
+                    </p>
+                    <p>
+                        Which creates a new problem. When the slider is sitting on frame 14, chunks
+                        1 and 3 still get evaluated. If they index past the end of their list the
+                        whole graph throws an error and nothing renders.
+                    </p>
+                    <p>
+                        What fixed it was gating. Each chunk gets an expression that equals
+                        <code>1</code> inside its own frame range and is undefined everywhere else.
+                        Undefined doesn't error in Desmos. It just makes that curve vanish. And the
+                        index gets clamped so it's always a legal position in the list, even when
+                        that chunk isn't the one being drawn. No boundary special-casing anywhere.
                     </p>
 
                     <div class="eqs">
                         <div class="eqrow">
                             <div class="eqrow__e">G₁ = {1 ≤ n ≤ 10 : 1}</div>
-                            <div class="eqrow__d"><strong>The gate.</strong> Defined only while the slider sits inside this chunk. Everywhere else it is undefined, which silently blanks the curve.</div>
+                            <div class="eqrow__d"><strong>The gate.</strong> Equals 1 while the slider is inside this chunk. Undefined otherwise, which quietly blanks the curve instead of erroring.</div>
                         </div>
                         <div class="eqrow">
                             <div class="eqrow__e">J₁ = min(max(n − 0, 1), 10)</div>
-                            <div class="eqrow__d"><strong>The clamped index.</strong> Always a valid position in the list, even when the slider is far outside this chunk — so nothing ever indexes out of range.</div>
+                            <div class="eqrow__d"><strong>The clamped index.</strong> Always lands somewhere valid, even when <code>n</code> is nowhere near this chunk. This is what stops the out-of-range error.</div>
                         </div>
                         <div class="eqrow">
                             <div class="eqrow__e">R₁ = [O₁[J₁] … E₁[J₁]]</div>
-                            <div class="eqrow__d"><strong>The stroke range.</strong> Slices this frame's strokes out of the chunk's offset and end lists.</div>
+                            <div class="eqrow__d"><strong>The slice.</strong> Pulls this frame's strokes out of the chunk's offset and end lists.</div>
+                        </div>
+                    </div>
+
+                    <div class="demo demo--chunks">
+                        <div class="demo__head">
+                            <span class="demo__k">Try it</span>
+                            <span class="demo__t">One slider, three chunks</span>
+                            <span class="demo__hint">Drag n across a boundary</span>
+                        </div>
+                        <div class="demo__ctl srange">
+                            <span class="srange__k">Slider n</span>
+                            <input type="range" min="1" max="30" step="1" value="14" aria-label="Frame index n">
+                            <span class="srange__v">n = <span data-read="n">14</span></span>
+                        </div>
+                        <div class="chunks">
+                            <div class="chunks__grid">
+                                <div class="chunk">
+                                    <div class="chunk__k">Chunk <b>C₁</b> — frames 1–10</div>
+                                    <div class="chunk__vals">
+                                        <span>G₁ = <b data-f="gate">·</b></span>
+                                        <span>J₁ = <b data-f="idx">·</b></span>
+                                    </div>
+                                    <div class="chunk__ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                                    <div class="chunk__state" data-f="state">·</div>
+                                </div>
+                                <div class="chunk">
+                                    <div class="chunk__k">Chunk <b>C₂</b> — frames 11–20</div>
+                                    <div class="chunk__vals">
+                                        <span>G₂ = <b data-f="gate">·</b></span>
+                                        <span>J₂ = <b data-f="idx">·</b></span>
+                                    </div>
+                                    <div class="chunk__ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                                    <div class="chunk__state" data-f="state">·</div>
+                                </div>
+                                <div class="chunk">
+                                    <div class="chunk__k">Chunk <b>C₃</b> — frames 21–30</div>
+                                    <div class="chunk__vals">
+                                        <span>G₃ = <b data-f="gate">·</b></span>
+                                        <span>J₃ = <b data-f="idx">·</b></span>
+                                    </div>
+                                    <div class="chunk__ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                                    <div class="chunk__state" data-f="state">·</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <p>
-                        Move the slider and exactly one chunk is defined at a time. The rest evaluate
-                        to nothing and disappear:
-                    </p>
-
-                    <div class="chunks">
-                        <div class="chunks__slider"><span>Slider</span> <b>n = 14</b></div>
-                        <div class="chunks__grid">
-                            <div class="chunk">
-                                <div class="chunk__k">Chunk <b>C₁</b> — frames 1–10</div>
-                                <div class="chunk__ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                                <div class="chunk__state">G₁ undefined → curve blank</div>
-                            </div>
-                            <div class="chunk chunk--on">
-                                <div class="chunk__k">Chunk <b>C₂</b> — frames 11–20</div>
-                                <div class="chunk__ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                                <div class="chunk__state">G₂ = <b>1</b> → this chunk draws frame 14</div>
-                            </div>
-                            <div class="chunk">
-                                <div class="chunk__k">Chunk <b>C₃</b> — frames 21–30</div>
-                                <div class="chunk__ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                                <div class="chunk__state">G₃ undefined → curve blank</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p>
-                        The finished graph is then screenshotted frame by frame in a headless
-                        Chromium and stacked over the source clip with ffmpeg. That screenshot loop
-                        is where all of the time goes — which took a while to notice.
+                        Exactly one chunk is defined at a time. The other two evaluate to nothing and
+                        disappear, and the clamped index means they're still doing perfectly legal
+                        arithmetic while they do it.
                     </p>
                 </div>
             </section>
 
-            <!-- ============ 03 RESULTS ============ -->
-            <section class="block" id="results" data-reveal>
-                <div class="block__no">03</div>
+            <!-- ============ 04 ============ -->
+            <section class="block" id="shots" data-reveal>
+                <div class="block__no">04</div>
                 <div class="block__body">
-                    <h2 class="block__h">Results</h2>
+                    <h2 class="block__h">The screenshot problem</h2>
                     <p class="lede">
-                        Seven days, 81 Instagram posts and 140 YouTube uploads.
-                        <strong>12,597 hours of watch time</strong> — that is watch time, not views;
-                        the plays figure is 2.4 million.
+                        Once the graph exists, I screenshot it frame by frame in a headless Chromium
+                        and stack it over the source clip with ffmpeg. This is where all the time
+                        goes, and where the worst bug was hiding.
+                    </p>
+                    <p>
+                        I assumed the slow part was tracing. My tracer runs 8 worker processes on a
+                        15-core machine, so the obvious move was more workers. I profiled it to work
+                        out how many to add.
+                    </p>
+
+                    <figure class="fig">
+                        <div id="fig-render-profile"></div>
+                        <figcaption>
+                            <strong>One 13.8 s clip, 331 frames.</strong> Tracing is 4%. If I'd made
+                            it take literally zero time I'd have saved seven seconds out of 171.
+                        </figcaption>
+                    </figure>
+
+                    <p>
+                        Screenshotting was 94% of it, one frame at a time, 486&nbsp;ms each, in a
+                        single browser page. So I parallelised the capture instead of the tracing and
+                        the same clip went from <strong>171.6&nbsp;s to 110.4&nbsp;s</strong>.
+                    </p>
+                    <p>Then the frames came out different.</p>
+
+                    <h3 class="block__sub">The frames had been wrong the whole time</h3>
+                    <p>
+                        My first thought was that the parallel version was broken. Serial had been
+                        running for months. Obviously serial was the correct one. So I tested serial
+                        against itself. Rendered the same clip twice on an idle machine and diffed
+                        every frame.
+                    </p>
+                    <p>
+                        Zero of 40 frames differed. Perfectly deterministic. I took that as proof it
+                        was right, and that's exactly why this took months to notice:
+                        <em>being consistently wrong looks identical to being right.</em>
+                    </p>
+                    <p>
+                        The bug was in the settle logic. After moving the slider I wait for the canvas
+                        to stop changing before I screenshot it, and "stopped changing" meant
+                        <strong>2 unchanged animation frames, about 33&nbsp;ms</strong>. Desmos pauses
+                        for longer than that in the middle of an update. So I was catching the
+                        background redrawn and the character not.
+                    </p>
+
+                    <div class="demo demo--settle">
+                        <div class="demo__head">
+                            <span class="demo__k">Try it</span>
+                            <span class="demo__t">Where the screenshot lands</span>
+                            <span class="demo__hint">Start at 2, then drag it up</span>
+                        </div>
+                        <div class="demo__ctl srange">
+                            <span class="srange__k">Unchanged frames required</span>
+                            <input type="range" min="2" max="24" step="2" value="2" aria-label="Settle threshold in animation frames">
+                            <span class="srange__v">stable = <span data-read="thr">2</span></span>
+                            <button class="sbtn" data-act="run" type="button">Replay</button>
+                        </div>
+                        <div class="settle__pair">
+                            <figure class="settle__cell">
+                                <figcaption>The graph updating</figcaption>
+                                <canvas data-canvas="live" aria-label="Simulated Desmos canvas mid-update"></canvas>
+                            </figure>
+                            <figure class="settle__cell">
+                                <figcaption>What got screenshotted</figcaption>
+                                <canvas data-canvas="shot" aria-label="The captured frame"></canvas>
+                            </figure>
+                        </div>
+                        <div class="settle__track"><span class="settle__mark"></span></div>
+                        <p class="settle__verdict" data-read="verdict"></p>
+                    </div>
+
+                    <p>
+                        To find the real answer I raised the threshold until the output stopped
+                        changing. <code>stable=12</code> and <code>stable=24</code> come out
+                        byte-identical, so 12 is converged and anything at or above 4 is fine.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>Frames differing from the converged output, across 40 sampled frames</caption>
+                        <thead><tr><th>Settle threshold</th><th class="num">Frames wrong</th><th>Verdict</th></tr></thead>
+                        <tbody>
+                            <tr class="is-key">
+                                <td>stable = 2 <span class="tag">what I shipped</span></td>
+                                <td class="num"><strong>39 of 40</strong></td>
+                                <td>Months of renders with missing linework</td>
+                            </tr>
+                            <tr><td>stable = 4</td><td class="num">0 of 40</td><td>Correct</td></tr>
+                            <tr><td>stable = 6</td><td class="num">0 of 40</td><td>Correct</td></tr>
+                            <tr><td>stable = 12</td><td class="num">0 of 40</td><td>Converged — same bytes as stable = 24</td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        Every video I'd made before this had incomplete linework on basically every
+                        frame. Nobody noticed, including me, because it was wrong the same way every
+                        time. It's the thing I'm most glad I found and the thing I'm least proud of.
+                        The fix made the output faster <em>and</em> correct, which felt like getting
+                        away with something.
+                    </p>
+
+                    <h3 class="block__sub">What a render costs</h3>
+                    <p>
+                        Render time scales with clip length at roughly 11–12×, but the spread is
+                        wide: <strong>7.3× to 15.5×</strong> in the first batch, depending on how much
+                        the tracer can reuse between frames. My first five measurements all landed
+                        between 10× and 13×, which made me think the constant was way tighter than
+                        it is.
+                    </p>
+
+                    <figure class="fig">
+                        <div id="fig-render-cost"></div>
+                        <div class="c-legend">
+                            <span><i></i>Run 1 — before the capture fix</span>
+                            <span><i class="acc"></i>Run 2 — after</span>
+                        </div>
+                        <figcaption>
+                            20 clips against a 12× reference line. The two batches are different
+                            clips, so the gap between them isn't a clean measure of the speedup —
+                            the 1.55× comes from the same-clip test above. Practical version:
+                            <strong>ten 15-second clips take about half an hour. Ten 45-second clips
+                            take an hour and a half.</strong> Clip length is the lever that matters.
+                        </figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <!-- ============ 05 ============ -->
+            <section class="block" id="versions" data-reveal>
+                <div class="block__no">05</div>
+                <div class="block__body">
+                    <h2 class="block__h">Version by version</h2>
+                    <p class="lede">
+                        None of this was designed up front. Every version exists because something
+                        measured came back wrong.
+                    </p>
+
+                    <div class="demo demo--timeline">
+                        <div class="demo__head">
+                            <span class="demo__k">Try it</span>
+                            <span class="demo__t">What each upgrade actually bought</span>
+                            <span class="demo__hint">Click through, or use arrow keys</span>
+                        </div>
+                        <div class="tl__steps" role="tablist" aria-label="Versions">
+                            <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v0</span><span class="tl__vn">First one that worked</span></button>
+                            <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v1</span><span class="tl__vn">Parallel capture</span></button>
+                            <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v2</span><span class="tl__vn">Settle fix</span></button>
+                            <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v3</span><span class="tl__vn">Shorts harvest</span></button>
+                            <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v4</span><span class="tl__vn">Dialogue linking</span></button>
+                        </div>
+                        <div class="tl__name" data-read="vname"></div>
+                        <p class="tl__blurb" data-read="vblurb"></p>
+                        <div class="tl__bars"></div>
+                        <div class="tl__extra" hidden></div>
+                    </div>
+
+                    <p>
+                        The pattern I'd point at: <strong>the two biggest wins came from measuring
+                        something I thought I already knew.</strong> I was sure tracing was the
+                        bottleneck and I was sure serial capture was correct. Both wrong, and both
+                        only visible once I actually put a number on them.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 06 ============ -->
+            <section class="block" id="finding" data-reveal>
+                <div class="block__no">06</div>
+                <div class="block__body">
+                    <h2 class="block__h">Finding clips</h2>
+                    <p class="lede">
+                        Rendering is only half of it. Something has to go find things worth
+                        rendering, and that half had its own set of problems.
+                    </p>
+
+                    <h3 class="block__sub">Shorts were invisible</h3>
+                    <p>
+                        <code>yt-dlp --flat-playlist</code> reports <code>duration: None</code> for
+                        every single YouTube Short. My length filter read:
+                    </p>
+                    <p><code>if not vid or not dur: continue</code></p>
+                    <p>
+                        which threw away 100% of them. Shorts are under 60 seconds by definition.
+                        I was searching for 8 to 45 second clips. So the best source I had was being
+                        dropped entirely, and the log printed <code>40 results, 0 in band</code>,
+                        which looks exactly like a source that just doesn't have anything good in it.
+                    </p>
+                    <p>
+                        Fixed by letting unknown-duration entries through to the full metadata fetch.
+                        <strong>Candidate pool went from 81 to 120 per run</strong>, and the first run
+                        after the fix pulled back 46 Shorts.
+                    </p>
+
+                    <h3 class="block__sub">Two channels that were never there</h3>
+                    <p>
+                        I'd seeded the harvest with a couple of channel handles I typed from memory
+                        instead of checking. One had no <code>/videos</code> tab. The other 404'd.
+                        A dead channel prints <code>0 results</code>, same as a channel I've already
+                        used up, so <strong>the curated half of my harvest did nothing for its entire
+                        existence</strong> and never said so. Replaced them with URLs I actually
+                        opened; the best one gives 16 usable clips out of 40. Dead sources now warn
+                        loudly instead of shrugging.
+                    </p>
+
+                    <h3 class="block__sub">Nothing joined to anything</h3>
+                    <p>
+                        Performance data was keyed by Instagram's re-encoded copy
+                        (<code>ig_&lt;media_id&gt;</code>) and source data by render tag
+                        (<code>auto_s03e09</code>). There was no shared key. So I couldn't answer the
+                        question I'd built the whole thing for: did the original's view count predict
+                        anything? However many posts piled up, there was no way to check.
+                    </p>
+                    <p>
+                        Duration looks like the obvious join key. It isn't:
+                        <strong>26 matches out of 68</strong>, and tightening the tolerance makes it
+                        <em>worse</em> (12 matches at ±0.05 s), because Instagram's re-encode shifts
+                        the duration by more than a frame.
+                    </p>
+                    <p>
+                        What worked was dialogue. Transcribe both sides, match on n-gram overlap, and
+                        require a margin over the runner-up so near-ties get recorded as ambiguous
+                        instead of guessed. <strong>56 of 68 linked</strong>, median overlap 0.95,
+                        median margin 0.94, zero ambiguous.
+                    </p>
+
+                    <h3 class="block__sub">Uploads went to the wrong channel</h3>
+                    <p>
+                        A Google account can own several YouTube channels, and the OAuth consent
+                        screen has a channel picker that is very easy to click straight past. My first
+                        uploads landed on my personal channel. The <code>youtube.upload</code> scope
+                        is write-only, so the tool couldn't even read back where it had put them.
+                    </p>
+                    <p>
+                        Fixed by adding <code>youtube.readonly</code>, asserting the channel handle
+                        before every upload, and verifying each video is live afterwards with a retry
+                        backoff, because <code>videos.list</code> lags <code>videos.insert</code>. That
+                        once gave me five false "not visible" reports on videos that were completely
+                        fine.
+                    </p>
+                    <p>
+                        YouTube also has two separate daily limits: an API project quota
+                        <em>and</em> a per-channel upload cap around 26 a day. The second one comes
+                        back as HTTP 400 and doesn't contain the word "quota" anywhere. My handler
+                        checked for "quota". It missed, and burned 30 doomed uploads in a row.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 07 ============ -->
+            <section class="block" id="picker" data-reveal>
+                <div class="block__no">07</div>
+                <div class="block__body">
+                    <h2 class="block__h">The picker that didn't work</h2>
+                    <p class="lede">
+                        The original plan was a model that picks which clips to render, ranked by
+                        predicted views. I built it. It doesn't work, and I think that's the most
+                        useful thing in here.
+                    </p>
+                    <p>
+                        A retention model is real and holds up out of sample.
+                        <strong>Cross-validated R² of 0.49</strong>. The problem is it's basically
+                        duration wearing a hat, and duration doesn't separate winners from losers.
+                        The top ten posts by plays run 8 to 32 seconds. The bottom ten run 6 to 40.
+                    </p>
+
+                    <figure class="fig">
+                        <div id="fig-predictability"></div>
+                        <figcaption>
+                            Four correlations across 68 posts. Ranking clips by predicted retention
+                            would order them about as well as shuffling them.
+                        </figcaption>
+                    </figure>
+
+                    <table class="dtable">
+                        <caption>Correlation with plays, and what happens if you try to predict them directly</caption>
+                        <thead>
+                            <tr><th>Relationship</th><th class="num">r</th><th>What that means</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="is-key">
+                                <td>Predicted retention → plays</td>
+                                <td class="num"><strong>+0.02</strong></td>
+                                <td>Nothing. Not "weak but positive" — nothing</td>
+                            </tr>
+                            <tr><td>Measured retention → plays</td><td class="num">+0.40</td><td>Real, but I only get it after posting</td></tr>
+                            <tr><td>Duration → plays</td><td class="num">−0.15</td><td>Noise</td></tr>
+                            <tr><td>Duration → retention</td><td class="num">−0.74</td><td>Strong, which is why the model is really just duration</td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        Predicting plays directly is worse than useless:
+                        <strong>cross-validated R² of −0.89</strong>, meaning I'd have done better
+                        guessing the average every single time. And the part of retention that
+                        <em>does</em> predict plays only becomes measurable once the post is already
+                        live, which is too late to help me decide what to render.
+                    </p>
+
+                    <div class="callout">
+                        <strong>So it doesn't forecast anything.</strong> It filters on length,
+                        whether I can caption it, and whether I've seen it before — that's where the
+                        real work happens. It records one guess, how many views the original uploader
+                        got, clearly labelled as an <em>untested hypothesis</em> with the test written
+                        and currently reporting <code>n = 0</code>. And then it just does volume. Hit
+                        rate is about 4.9%, so ten clips is roughly a 40% shot at one that lands.
+                        When nothing predicts, more attempts beats better picking.
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ 08 ============ -->
+            <section class="block" id="instagram" data-reveal>
+                <div class="block__no">08</div>
+                <div class="block__body">
+                    <h2 class="block__h">What it did on Instagram</h2>
+                    <p class="lede">
+                        Seven days, 81 posts on Instagram and 140 uploads on YouTube.
+                        <strong>12,597 hours of watch time</strong>. That's 524 days, or about a year
+                        and five months of continuous viewing, produced in a week.
                     </p>
 
                     <div class="stats">
@@ -242,21 +657,20 @@
                     </div>
 
                     <p>
-                        The number that matters most is the smallest one:
-                        <strong>mean watch per play is 18.9 s</strong>. Several of these clips run
-                        9–16 seconds, so a mean above 18 s means viewers are looping them. That is
-                        precisely the signal short-form ranking rewards, and it is the strongest
-                        thing in the dataset.
+                        Watch time and plays are different numbers and I keep having to correct
+                        people on it, including myself. 12,597 is hours watched. Plays were 2.4
+                        million.
                     </p>
-
-                    <h3 class="block__sub">The distribution is the story</h3>
                     <p>
-                        Three posts are four-fifths of everything. Seventy-one of them are a
-                        rounding error. <strong>Median post: 6.82 hours. Mean post: 155 hours</strong>
-                        — a 23× gap.
+                        The stat I didn't expect: <strong>mean watch per play is 18.9 seconds</strong>,
+                        and plenty of these clips are only 9 to 16 seconds long. People are watching
+                        them more than once without leaving. That's the thing Instagram's ranking
+                        actually rewards, and it's the strongest signal in the whole dataset.
                     </p>
 
-                    <figure class="fig" id="fig-concentration-wrap">
+                    <h3 class="block__sub">Three posts are most of it</h3>
+
+                    <figure class="fig">
                         <div id="fig-concentration"></div>
                         <div class="c-legend">
                             <span><i class="acc"></i>Top three posts</span>
@@ -264,231 +678,62 @@
                             <span><i class="acc"></i>Cumulative share of watch time</span>
                         </div>
                         <figcaption>
-                            <strong>Watch-time concentration across all 81 posts.</strong>
-                            Bars are linear, not log — the flatness of the tail is the finding, and a
-                            log axis would hide it. The top post alone is 40.2% of all watch time;
-                            the top three are 81.6%; the top ten are 95.7%. This is not a flaw in the
-                            account, it is how short-form distribution works — and it is why the
-                            architecture looks the way it does.
-                        </figcaption>
-                    </figure>
-                </div>
-            </section>
-
-            <!-- ============ 04 THE MODEL THAT WASN'T ============ -->
-            <section class="block" id="model" data-reveal>
-                <div class="block__no">04</div>
-                <div class="block__body">
-                    <h2 class="block__h">The model that didn't exist</h2>
-                    <p class="lede">
-                        The original goal was a model that picks clips to maximise views.
-                        That model was built, measured, and does not exist.
-                    </p>
-                    <p>
-                        A retention model is real and works out of sample —
-                        <strong>cross-validated R² = 0.49</strong>. But it turns out to be duration in
-                        disguise, and duration does not separate winners from losers: the top ten
-                        posts by plays run 8–32 s and the bottom ten run 6–40 s.
-                    </p>
-
-                    <figure class="fig">
-                        <div id="fig-predictability"></div>
-                        <figcaption>
-                            <strong>Four correlations, measured across 68 posts.</strong>
-                            Ranking candidate clips by predicted retention would order them
-                            essentially at random with respect to plays.
+                            Bars are linear, not log, on purpose — the flat tail is the point and a
+                            log axis would hide it.
                         </figcaption>
                     </figure>
 
-                    <table class="dtable">
-                        <caption>Correlation with plays — and what happens when you try to predict them directly</caption>
-                        <thead>
-                            <tr><th>Relationship</th><th class="num">r</th><th>Reading</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr class="is-key">
-                                <td>Predicted retention → plays</td>
-                                <td class="num"><strong>+0.02</strong></td>
-                                <td>Nothing. Not "weak but positive" — nothing.</td>
-                            </tr>
-                            <tr><td>Measured retention → plays</td><td class="num">+0.40</td><td>Real, but only measurable after posting</td></tr>
-                            <tr><td>Duration → plays</td><td class="num">−0.15</td><td>Noise</td></tr>
-                            <tr><td>Duration → retention</td><td class="num">−0.74</td><td>Strong — which is why the model is duration in disguise</td></tr>
-                        </tbody>
-                    </table>
-
                     <p>
-                        Predicting plays directly fails outright: <strong>cross-validated R² = −0.89</strong>,
-                        which means worse than guessing the mean every time. The part of retention that
-                        <em>does</em> predict plays is only measurable after a post is already live.
-                    </p>
-
-                    <div class="callout">
-                        <strong>So the system does not pretend to forecast.</strong> It runs hard filters
-                        — length, captionability, dedupe — which do the real work; it records one
-                        external signal, the view count the original uploader got, explicitly labelled
-                        an <em>untested hypothesis</em> with the test written and currently reporting
-                        <code>n = 0</code>; and then it leans on volume. Hit rate is about 4.9%, so ten
-                        clips is roughly a 40% chance of one breakout. When nothing predicts the shots,
-                        more shots beats better shot selection.
-                    </div>
-                </div>
-            </section>
-
-            <!-- ============ 05 ENGINEERING ============ -->
-            <section class="block" id="bugs" data-reveal>
-                <div class="block__no">05</div>
-                <div class="block__body">
-                    <h2 class="block__h">Bugs that looked like normal operation</h2>
-                    <p class="lede">
-                        Each of these was found the same way: a measurement contradicted an
-                        assumption that had never been checked.
-                    </p>
-
-                    <h3 class="block__sub">The renderer was optimised in the wrong place</h3>
-                    <p>
-                        The tracer runs a pool of 8 worker processes on a 15-core machine, so
-                        "use more cores" was the obvious speedup. Profiling one 13.8 s clip
-                        (331 frames) said otherwise — <strong>making tracing instantaneous would have
-                        saved 4%.</strong> The bottleneck was a single Chromium page screenshotting
-                        one frame at a time at 486 ms per frame.
-                    </p>
-
-                    <figure class="fig">
-                        <div id="fig-render-profile"></div>
-                        <figcaption>
-                            <strong>Parallelising the capture instead took a full render from 171.6 s to 110.4 s.</strong>
-                            This is the same clip rendered twice — the only controlled comparison in the dataset.
-                        </figcaption>
-                    </figure>
-
-                    <h3 class="block__sub">…and it had been quietly producing wrong frames the whole time</h3>
-                    <p>
-                        Parallel capture produced frames that differed from serial. Rather than assume
-                        the new code was broken, the <em>serial</em> path was tested for determinism —
-                        and it was perfectly deterministic, which is exactly what had hidden the bug.
+                        Median post: <strong>6.82 hours</strong>. Mean post: <strong>155 hours</strong>.
+                        The top post on its own is 40% of all the watch time, the top three are 82%,
+                        and seventy-one posts round to nothing.
                     </p>
                     <p>
-                        The settle logic accepted the canvas as finished after 2 unchanged animation
-                        frames, about 33 ms. Desmos pauses longer than that <em>in the middle</em> of an
-                        update, so the screenshot was catching the background redrawn and the character
-                        not. Ground truth was established by raising the threshold until the output
-                        stopped changing — <code>stable=12</code> and <code>stable=24</code> are
-                        byte-identical, so 12 is converged.
+                        Nothing went wrong there. That's just how short-form distribution works. But
+                        it's also why the picker section above ends the way it does.
+                        <em>If three posts out of 81 carry everything, getting slightly better at
+                        ranking the other 78 was never going to matter.</em>
                     </p>
 
-                    <table class="dtable">
-                        <caption>Frames differing from the converged output, across 40 sampled frames</caption>
-                        <thead><tr><th>Settle threshold</th><th class="num">Frames wrong</th><th>Verdict</th></tr></thead>
-                        <tbody>
-                            <tr class="is-key">
-                                <td>stable = 2 <span class="tag">shipped default</span></td>
-                                <td class="num"><strong>39 of 40</strong></td>
-                                <td>Every render for months had incomplete linework</td>
-                            </tr>
-                            <tr><td>stable = 4</td><td class="num">0 of 40</td><td>Correct</td></tr>
-                            <tr><td>stable = 6</td><td class="num">0 of 40</td><td>Correct</td></tr>
-                            <tr><td>stable = 12</td><td class="num">0 of 40</td><td>Converged — identical to stable = 24</td></tr>
-                        </tbody>
-                    </table>
-
-                    <p>
-                        It was invisible because it was <em>consistently</em> wrong. A performance
-                        investigation turned up a correctness bug that had been shipping for months,
-                        and the fix made the output both faster and right — not a trade between them.
-                    </p>
-
-                    <h3 class="block__sub">The harvester was blind to Shorts</h3>
-                    <p>
-                        <code>yt-dlp --flat-playlist</code> reports <code>duration: None</code> for every
-                        YouTube Short. The filter read <code>if not vid or not dur: continue</code>, so
-                        it silently discarded 100% of them — and Shorts are by definition under 60 s,
-                        which is precisely the 8–45 s band being searched for. The richest source was
-                        being dropped in full, and it printed
-                        <code>40 results, 0 in band</code>, indistinguishable from a genuinely bad source.
-                    </p>
-                    <p>
-                        Fixed by carrying unknown-duration entries through to the full metadata fetch.
-                        <strong>Candidate pool per run went from 81 to 120, up 48%</strong>, with 46
-                        Shorts recovered in the first run afterwards.
-                    </p>
-
-                    <h3 class="block__sub">Three more of the same shape</h3>
-                    <ul class="dlist">
-                        <li><strong>A curated source list that had never worked.</strong> Two channel handles were seeded by guessing instead of checking — one had no <code>/videos</code> tab, the other 404'd. A dead channel prints <code>0 results</code>, identical to one that has simply been exhausted, so the entire curated half of the harvest contributed nothing for its whole existence. Dead sources now warn loudly.</li>
-                        <li><strong>The learning loop could not close.</strong> Performance data was keyed by Instagram's re-encoded copy and source data by render tag, so nothing joined them. Duration looks like the obvious join key and is not — 26 unique matches of 68, and <em>tightening</em> the tolerance makes it worse, because the re-encode shifts duration by more than a frame. Matching on dialogue n-gram overlap instead, with a required margin over the runner-up, links <strong>56 of 68</strong> at a median overlap of 0.95 and zero ambiguous.</li>
-                        <li><strong>Uploads went to the wrong channel.</strong> A Google account can own several YouTube channels and the consent screen has a channel picker that is easy to click through. The <code>youtube.upload</code> scope is write-only, so the tool could not read back where anything had gone. Fixed by adding <code>youtube.readonly</code>, asserting the channel handle before every upload, and verifying each video is live afterwards with a retry backoff.</li>
-                        <li><strong>Two independent daily limits.</strong> YouTube enforces an API project quota <em>and</em> a per-channel upload cap of about 26 a day. The second arrives as HTTP 400 and does not contain the word "quota", so a handler checking for it missed the cap entirely and burned 30 doomed attempts in a row.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- ============ 06 COST & TIMING ============ -->
-            <section class="block" id="cost" data-reveal>
-                <div class="block__no">06</div>
-                <div class="block__body">
-                    <h2 class="block__h">Cost &amp; timing</h2>
-
-                    <h3 class="block__sub">Clip length is the dominant cost lever</h3>
-                    <p>
-                        Render time scales with clip duration at roughly 11–12×, but the spread is
-                        real: <strong>7.3× to 15.5×</strong> across the first batch, driven by how much
-                        frame-to-frame reuse the tracer finds. The first five measurements all landed
-                        between 10× and 13×, which made the constant look far tighter than it was.
-                    </p>
-
-                    <figure class="fig">
-                        <div id="fig-render-cost"></div>
-                        <div class="c-legend">
-                            <span><i></i>Run 1 — before the capture fix</span>
-                            <span><i class="acc"></i>Run 2 — after</span>
-                        </div>
-                        <figcaption>
-                            <strong>20 clips, two batches, against a 12× reference line.</strong>
-                            The aggregate ratio was 12.2× in run 1 and 10.9× in run 2 — but those are
-                            different clips, so that gap is not a clean measure of the fix. The 1.55×
-                            speedup comes from the same-clip A/B above, not from this scatter.
-                            Practical consequence: ten 15 s clips render in about 30 minutes; ten 45 s
-                            clips take about 90.
-                        </figcaption>
-                    </figure>
-
-                    <h3 class="block__sub">Plays settle at 48 hours</h3>
-                    <p>
-                        Two insight fetches 53 hours apart, bucketed by how old each post already was.
-                        Posts past 48 hours grew a median of <strong>+0.7%</strong>.
-                    </p>
+                    <h3 class="block__sub">Everything settles at 48 hours</h3>
 
                     <figure class="fig">
                         <div id="fig-settling"></div>
                         <figcaption>
-                            <strong>This explains a recurring false alarm:</strong> a batch published
-                            today always looks like a failure tomorrow. Of the 1,202 hours gained
-                            across those two days, 62% came from posts still inside their first 48
-                            hours and only 7% from the posts published in between.
+                            Two insight pulls, 53 hours apart, bucketed by how old each post already
+                            was.
                         </figcaption>
                     </figure>
 
-                    <h3 class="block__sub">Copyright, empirically</h3>
                     <p>
-                        <strong>2 of 140 uploads were Content-ID blocked. Both were over 89 s.
-                        Nothing under 80 s was ever touched.</strong> The clip length cap is set at 45 s
-                        on that evidence, which costs nothing — the entire top ten by plays is under 32 s.
+                        Anything past 48 hours moved a median of <strong>+0.7%</strong>. This explains
+                        a false alarm I kept giving myself: a batch posted today always looks like a
+                        flop tomorrow. Of the 1,202 hours gained across those two days, 62% came from
+                        posts still inside their first 48 hours and only 7% from the posts published
+                        in between.
+                    </p>
+
+                    <h3 class="block__sub">Copyright, measured</h3>
+                    <p>
+                        <strong>2 of 140 uploads got Content-ID blocked. Both were over 89 seconds.
+                        Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds,
+                        which costs me nothing, because the entire top ten by plays is under 32
+                        seconds anyway.
                     </p>
                 </div>
             </section>
 
-            <!-- ============ 07 LIMITS ============ -->
-            <section class="block" id="limits" data-reveal>
-                <div class="block__no">07</div>
+            <!-- ============ 09 ============ -->
+            <section class="block" id="broken" data-reveal>
+                <div class="block__no">09</div>
                 <div class="block__body">
-                    <h2 class="block__h">Honest limits</h2>
+                    <h2 class="block__h">Still broken</h2>
                     <ul class="dlist">
-                        <li><strong>Seven days of data.</strong> 81 posts, one account, one content genre. Nothing here generalises to other niches, and every correlation is computed on a sample where three posts dominate all the aggregates.</li>
-                        <li><strong>The ranking signal is untested.</strong> Source popularity is a hypothesis. The test is written and currently reports <code>n = 0</code>. It has not been shown to work.</li>
-                        <li><strong>Instagram posting is manual.</strong> YouTube is fully automated; the platform that produced all 12,597 hours still needs a human to upload. The automation is genuinely incomplete.</li>
-                        <li><strong><code>yt-dlp</code> is a single point of failure.</strong> The whole harvest stage depends on one external tool that breaks whenever YouTube changes. Failures are loud and skip the run rather than posting garbage.</li>
-                        <li><strong>Content-ID exposure scales with automation.</strong> Two of 140 were blocked; the 45 s cap is a mitigation, not a guarantee.</li>
+                        <li><strong>Seven days of data, one account, one show.</strong> None of this generalises anywhere, and every correlation above is computed on a sample where three posts dominate every total.</li>
+                        <li><strong>The source-popularity signal is untested.</strong> It's a hypothesis. The test is written and currently reports <code>n = 0</code>. I have not shown it works.</li>
+                        <li><strong>Instagram posting is still manual.</strong> YouTube is fully automatic. The platform that produced all 12,597 hours is the one I still upload by hand, which is a funny place for the automation to stop.</li>
+                        <li><strong><code>yt-dlp</code> is a single point of failure.</strong> Whenever YouTube changes something, harvest breaks. At least it breaks loudly and skips the run instead of posting garbage.</li>
+                        <li><strong>Content-ID risk scales with automation.</strong> Two of 140 got blocked; a 45-second cap is a mitigation, not a guarantee.</li>
                     </ul>
                 </div>
             </section>
@@ -543,5 +788,6 @@
     <script src="../script.js"></script>
     <script src="data.js"></script>
     <script src="charts.js"></script>
+    <script src="interactive.js"></script>
 </body>
 </html>

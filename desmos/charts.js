@@ -33,71 +33,6 @@
   function fmt(n) { return n.toLocaleString("en-US"); }
 
   /* ============================================================
-     V1 — watch-time concentration (Pareto)
-     Linear bars on purpose: a log axis would flatten the exact
-     asymmetry the chart exists to show.
-     ============================================================ */
-  function concentration(w) {
-    var posts = D.posts.slice().sort(function (a, b) { return b.watch_hours - a.watch_hours; });
-    var total = posts.reduce(function (s, p) { return s + p.watch_hours; }, 0);
-    var h = w < 560 ? 260 : 320;
-    var m = { t: 22, r: 44, b: 46, l: 52 };
-    var iw = w - m.l - m.r, ih = h - m.t - m.b;
-    var max = posts[0].watch_hours;
-    var bw = iw / posts.length;
-    var s = "";
-
-    /* y grid + labels (hours) */
-    [0, 1000, 2000, 3000, 4000, 5000].forEach(function (v) {
-      var y = m.t + ih - (v / max) * ih;
-      s += line(m.l, y, m.l + iw, y, "c-grid");
-      s += text(m.l - 8, y + 3, v === 0 ? "0" : fmt(v), "c-t--n", "end");
-    });
-
-    /* bars — top three carry the accent, the rest are mass */
-    posts.forEach(function (p, i) {
-      var bh = (p.watch_hours / max) * ih;
-      s += rect(m.l + i * bw, m.t + ih - bh, Math.max(1, bw - 1), bh, i < 3 ? "c-bar--hi" : "c-bar");
-    });
-
-    /* cumulative share line, right axis 0–100% */
-    var run = 0, pts = [];
-    posts.forEach(function (p, i) {
-      run += p.watch_hours;
-      pts.push([m.l + i * bw + bw / 2, m.t + ih - (run / total) * ih]);
-    });
-    s += path("M" + pts.map(function (p) { return r(p[0]) + " " + r(p[1]); }).join("L"), "c-line");
-    [0, 50, 100].forEach(function (v) {
-      var y = m.t + ih - (v / 100) * ih;
-      s += text(m.l + iw + 8, y + 3, v + "%", "c-t--acc c-t--n", "start");
-    });
-
-    /* Annotate the cascade. The first three points sit right on top of the
-       top-three bars, so labels are pushed into clear space and tied back to
-       their point with a leader — otherwise they read as floating. */
-    [[0, "Top 1 — 40.2%"], [2, "Top 3 — 81.6%"], [9, "Top 10 — 95.7%"]].forEach(function (a) {
-      var p = pts[a[0]];
-      var lx = Math.max(p[0] + 8, m.l + 52);
-      var ly = p[1] - 9;
-      s += el("circle", { cx: r(p[0]), cy: r(p[1]), r: 2.5, "class": "c-dot--hi" });
-      s += line(p[0] + 3, p[1], lx - 5, ly - 3, "c-ref");
-      s += text(lx, ly, a[1], "c-t--acc", "start");
-    });
-
-    /* the tail — make the invisibility legible */
-    var medX = m.l + iw * 0.5;
-    s += line(medX, m.t + ih, medX, m.t + ih - 26, "c-ref");
-    s += text(medX + 6, m.t + ih - 30, "median post = 6.82 h", "c-t--fg", "start");
-
-    /* axes */
-    s += line(m.l, m.t + ih, m.l + iw, m.t + ih, "c-axis");
-    s += text(m.l, h - 24, "81 posts, ranked by watch time →", "", "start");
-    s += text(0, m.t - 8, "Hours", "", "start");
-
-    return svg(w, h, s);
-  }
-
-  /* ============================================================
      V2 — where render time goes, and what the fix bought
      ============================================================ */
   function renderProfile(w) {
@@ -239,55 +174,6 @@
     return svg(w, h, s);
   }
 
-  /* ============================================================
-     V6 — plays settle at 48 hours
-     ============================================================ */
-  function settling(w) {
-    var st = D.findings.settling;
-    var rows = [
-      { k: "< 24 h", v: st.under_24h_median_growth_pct, n: 11 },
-      { k: "24–48 h", v: st.h24_48_pct, n: 12 },
-      { k: "48–72 h", v: st.h48_72_pct, n: 12 },
-      { k: "72–96 h", v: st.h72_96_pct, n: 20 },
-      { k: "> 96 h", v: st.over_96h_pct, n: 15 }
-    ];
-    var h = w < 560 ? 250 : 280;
-    var m = { t: 34, r: 12, b: 52, l: 46 };
-    var iw = w - m.l - m.r, ih = h - m.t - m.b;
-    var max = 40;
-    var bw = iw / rows.length;
-    var s = "";
-
-    [0, 10, 20, 30, 40].forEach(function (v) {
-      var y = m.t + ih - (v / max) * ih;
-      s += line(m.l, y, m.l + iw, y, "c-grid");
-      s += text(m.l - 8, y + 3, "+" + v + "%", "c-t--n", "end");
-    });
-
-    rows.forEach(function (row, i) {
-      var bh = (row.v / max) * ih;
-      var x = m.l + i * bw + bw * 0.18;
-      var bwi = bw * 0.64;
-      s += rect(x, m.t + ih - bh, bwi, bh, i < 2 ? "c-bar--hi" : "c-bar");
-      s += text(x + bwi / 2, m.t + ih - bh - 8, "+" + row.v + "%", "c-t--fg c-t--n", "middle");
-      s += text(x + bwi / 2, m.t + ih + 18, row.k, "", "middle");
-      s += text(x + bwi / 2, m.t + ih + 32, "n = " + row.n, "", "middle");
-    });
-
-    /* the 48 h cliff — the full caption does not fit beside the rule on a
-       phone, so narrow widths get the short form */
-    var cx = m.l + bw * 2;
-    s += line(cx, m.t - 14, cx, m.t + ih, "c-ref");
-    s += w < 620
-      ? text(cx + 6, m.t - 18, "48 h cutoff", "c-t--acc", "start")
-      : text(cx + 8, m.t - 18, "48 h — data becomes trustworthy", "c-t--acc", "start");
-
-    s += line(m.l, m.t + ih, m.l + iw, m.t + ih, "c-axis");
-    s += text(0, m.t - 8, "Median growth over 53 h", "", "start");
-
-    return svg(w, h, s);
-  }
-
   function svg(w, h, body) {
     return el("svg", {
       viewBox: "0 0 " + r(w) + " " + r(h),
@@ -296,13 +182,54 @@
     }, body);
   }
 
+  /* ============================================================
+     Bind the Instagram figures in the copy to the data file.
+
+     Anything that moves when the numbers are refreshed is written as
+     <span data-dg="key"> in the HTML rather than typed into the prose, so
+     `python3 tools/refresh_data.py` updates the sentences too and the page
+     cannot quietly drift out of sync with its own dataset.
+     ============================================================ */
+  (function bindNumbers() {
+    var S = D.summary || {};
+    var days = 0;
+    if (S.window && S.window.first && S.window.last) {
+      days = Math.round((Date.parse(S.window.last) - Date.parse(S.window.first)) / 864e5) + 1;
+    }
+    var months = Math.floor((S.total_watch_days || 0) / 30.44);
+    var years = Math.floor(months / 12);
+
+    var V = {
+      posts: fmt(S.posts || 0),
+      total_plays: fmt(S.total_plays || 0),
+      total_reach: fmt(S.total_reach || 0),
+      total_likes: fmt(S.total_likes || 0),
+      total_shares: fmt(S.total_shares || 0),
+      total_saves: fmt(S.total_saves || 0),
+      total_watch_hours: fmt(S.total_watch_hours || 0),
+      total_watch_days: S.total_watch_days,
+      youtube_uploads: fmt(S.youtube_uploads || 0),
+      mean_watch_s: S.mean_watch_s,
+      share_rate_pct: S.share_rate_pct,
+      plays_m: ((S.total_plays || 0) / 1e6).toFixed(1) + " million",
+      window_days: days,
+      watch_span: years
+        ? years + " year" + (years > 1 ? "s" : "") +
+          (months % 12 ? " " + (months % 12) + " months" : "")
+        : months + " months"
+    };
+
+    Object.keys(V).forEach(function (k) {
+      var nodes = document.querySelectorAll('[data-dg="' + k + '"]');
+      for (var i = 0; i < nodes.length; i++) nodes[i].textContent = V[k];
+    });
+  })();
+
   /* ---------- mount + keep in step with the layout ---------- */
   var charts = {
-    "fig-concentration": concentration,
     "fig-render-profile": renderProfile,
     "fig-predictability": predictability,
-    "fig-render-cost": renderCost,
-    "fig-settling": settling
+    "fig-render-cost": renderCost
   };
 
   var lastW = {};

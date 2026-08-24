@@ -402,6 +402,7 @@ a.prow:hover .prow__go { color: var(--accent); transform: translateX(3px); }
 .c-bar { fill: var(--fg-soft); }
 .c-bar--hi { fill: var(--accent); }
 .c-line { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+.c-area { fill: var(--accent); opacity: 0.10; stroke: none; }
 .c-ref { fill: none; stroke: var(--fg-soft); stroke-width: 1; stroke-dasharray: 3 4; }
 .c-dot { fill: var(--fg-soft); }
 .c-dot--hi { fill: var(--accent); }

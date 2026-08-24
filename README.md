@@ -66,40 +66,63 @@ python3 -m http.server 8099
 
 Then open <http://localhost:8099>. There is no build step — edit and reload.
 
-## Regenerating `desmos/data.js`
+## Keeping the Instagram numbers current
 
-`data.js` is generated from the JSON in `data/`, which is copied out of the
-pipeline repo's `portfolio/` folder. Instagram rows are reduced to
-`{episode, watch_hours, plays}` — no media IDs, no handles, no personal data.
-
-Everything under `data/` is served publicly by GitHub Pages, so the Instagram
-media IDs were stripped from `instagram_posts.json` on the way in: they make
-individual post permalinks derivable by anyone who finds the file. The full
-originals stay in the pipeline repo. If you re-copy the JSON, strip them again.
-
-Re-run this after refreshing the source JSON:
+`tools/refresh_data.py` pulls live figures from the Instagram Graph API, writes
+`data/instagram_posts.json` and `data/summary.json`, and regenerates
+`desmos/data.js`. Engineering measurements (`findings.json`,
+`render_performance.json`) are hand-maintained and never touched by it.
 
 ```bash
-python3 - <<'PY'
-import json
-posts   = json.load(open("data/instagram_posts.json"))
-findings= json.load(open("data/findings.json"))
-render  = json.load(open("data/render_performance.json"))
-summary = json.load(open("data/summary.json"))
-slim = [{"episode": p["episode"], "watch_hours": p["watch_hours"], "plays": p["plays"]} for p in posts]
-j = lambda o: json.dumps(o, separators=(",", ":"))
-out = ["window.DG = {"]
-out.append("  summary: "  + json.dumps(summary,  indent=2).replace("\n", "\n  ") + ",")
-out.append("  findings: " + json.dumps(findings, indent=2).replace("\n", "\n  ") + ",")
-out.append("  render: "   + j(render) + ",")
-out.append("  posts: [")
-out += ["    " + j(p) + "," for p in slim]
-out += ["  ]", "};"]
-open("desmos/data.js","w").write("\n".join(out) + "\n")
-PY
+IG_TOKEN=IGAA... python3 tools/refresh_data.py
 ```
 
-Keep the header comment at the top of `data.js` when you regenerate.
+or, pointing at the pipeline repo's token file:
+
+```bash
+python3 tools/refresh_data.py --token-file ../desmos-video/instagram_token.json
+```
+
+`--from-cache` rebuilds `summary.json` and `data.js` from the posts already in
+`data/` without touching the API. Useful for testing.
+
+**Nothing is typed into the prose.** Figures in the copy are
+`<span data-dg="total_plays">` placeholders filled from `data.js` at load by the
+binder at the bottom of `charts.js`, so refreshing the data rewrites the
+sentences too. If you add a new number to the page, add it as a `data-dg` key
+rather than typing it, or it will silently go stale.
+
+Media IDs are dropped on the way in. Everything under `data/` is served publicly
+and the IDs make individual post permalinks derivable.
+
+### Two metric traps
+
+- **`views` is not the old `plays`.** Meta retired `plays` and `impressions`.
+  `views` counts roughly **1.8× more events** than the denominator
+  `ig_reels_video_view_total_time` is measured against, so
+  `total_watch_hours / total_plays` gives about 10 s when the real average view
+  is about 20 s. The script computes `mean_watch_s` from Instagram's own
+  `ig_reels_avg_watch_time`, weighted by watch time. Do not "simplify" it back.
+- **Metric names die without warning.** `WANT` is requested optimistically and
+  anything the API rejects is dropped for the rest of the run, so one retired
+  name cannot take down the whole refresh.
+
+### Running it automatically
+
+`.github/workflows/refresh-analytics.yml` runs the script every Monday and on
+demand, and commits only when a number actually moved. To switch it on:
+
+1. Get a long-lived Instagram Graph API token (the pipeline repo's
+   `instagram.py setup` prints the steps).
+2. Repo **Settings → Secrets and variables → Actions → New repository secret**,
+   named `IG_TOKEN`.
+3. Optional but recommended: add a second secret `GH_PAT`, a fine-grained
+   personal access token with **Secrets: read and write** on this repo. Without
+   it the workflow can refresh the Instagram token but cannot store the new one,
+   so `IG_TOKEN` still dies after 60 days and you have to replace it by hand.
+   With it, rotation is permanent and the site keeps itself current.
+
+The workflow summary reports the new totals, or "No change in the numbers."
 
 ## Adding the next project
 

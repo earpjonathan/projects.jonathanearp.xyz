@@ -15,7 +15,7 @@
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="Desmos Guy — an automated video-to-Desmos pipeline">
-    <meta property="og:description" content="Tracing, chunk-gated expressions, a screenshot bug that shipped for months, and millions of plays once it worked.">
+    <meta property="og:description" content="Tracing, chunk-gated expressions, a screenshot bug that shipped for months, and what it did once it worked.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/desmos/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
@@ -85,9 +85,9 @@
             </div>
             <h1 class="hero__title" data-reveal style="--i:1">Desmos&nbsp;Guy</h1>
             <p class="hero__lead" data-reveal style="--i:2">
-                I made a graphing calculator do animation it was never built for, and
-                you can watch the <b>equations</b> do it. One command finds the clips,
-                renders them and posts them.
+                Desmos was not built to animate anything. This renders video inside it
+                anyway, as <b>equations</b> — one command finds a clip, traces it, rebuilds
+                it in the calculator and posts the result.
             </p>
 
             <!-- A finished reel drops in here: see README, "Adding a hero reel". -->
@@ -161,8 +161,8 @@
                     </div>
 
                     <p class="callout">
-                        The next four sections are the render path, in order. Each one has something
-                        you can poke at, because <strong>most of this was much easier to understand
+                        The next four sections are the render path, in order. Each has an
+                        interactive demo, because <strong>most of this was easier to understand
                         once I could see it move.</strong>
                     </p>
                 </div>
@@ -363,8 +363,9 @@
                     </p>
                     <p>
                         Zero of 40 frames differed. Perfectly deterministic. I took that as proof it
-                        was right, and that's exactly why this took months to notice:
-                        <em>being consistently wrong looks identical to being right.</em>
+                        was correct, which is why the bug lasted as long as it did.
+                        <em>A deterministic process repeats the same mistake every run</em>, so
+                        consistency said nothing about whether the output was right.
                     </p>
                     <p>
                         The bug was in the settle logic. After moving the slider I wait for the canvas
@@ -424,9 +425,8 @@
                     <p>
                         Every video I'd made before this had incomplete linework on basically every
                         frame. Nobody noticed, including me, because it was wrong the same way every
-                        time. It's the thing I'm most glad I found and the thing I'm least proud of.
-                        The fix made the output faster <em>and</em> correct, which felt like getting
-                        away with something.
+                        time. The fix corrected the linework <em>and</em> made the render faster, since the
+                        parallel capture that exposed the bug was also the speed-up.
                     </p>
 
                     <h3 class="block__sub">What a render costs</h3>
@@ -461,8 +461,8 @@
                 <div class="block__body">
                     <h2 class="block__h">Version by version</h2>
                     <p class="lede">
-                        None of this was designed up front. Every version exists because something
-                        measured came back wrong.
+                        None of this was designed up front. Each version came out of a measurement that
+                        disagreed with what I expected.
                     </p>
 
                     <div class="demo demo--timeline">
@@ -485,10 +485,10 @@
                     </div>
 
                     <p>
-                        The pattern I'd point at: <strong>the two biggest wins came from measuring
-                        something I thought I already knew.</strong> I was sure tracing was the
-                        bottleneck and I was sure serial capture was correct. Both wrong, and both
-                        only visible once I actually put a number on them.
+                        <strong>Both of the largest improvements came from measuring something I
+                        assumed I already understood.</strong> I was sure tracing was the bottleneck
+                        and I was sure serial capture was correct. Neither held up once there was a
+                        number attached to it.
                     </p>
                 </div>
             </section>
@@ -577,10 +577,9 @@
                     <h3 class="block__sub">How long a clip can safely be</h3>
                     <p>
                         <strong>2 of 140 uploads got Content-ID blocked. Both were over 89 seconds.
-                        Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds,
-                        which costs me nothing, because the entire top ten by plays is under 32
-                        seconds anyway. That cap is the single setting doing the most to keep this
-                        thing running unattended.
+                        Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds.
+                        That costs nothing in practice, because the entire top ten by plays is under
+                        32 seconds anyway, and it removes most of the exposure.
                     </p>
                 </div>
             </section>
@@ -592,8 +591,8 @@
                     <h2 class="block__h">The picker that didn't work</h2>
                     <p class="lede">
                         The original plan was a model that picks which clips to render, ranked by
-                        predicted views. I built it. It doesn't work, and I think that's the most
-                        useful thing in here.
+                        predicted views. I built it, and it does not predict well enough to be worth
+                        using. The measurements below are why.
                     </p>
                     <p>
                         A retention model is real and holds up out of sample.
@@ -672,26 +671,23 @@
                     </div>
 
                     <p>
-                        Watch time and plays are different numbers and I keep having to correct
-                        people on it, including myself.
+                        Watch time and plays are different numbers and easy to confuse.
                         <span data-dg="total_watch_hours">12,837</span> is hours watched. Plays are
                         <span data-dg="plays_m">4.3 million</span>.
                     </p>
 
                     <h3 class="block__sub">People are watching them twice</h3>
                     <p>
-                        The stat I didn't expect: <strong>average watch time is
-                        <span data-dg="mean_watch_s">19.6</span> seconds</strong>, and plenty of
-                        these clips are only 9 to 16 seconds long. People are getting to the end and
-                        starting again without leaving. That's the thing Instagram's ranking actually
-                        rewards, and it's the strongest signal in the whole dataset.
+                        <strong>Average watch time is <span data-dg="mean_watch_s">19.6</span> seconds</strong>,
+                        and plenty of these clips are only 9 to 16 seconds long. Viewers are reaching
+                        the end and starting again without leaving, which is the behaviour
+                        Instagram's ranking rewards.
                     </p>
                     <p>
-                        The other one I keep coming back to is shares.
-                        <strong><span data-dg="total_shares">97,274</span> shares</strong> works out
-                        at <span data-dg="share_rate_pct">2.25</span>% of all plays, which is a lot
-                        of people deciding a graphing calculator drawing Peter Griffin was worth
-                        sending to somebody.
+                        Shares came out higher than I expected.
+                        <strong><span data-dg="total_shares">97,274</span> shares</strong> is
+                        <span data-dg="share_rate_pct">2.25</span>% of all plays, which is a high
+                        rate for the format.
                     </p>
 
                     <h3 class="block__sub">Keeping these numbers current</h3>
@@ -704,11 +700,11 @@
                         Instagram's long-lived tokens expire after 60 days.
                     </p>
                     <p>
-                        The part that took a second attempt: none of these numbers are typed into
-                        the sentences. They're <code>&lt;span data-dg="total_plays"&gt;</code>
-                        placeholders filled in from the data file at load, so refreshing the data
-                        rewrites the prose too. Otherwise the stat tiles update and the paragraph
-                        next to them keeps confidently stating last month's figure.
+                        None of these numbers are typed into the sentences. They're
+                        <code>&lt;span data-dg="total_plays"&gt;</code> placeholders filled in from
+                        the data file at load, so refreshing the data rewrites the prose too.
+                        Without that the stat tiles would update while the paragraph beside them
+                        kept last month's figure.
                     </p>
 
                     <div class="callout">
@@ -732,8 +728,8 @@
                     <ul class="dlist">
                         <li><strong>About a week of data, one account, one show.</strong> None of this generalises anywhere, and the correlations above come from a small sample of a single genre.</li>
                         <li><strong>The source-popularity signal is untested.</strong> It's a hypothesis. The test is written and currently reports <code>n = 0</code>. I have not shown it works.</li>
-                        <li><strong>Instagram posting is still manual.</strong> YouTube is fully automatic. The platform that produced all <span data-dg="total_watch_hours">12,837</span> hours is the one I still upload by hand, which is a funny place for the automation to stop.</li>
-                        <li><strong><code>yt-dlp</code> is a single point of failure.</strong> Whenever YouTube changes something, harvest breaks. At least it breaks loudly and skips the run instead of posting garbage.</li>
+                        <li><strong>Instagram posting is still manual.</strong> YouTube is fully automatic. The platform that produced all <span data-dg="total_watch_hours">12,837</span> hours is the one I still upload by hand.</li>
+                        <li><strong><code>yt-dlp</code> is a single point of failure.</strong> Whenever YouTube changes something, harvest breaks. It fails loudly and skips the run rather than posting bad output.</li>
                         <li><strong>Content-ID risk scales with automation.</strong> Two of 140 got blocked; a 45-second cap is a mitigation, not a guarantee.</li>
                     </ul>
                 </div>

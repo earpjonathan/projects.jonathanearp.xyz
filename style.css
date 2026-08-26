@@ -12,7 +12,7 @@
   --bg: #100904;
   --fg: #ffedd7;
   --cream: #ffedd7;
-  --fg-soft: #6c5f51;
+  --fg-soft: #9b8b78;      /* warm grey-brown — muted text, 5.98:1 on --bg */
   --line: #40372e;
   --cork: #382416;
   --accent: #dc5000;
@@ -42,7 +42,7 @@ html[data-theme="light"] {
   --fg-soft: #6f6152;
   --line: #c7b69a;
   --cork: #382416;
-  --accent: #c2470a;
+  --accent: #a63a06;      /* deepened sienna — 5.03:1 on the light ground */
 }
 
 /* ---------- RESET ---------- */
@@ -77,7 +77,7 @@ img, video, canvas { display: block; max-width: 100%; }
   white-space: nowrap; pointer-events: none; opacity: 0.75;
 }
 .scroll-prompt {
-  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   font-size: var(--t-caption); text-transform: uppercase; color: var(--fg);
   transition: opacity var(--t-base);
@@ -147,6 +147,62 @@ body.scrolled .topbar { background: var(--bg); border-bottom: 1px solid var(--li
 .theme-toggle__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 .theme-toggle__label::after { content: "Light"; }
 html[data-theme="light"] .theme-toggle__label::after { content: "Dark"; }
+
+/* ---------- MOBILE NAV ----------
+   The topnav links used to be display:none below the breakpoint with nothing
+   put in their place, so a phone had no route back to the hub except the
+   footer of a very long page. This is the drawer the FPV site already used,
+   lifted into the shared base so all five headers behave the same. */
+.nav-toggle {
+  display: none;
+  width: 44px;
+  height: 40px;
+  border: 1px solid var(--fg);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 22.5px;
+  transition: border-color var(--t-base);
+}
+.nav-toggle:hover { border-color: var(--accent); }
+.nav-toggle span {
+  width: 16px;
+  height: 1px;
+  background: var(--fg);
+  transition: transform var(--t-fast);
+}
+.nav-toggle[aria-expanded="true"] span:first-child { transform: translateY(3px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:last-child  { transform: translateY(-3px) rotate(-45deg); }
+
+@media (max-width: 640px) {
+  .topnav {
+    position: fixed;
+    inset: var(--header-h) 0 auto 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 4px var(--gut) 18px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    transform: translateY(-12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-fast), transform var(--t-fast);
+  }
+  .topnav.is-open { opacity: 1; transform: none; pointer-events: auto; }
+  /* 13px of padding on an 18px line box clears the 44px touch target */
+  .topnav__link { font-size: 14px; padding: 13px 0; }
+  .topnav__link + .topnav__link { border-top: 1px dashed var(--line); }
+  .topnav__link::after { display: none; }
+  /* pills in the drawer get the same 44px treatment as the links */
+  .topnav .theme-toggle,
+  .topnav .btn-ghost { align-self: flex-start; margin-top: 12px; padding: 14px 20px; }
+  .nav-toggle { display: flex; }
+}
 .stagger span {
   display: inline-block; opacity: 0; transform: translateY(6px);
   animation: letterIn 0.4s var(--ease) forwards; animation-delay: calc(var(--ci, 0) * 28ms + 0.1s);
@@ -191,18 +247,27 @@ main { padding-top: 0; }
 
 /* ---------- HERO ---------- */
 .hero {
-  position: relative; min-height: 78svh; display: flex; flex-direction: column;
-  justify-content: flex-end; gap: 31px; overflow: hidden;
+  position: relative; min-height: 100svh; display: flex; flex-direction: column;
+  justify-content: flex-start; gap: 31px; overflow: hidden;
   /* padding-block, NOT the padding shorthand — the shorthand would reset
      .wrap's padding-inline and bleed the hero copy off both edges. */
-  padding-block: calc(var(--header-h) + 68px) 68px;
+  padding-block: calc(var(--header-h) + 68px) 92px;
+  /* Two auto margins split the slack: the eyebrow pins to the top, the
+     meta strip to the bottom, and the title and lead sit in a band in
+     between. flex-end used to pool every pixel of a tall window above
+     the content, and at 78svh the scroll cue landed mid-screen. */
 }
 .hero #topo { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
-.hero__eyebrow, .hero__title, .hero__lead, .hero .metastrip, .hero .scroll-prompt,
+/* .scroll-prompt is deliberately NOT in this list: it is position:absolute so
+   it can pin to the fold, and naming it here (0,2,0) beat that (0,1,0) and put
+   it back in the flex flow - which is why the cue sat jammed under the meta
+   strip with a gap of dead space beneath it. It only needs the z-index. */
+.hero__eyebrow, .hero__title, .hero__lead, .hero .metastrip,
 .hero__actions { position: relative; z-index: 1; }
+.hero .scroll-prompt { z-index: 1; }
 .hero__eyebrow { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--fg); }
 .hero__eyebrow .dot { color: var(--accent); }
-.hero__title { font-size: clamp(34px, 6vw, var(--t-display)); line-height: 0.9; font-weight: 500; }
+.hero__title { margin-top: auto; font-size: clamp(34px, 6vw, var(--t-display)); line-height: 0.9; font-weight: 500; }
 .hero__lead {
   align-self: flex-end; text-align: right; max-width: 46ch;
   font-size: var(--t-sub); line-height: 1.33; color: var(--fg);
@@ -210,6 +275,12 @@ main { padding-top: 0; }
 .hero__lead b { color: var(--accent); font-weight: 500; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
+.hero .metastrip { margin-top: auto; }
+/* The case-study hero has no meta strip, so nothing holds its bottom edge and
+   the title would sit on the floor under a screen of empty contour. An empty
+   trailing flex item gives the second auto margin. Browsers without :has()
+   just keep the bottom-anchored version. */
+.hero:not(:has(.metastrip))::after { content: ""; margin-top: auto; }
 .metastrip { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px dashed var(--line); }
 .metastrip__cell { padding: 18px 18px 0 0; }
 .metastrip__cell + .metastrip__cell { border-left: 1px dashed var(--line); padding-left: 18px; }
@@ -469,7 +540,6 @@ a.prow:hover .prow__go { color: var(--accent); transform: translateX(3px); }
   .prow__stats { grid-column: 2 / 3; flex-direction: row; flex-wrap: wrap; gap: 24px; }
 }
 @media (max-width: 620px) {
-  .topnav__link--hide { display: none; }
   .block { grid-template-columns: 1fr; gap: 8px; }
   .tldr { grid-template-columns: 1fr; }
   .tldr > div { padding: 18px 0; }

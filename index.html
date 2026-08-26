@@ -60,9 +60,34 @@
       (function () {
         var d = document.documentElement;
         d.classList.add("js");
-        try {
-          d.dataset.theme = localStorage.getItem("theme") || "dark";
-        } catch (e) { d.dataset.theme = "dark"; }
+
+        /* The five sites are separate origins, so localStorage cannot carry the
+           theme between them - toggling on the hub and clicking through used to
+           land you back in dark. A cookie on the parent domain does carry, so it
+           is read first; localStorage stays as the fallback for local dev, where
+           a .jonathanearp.xyz cookie is dropped. With neither set, follow the OS
+           instead of forcing dark on someone whose machine is in light mode. */
+        var t = "";
+        var m = document.cookie.match(/(?:^|;\s*)theme=(dark|light)/);
+        if (m) t = m[1];
+        if (!t) { try { t = localStorage.getItem("theme") || ""; } catch (e) {} }
+        if (!t && window.matchMedia &&
+            matchMedia("(prefers-color-scheme: light)").matches) t = "light";
+        d.dataset.theme = t === "light" ? "light" : "dark";
+
+        /* Written by the toggle in every site's script - one place that knows
+           about the cookie, so the five copies of the toggle stay trivial. */
+        window.__setTheme = function (next) {
+          d.dataset.theme = next;
+          try { localStorage.setItem("theme", next); } catch (e) {}
+          try {
+            var dom = /(^|\.)jonathanearp\.xyz$/i.test(location.hostname)
+              ? ";domain=.jonathanearp.xyz" : "";
+            document.cookie = "theme=" + next +
+              ";path=/;max-age=31536000;samesite=lax" + dom +
+              (location.protocol === "https:" ? ";secure" : "");
+          } catch (e) {}
+        };
       })();
     </script>
 </head>
@@ -73,14 +98,18 @@
     <header class="topbar">
         <div class="topbar__inner">
             <a href="https://jonathanearp.xyz" class="brand">Jonathan Earp <span class="brand__crumb">Projects</span></a>
-            <nav class="topnav">
-                <a href="#projects" class="topnav__link topnav__link--hide">Projects</a>
-                <a href="https://research.jonathanearp.xyz" class="topnav__link topnav__link--hide">Research ↗</a>
-                <a href="https://jonathanearp.xyz" class="topnav__link topnav__link--hide">Index ↗</a>
+            <nav class="topnav" id="topnav">
+                <a href="#projects" class="topnav__link">Projects</a>
+                <a href="https://research.jonathanearp.xyz" class="topnav__link">Research ↗</a>
+                <a href="https://jonathanearp.xyz" class="topnav__link">Index ↗</a>
                 <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle color theme">
                     <span class="theme-toggle__dot"></span><span class="theme-toggle__label"></span>
                 </button>
             </nav>
+            <button class="nav-toggle" id="nav-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="topnav">
+                <span></span><span></span>
+            </button>
         </div>
     </header>
 

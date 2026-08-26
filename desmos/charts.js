@@ -225,6 +225,84 @@
     });
   })();
 
+  /* ---------- odometer ----------
+     Replaces a tile's text with per-digit slots that slide. Returns a
+     set(text, animate) function. Only the digits that actually changed
+     move; commas stay put. */
+  function odometer(host) {
+    var ROWS = 20;               // 0-9 twice, so a carry rolls forwards
+    var ROLL_MS = 520;
+    var digits = [], shape = null, sr = null;
+
+    function build(str) {
+      host.textContent = "";
+      digits = [];
+      sr = document.createElement("span");
+      sr.className = "odo-sr";
+      host.appendChild(sr);
+
+      var box = document.createElement("span");
+      box.className = "odo";
+      box.setAttribute("aria-hidden", "true");
+      for (var i = 0; i < str.length; i++) {
+        var ch = str.charAt(i);
+        if (ch < "0" || ch > "9") {
+          var sep = document.createElement("span");
+          sep.className = "odo__sep";
+          sep.textContent = ch;
+          box.appendChild(sep);
+          continue;
+        }
+        var slot = document.createElement("span");
+        slot.className = "odo__d";
+        var strip = document.createElement("span");
+        strip.className = "odo__s";
+        for (var d = 0; d < ROWS; d++) {
+          var row = document.createElement("i");
+          row.textContent = String(d % 10);
+          strip.appendChild(row);
+        }
+        slot.appendChild(strip);
+        box.appendChild(slot);
+        digits.push({ strip: strip, at: -1, timer: null });
+      }
+      host.appendChild(box);
+      shape = str.replace(/[0-9]/g, "#");
+    }
+
+    function place(D, index, animate) {
+      D.strip.classList.toggle("odo__s--anim", !!animate);
+      D.strip.style.transform = "translateY(-" + index + "em)";
+      D.at = index;
+    }
+
+    return function set(str, animate) {
+      if (str.replace(/[0-9]/g, "#") !== shape) { build(str); animate = false; }
+      sr.textContent = str;
+
+      var di = 0;
+      for (var i = 0; i < str.length; i++) {
+        var ch = str.charAt(i);
+        if (ch < "0" || ch > "9") continue;
+        var want = +ch, D = digits[di++];
+        if (D.at >= 0 && D.at % 10 === want) continue;
+
+        if (D.timer) { clearTimeout(D.timer); D.timer = null; }
+        if (!animate || D.at < 0) { place(D, want, false); continue; }
+
+        /* Rolling forwards means never moving to a smaller offset, so a
+           digit wrapping past 9 goes into the strip's second run. */
+        var from = D.at % 10;
+        place(D, want > from ? want : want + 10, true);
+        if (D.at >= 10) {
+          D.timer = setTimeout(function (d, v) {
+            return function () { place(d, v, false); d.timer = null; };
+          }(D, want), ROLL_MS + 40);
+        }
+      }
+    };
+  }
+
   /* ---------- live counters on the four headline tiles ----------
      The tiles tick forward from the last refresh at the rate measured
      between the last two refreshes, so the section is not frozen at
@@ -260,7 +338,8 @@
       if (typeof base !== "number") continue;
       var rate = rates[key];
       if (!(rate > 0)) continue;
-      tiles.push({ el: nodes[i], base: base, rate: rate, shown: -1 });
+      tiles.push({ el: nodes[i], base: base, rate: rate, shown: -1,
+                   set: odometer(nodes[i]) });
     }
     if (!tiles.length) return;
 
@@ -270,12 +349,21 @@
       for (var i = 0; i < tiles.length; i++) {
         var t = tiles[i];
         var v = Math.floor(t.base + t.rate * h);
-        if (v !== t.shown) { t.shown = v; t.el.textContent = fmt(v); }
+        if (v === t.shown) continue;
+        /* First paint, and the catch-up after a spell in a background tab,
+           land without animation - rolling through a few thousand plays is
+           a slot machine, not a counter. */
+        var roll = t.shown >= 0 && v - t.shown <= 20;
+        t.shown = v;
+        t.set(fmt(v), roll);
       }
     }
 
     var timer = null;
-    function start() { tick(); if (!timer) timer = setInterval(tick, 1000); }
+    /* 250 ms so a digit turns over close to the moment it actually crosses;
+       the roll itself is 520 ms and the fastest counter moves every 1.4 s,
+       so rolls never overlap. */
+    function start() { tick(); if (!timer) timer = setInterval(tick, 250); }
     function stop() { clearInterval(timer); timer = null; }
 
     start();

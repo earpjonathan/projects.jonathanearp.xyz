@@ -2,79 +2,79 @@
  {
   "episode": "S11E22",
   "timestamp": "2026-08-17T16:30:49+0000",
-  "plays": 1844993,
-  "reach": 964411,
-  "likes": 89964,
+  "plays": 1845036,
+  "reach": 964423,
+  "likes": 89966,
   "shares": 26183,
-  "saves": 8593,
+  "saves": 8594,
   "comments": 237,
   "avg_watch_s": 19.59,
-  "watch_hours": 5077.48
+  "watch_hours": 5077.54
  },
  {
   "episode": "S19E16",
   "timestamp": "2026-08-17T23:42:38+0000",
-  "plays": 945752,
+  "plays": 946008,
   "reach": 602468,
-  "likes": 88767,
-  "shares": 36839,
+  "likes": 88793,
+  "shares": 36837,
   "saves": 4041,
   "comments": 185,
   "avg_watch_s": 21.68,
-  "watch_hours": 3592.39
+  "watch_hours": 3593.14
  },
  {
   "episode": "S03E01",
   "timestamp": "2026-08-20T05:19:56+0000",
-  "plays": 457116,
-  "reach": 254413,
-  "likes": 23539,
-  "shares": 2465,
+  "plays": 457474,
+  "reach": 254622,
+  "likes": 23566,
+  "shares": 2478,
   "saves": 1009,
   "comments": 62,
   "avg_watch_s": 18.12,
-  "watch_hours": 1252.14
+  "watch_hours": 1252.81
  },
  {
   "episode": "S05E10",
   "timestamp": "2026-08-17T23:17:33+0000",
-  "plays": 428424,
-  "reach": 307641,
-  "likes": 61991,
-  "shares": 26649,
-  "saves": 3522,
+  "plays": 428494,
+  "reach": 307748,
+  "likes": 62003,
+  "shares": 26652,
+  "saves": 3523,
   "comments": 122,
   "avg_watch_s": 22.37,
-  "watch_hours": 1922.89
+  "watch_hours": 1923.34
  },
  {
   "episode": "S15E05",
   "timestamp": "2026-08-18T03:47:39+0000",
-  "plays": 351766,
+  "plays": 351781,
   "reach": 171973,
   "likes": 14693,
   "shares": 3831,
   "saves": 673,
   "comments": 29,
   "avg_watch_s": 10.6,
-  "watch_hours": 494.96
+  "watch_hours": 494.99
  },
  {
   "episode": "S10E07",
   "timestamp": "2026-08-23T17:33:48+0000",
-  "plays": 52960,
-  "reach": 32780,
-  "likes": 1422,
+  "plays": 52970,
+  "reach": 32784,
+  "likes": 1423,
   "shares": 810,
   "saves": 191,
   "comments": 5,
   "avg_watch_s": 12.91,
-  "watch_hours": 115.18
+  "watch_hours": 115.21
  },
  {
   "episode": "S22E12",
   "timestamp": "2026-08-21T17:39:52+0000",
-  "plays": 24215,
+  "plays": 24216,
   "reach": 15131,
   "likes": 362,
   "shares": 51,
@@ -86,20 +86,20 @@
  {
   "episode": "S04E04",
   "timestamp": "2026-08-23T23:32:55+0000",
-  "plays": 20327,
-  "reach": 11590,
-  "likes": 917,
-  "shares": 394,
+  "plays": 20342,
+  "reach": 11595,
+  "likes": 919,
+  "shares": 396,
   "saves": 78,
   "comments": 15,
-  "avg_watch_s": 8.68,
-  "watch_hours": 27.96
+  "avg_watch_s": 8.7,
+  "watch_hours": 28.04
  },
  {
   "episode": "S16E02",
   "timestamp": "2026-08-22T23:21:21+0000",
   "plays": 17656,
-  "reach": 9855,
+  "reach": 9856,
   "likes": 415,
   "shares": 76,
   "saves": 36,
@@ -111,20 +111,20 @@
   "episode": "S05E15",
   "timestamp": "2026-08-19T03:56:54+0000",
   "plays": 15326,
-  "reach": 9416,
+  "reach": 9417,
   "likes": 700,
   "shares": 253,
   "saves": 44,
   "comments": 3,
   "avg_watch_s": 9.13,
-  "watch_hours": 23.43
+  "watch_hours": 23.44
  },
  {
   "episode": "S10E01",
   "timestamp": "2026-08-21T04:35:04+0000",
-  "plays": 13941,
+  "plays": 13943,
   "reach": 9178,
-  "likes": 383,
+  "likes": 384,
   "shares": 167,
   "saves": 29,
   "comments": 4,
@@ -158,14 +158,14 @@
  {
   "episode": "S07E04",
   "timestamp": "2026-08-24T18:54:02+0000",
-  "plays": 13079,
+  "plays": 13082,
   "reach": 8431,
   "likes": 440,
   "shares": 86,
   "saves": 19,
   "comments": 1,
   "avg_watch_s": 17.18,
-  "watch_hours": 39.93
+  "watch_hours": 39.97
  },
  {
   "episode": "S04E21",
@@ -182,20 +182,20 @@
  {
   "episode": "S17E12",
   "timestamp": "2026-08-18T03:32:12+0000",
-  "plays": 10877,
+  "plays": 10878,
   "reach": 6137,
   "likes": 327,
   "shares": 70,
   "saves": 18,
   "comments": 4,
-  "avg_watch_s": 10.41,
-  "watch_hours": 17.77
+  "avg_watch_s": 10.42,
+  "watch_hours": 17.78
  },
  {
   "episode": "S15E10",
   "timestamp": "2026-08-22T05:29:28+0000",
   "plays": 10722,
-  "reach": 7097,
+  "reach": 7105,
   "likes": 326,
   "shares": 118,
   "saves": 12,
@@ -240,6 +240,18 @@
   "watch_hours": 15.01
  },
  {
+  "episode": "S05E02",
+  "timestamp": "2026-08-24T22:18:20+0000",
+  "plays": 7240,
+  "reach": 4315,
+  "likes": 186,
+  "shares": 37,
+  "saves": 4,
+  "comments": 1,
+  "avg_watch_s": 16.59,
+  "watch_hours": 19.78
+ },
+ {
   "episode": "S12E05",
   "timestamp": "2026-08-19T22:39:40+0000",
   "plays": 7224,
@@ -250,18 +262,6 @@
   "comments": 1,
   "avg_watch_s": 17.45,
   "watch_hours": 23.32
- },
- {
-  "episode": "S05E02",
-  "timestamp": "2026-08-24T22:18:20+0000",
-  "plays": 7219,
-  "reach": 4299,
-  "likes": 186,
-  "shares": 37,
-  "saves": 4,
-  "comments": 1,
-  "avg_watch_s": 16.6,
-  "watch_hours": 19.73
  },
  {
   "episode": "S08E16",
@@ -506,7 +506,7 @@
  {
   "episode": "S18E02",
   "timestamp": "2026-08-23T04:21:13+0000",
-  "plays": 4050,
+  "plays": 4052,
   "reach": 2464,
   "likes": 81,
   "shares": 21,
@@ -518,14 +518,14 @@
  {
   "episode": "S16E17",
   "timestamp": "2026-08-25T22:30:03+0000",
-  "plays": 4041,
-  "reach": 2369,
+  "plays": 4048,
+  "reach": 2382,
   "likes": 104,
-  "shares": 3,
+  "shares": 1,
   "saves": 5,
   "comments": 0,
-  "avg_watch_s": 19.57,
-  "watch_hours": 13.18
+  "avg_watch_s": 19.56,
+  "watch_hours": 13.21
  },
  {
   "episode": "S10E07",
@@ -614,14 +614,14 @@
  {
   "episode": "S10E20",
   "timestamp": "2026-08-25T00:12:08+0000",
-  "plays": 3294,
-  "reach": 1977,
-  "likes": 106,
+  "plays": 3321,
+  "reach": 1995,
+  "likes": 107,
   "shares": 6,
   "saves": 2,
   "comments": 0,
-  "avg_watch_s": 12.34,
-  "watch_hours": 6.7
+  "avg_watch_s": 12.35,
+  "watch_hours": 6.77
  },
  {
   "episode": "S11E10",
@@ -638,7 +638,7 @@
  {
   "episode": "S05E05",
   "timestamp": "2026-08-19T22:40:44+0000",
-  "plays": 3207,
+  "plays": 3208,
   "reach": 2141,
   "likes": 109,
   "shares": 21,
@@ -710,7 +710,7 @@
  {
   "episode": "S06E12",
   "timestamp": "2026-08-20T15:00:54+0000",
-  "plays": 2860,
+  "plays": 2862,
   "reach": 1700,
   "likes": 156,
   "shares": 21,
@@ -831,7 +831,7 @@
   "episode": "S02E07",
   "timestamp": "2026-08-19T06:37:16+0000",
   "plays": 1603,
-  "reach": 1093,
+  "reach": 1095,
   "likes": 43,
   "shares": 1,
   "saves": 5,
@@ -915,13 +915,13 @@
   "episode": "S10E07",
   "timestamp": "2026-08-24T00:11:10+0000",
   "plays": 1013,
-  "reach": 696,
+  "reach": 697,
   "likes": 55,
   "shares": 2,
   "saves": 3,
   "comments": 0,
-  "avg_watch_s": 16.42,
-  "watch_hours": 3.25
+  "avg_watch_s": 16.44,
+  "watch_hours": 3.26
  },
  {
   "episode": "S11E10",
@@ -956,7 +956,7 @@
   "shares": 15,
   "saves": 5,
   "comments": 0,
-  "avg_watch_s": 12.59,
+  "avg_watch_s": 12.57,
   "watch_hours": 2.25
  },
  {
@@ -986,7 +986,7 @@
  {
   "episode": "S10E14",
   "timestamp": "2026-08-20T18:16:04+0000",
-  "plays": 819,
+  "plays": 820,
   "reach": 530,
   "likes": 32,
   "shares": 1,
@@ -999,13 +999,13 @@
   "episode": "S11E10",
   "timestamp": "2026-08-24T18:57:01+0000",
   "plays": 779,
-  "reach": 539,
+  "reach": 542,
   "likes": 53,
   "shares": 13,
   "saves": 2,
   "comments": 1,
-  "avg_watch_s": 11.91,
-  "watch_hours": 1.8
+  "avg_watch_s": 11.88,
+  "watch_hours": 1.81
  },
  {
   "episode": "S02E13",
@@ -1047,24 +1047,24 @@
   "episode": "S07E05",
   "timestamp": "2026-08-25T00:09:32+0000",
   "plays": 670,
-  "reach": 503,
+  "reach": 506,
   "likes": 35,
   "shares": 7,
   "saves": 2,
   "comments": 1,
-  "avg_watch_s": 11.16,
-  "watch_hours": 1.54
+  "avg_watch_s": 11.13,
+  "watch_hours": 1.55
  },
  {
   "episode": "S14E04",
   "timestamp": "2026-08-25T22:30:57+0000",
   "plays": 641,
-  "reach": 431,
+  "reach": 434,
   "likes": 19,
   "shares": 0,
   "saves": 3,
   "comments": 1,
-  "avg_watch_s": 13.55,
+  "avg_watch_s": 13.54,
   "watch_hours": 1.64
  },
  {
@@ -1083,25 +1083,37 @@
   "episode": "S15E20",
   "timestamp": "2026-08-24T00:11:46+0000",
   "plays": 530,
-  "reach": 433,
+  "reach": 435,
   "likes": 20,
   "shares": 1,
   "saves": 0,
   "comments": 1,
-  "avg_watch_s": 9.77,
+  "avg_watch_s": 9.75,
   "watch_hours": 1.2
+ },
+ {
+  "episode": "S04E06",
+  "timestamp": "2026-08-26T02:10:05+0000",
+  "plays": 506,
+  "reach": 92,
+  "likes": 16,
+  "shares": 0,
+  "saves": 1,
+  "comments": 0,
+  "avg_watch_s": 8.12,
+  "watch_hours": 0.16
  },
  {
   "episode": "S11E11",
   "timestamp": "2026-08-24T18:55:14+0000",
   "plays": 473,
-  "reach": 356,
+  "reach": 359,
   "likes": 10,
   "shares": 4,
   "saves": 0,
   "comments": 0,
-  "avg_watch_s": 8.4,
-  "watch_hours": 0.83
+  "avg_watch_s": 8.42,
+  "watch_hours": 0.84
  },
  {
   "episode": "S08E04",
@@ -1118,37 +1130,25 @@
  {
   "episode": "S05E16",
   "timestamp": "2026-08-25T22:29:01+0000",
-  "plays": 370,
-  "reach": 263,
+  "plays": 374,
+  "reach": 275,
   "likes": 19,
   "shares": 2,
   "saves": 2,
   "comments": 0,
-  "avg_watch_s": 33.24,
-  "watch_hours": 2.42
+  "avg_watch_s": 32.31,
+  "watch_hours": 2.45
  },
  {
   "episode": "S22E05",
   "timestamp": "2026-08-26T02:10:37+0000",
-  "plays": 144,
-  "reach": 0,
-  "likes": 7,
-  "shares": 0,
-  "saves": 0,
-  "comments": 0,
-  "avg_watch_s": 0.0,
-  "watch_hours": 0.0
- },
- {
-  "episode": "S04E06",
-  "timestamp": "2026-08-26T02:10:05+0000",
-  "plays": 16,
-  "reach": 0,
-  "likes": 0,
+  "plays": 292,
+  "reach": 195,
+  "likes": 13,
   "shares": 0,
   "saves": 1,
   "comments": 0,
-  "avg_watch_s": 0.0,
-  "watch_hours": 0.0
+  "avg_watch_s": 9.82,
+  "watch_hours": 0.53
  }
 ]

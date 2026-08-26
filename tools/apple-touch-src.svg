@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs><clipPath id="tile"><rect width="512" height="512" rx="0"/></clipPath></defs>
+  <style>.bg{fill:#100904}.ln{stroke:#ffedd7;stroke-width:30}.ln--a{stroke:#dc5000;stroke-width:30}</style>
+  <rect class="bg" width="512" height="512" rx="0"/>
+  <g clip-path="url(#tile)" fill="none" stroke-linecap="round">
+    <g transform="rotate(-36 344 176)">
+      <ellipse class="ln ln--a" cx="344" cy="176" rx="60"  ry="38"/>
+      <ellipse class="ln"       cx="336" cy="186" rx="152" ry="100"/>
+      <ellipse class="ln"       cx="326" cy="198" rx="252" ry="170"/>
+      <ellipse class="ln"       cx="314" cy="212" rx="356" ry="244"/>
+    </g>
+  </g>
+</svg>

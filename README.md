@@ -95,6 +95,37 @@ rather than typing it, or it will silently go stale.
 Media IDs are dropped on the way in. Everything under `data/` is served publicly
 and the IDs make individual post permalinks derivable.
 
+### The counters that tick
+
+The four headline tiles in section 08 count up while somebody is reading. It is
+an estimate, not a live feed — a public page cannot hold an API token, and
+Instagram has no push channel.
+
+Each refresh records `generated_at` and, in `rates_per_hour`, how fast each
+counter actually grew since the previous refresh. `liveCounters()` in
+`desmos/charts.js` extrapolates from the last figure at that rate. Currently
+about one play every 1.4 s, one reach every 2.3 s, a like every 24 s and a share
+every 90 s.
+
+Four rules it follows, all of which matter:
+
+- **Only the four raw counters** — `total_plays`, `total_reach`, `total_likes`,
+  `total_shares`. Means and ratios do not accumulate; ticking `mean_watch_s`
+  would be a lie rather than an estimate.
+- **Only the stat tiles.** Every number in the prose stays at its refreshed
+  value, so a sentence never disagrees with itself mid-read.
+- **It stops after nine days.** A workflow that dies leaves a stale number on
+  screen rather than an invented one that keeps climbing forever.
+- **No fallback rate.** With no measured rate the tiles sit still. Dividing
+  lifetime totals by the posting window suggests ~5 plays a second, which looks
+  great and is wrong — views keep accruing long after a post lands.
+
+`prefers-reduced-motion: reduce` turns the whole thing off.
+
+Because `generated_at` changes on every run, the workflow can no longer use a
+plain `git diff` to decide whether to commit — it compares `summary.json` with
+the clock fields removed, and reverts the tree when only the clock moved.
+
 ### Two metric traps
 
 - **`views` is not the old `plays`.** Meta retired `plays` and `impressions`.

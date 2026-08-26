@@ -1,23 +1,30 @@
 {
- "generated": "2026-08-24",
+ "generated": "2026-08-25",
  "window": {
   "first": "2026-08-17",
-  "last": "2026-08-24"
+  "last": "2026-08-26"
  },
- "posts": 88,
- "total_watch_hours": 12940,
- "total_watch_days": 539.2,
- "total_plays": 4368352,
- "total_reach": 2516849,
- "total_likes": 286528,
- "total_shares": 97895,
- "total_saves": 18503,
- "median_plays": 3714,
- "mean_plays": 49640,
+ "posts": 96,
+ "total_watch_hours": 13324,
+ "total_watch_days": 555.2,
+ "total_plays": 4494696,
+ "total_reach": 2594952,
+ "total_likes": 294155,
+ "total_shares": 99914,
+ "total_saves": 18861,
+ "median_plays": 3698,
+ "mean_plays": 46820,
  "median_watch_hours": 6.82,
  "hit_rate_pct": 4.9,
  "youtube_uploads": 140,
- "total_comments": 723,
+ "total_comments": 743,
  "mean_watch_s": 19.6,
- "share_rate_pct": 2.24
+ "share_rate_pct": 2.22,
+ "generated_at": "2026-08-26T02:16:15Z",
+ "rates_per_hour": {
+  "total_plays": 2513.266,
+  "total_reach": 1553.644,
+  "total_likes": 151.718,
+  "total_shares": 40.162
+ }
 }

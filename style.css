@@ -299,9 +299,6 @@ a.prow:hover .prow__go { color: var(--accent); transform: translateX(3px); }
 .stat__n small { font-size: var(--t-sub); color: var(--fg-soft); }
 .stat__l { font-size: var(--t-caption); text-transform: uppercase; color: var(--fg-soft); margin-top: 10px; line-height: 1.4; }
 .stats--3 { grid-template-columns: repeat(3, 1fr); }
-/* Two stat rows stacked: one rule between them, one margin around the pair. */
-.stats--stack { margin-bottom: 0; border-bottom: 0; }
-.stats--stack + .stats { margin-top: 0; }
 
 /* ---------- ODOMETER (the ticking stat tiles) ----------
    Each digit is a slot with a 0-9 strip behind it; a change slides the strip.

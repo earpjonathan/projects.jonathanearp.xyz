@@ -120,7 +120,16 @@ Four rules it follows, all of which matter:
   lifetime totals by the posting window suggests ~5 plays a second, which looks
   great and is wrong — views keep accruing long after a post lands.
 
-`prefers-reduced-motion: reduce` turns the whole thing off.
+Each tile is an odometer: every digit is a slot with a 0-9 strip behind it, and
+only the digits that changed slide. The strip runs 0-9 **twice** so a carry
+(9 to 0) rolls forwards into the second run and then snaps back silently -
+otherwise a carry spins backwards through eight digits. Numerals are
+`tabular-nums` so the slots never change width and the row never reflows. A jump
+of more than 20 (first paint, or catching up after a spell in a background tab)
+lands without animation rather than running a slot machine.
+
+`prefers-reduced-motion: reduce` turns the whole thing off - no odometer is
+built at all and the tile keeps the plain refreshed number.
 
 Because `generated_at` changes on every run, the workflow can no longer use a
 plain `git diff` to decide whether to commit — it compares `summary.json` with

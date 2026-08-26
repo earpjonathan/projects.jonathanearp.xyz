@@ -1,10 +1,20 @@
-"""Generate the topographic favicon in three flavours from one source.
+"""Generate the topographic favicon from one source.
 
-  favicon.svg        - carries a prefers-color-scheme query; the default <link>
-  favicon-dark.svg   - flat dark, for the in-page theme toggle
-  favicon-light.svg  - flat light, likewise
+  favicon.svg           - prefers-color-scheme query; the default <link>
+  favicon-dark.svg      - flat dark, for the in-page theme toggle
+  favicon-light.svg     - flat light, likewise
+  apple-touch-src.svg   - square, dark, no corner radius; an intermediate,
+                          not served. Rasterise it to apple-touch-icon.png
+                          at 180x180:
+                            qlmanage -t -s 180 -o . apple-touch-src.svg
+                          The same trick at -s 512 off favicon-dark.svg makes
+                          the PNG favicon fallback the FPV site still uses.
 
 Edit ART here, never the generated files.
+
+iOS masks the touch icon itself, so that one is drawn square and opaque -
+baking in our own rounded corners would round it twice, and any alpha shows
+through as a notch on the home screen.
 """
 import sys, pathlib
 
@@ -23,9 +33,10 @@ ART = '''  <rect class="bg" width="512" height="512" rx="76"/>
     </g>
   </g>'''
 
-HEAD = ('<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">\n'
-        '  <defs><clipPath id="tile"><rect width="512" height="512" rx="76"/></clipPath></defs>\n')
+def head(radius):
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">\n'
+            f'  <defs><clipPath id="tile"><rect width="512" height="512" rx="{radius}"/></clipPath></defs>\n')
 
 def rules(c, sel=""):
     # One weight, full opacity. At 16 px a 30-unit stroke is a hair under a
@@ -34,17 +45,20 @@ def rules(c, sel=""):
             f"{sel}.ln{{stroke:{c['ink']};stroke-width:30}}"
             f"{sel}.ln--a{{stroke:{c['accent']};stroke-width:30}}")
 
-def build(mode):
+def build(mode, radius=76):
     if mode == "auto":
         css = (rules(LIGHT) +
                "@media(prefers-color-scheme:dark){" + rules(DARK) + "}")
     else:
         css = rules(DARK if mode == "dark" else LIGHT)
-    return HEAD + f"  <style>{css}</style>\n" + ART + "\n</svg>\n"
+    art = ART if radius else ART.replace('rx="76"', 'rx="0"')
+    return head(radius) + f"  <style>{css}</style>\n" + art + "\n</svg>\n"
 
 out = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".")
 out.mkdir(parents=True, exist_ok=True)
-for name, mode in (("favicon.svg", "auto"), ("favicon-dark.svg", "dark"),
-                   ("favicon-light.svg", "light")):
-    (out / name).write_text(build(mode))
+for name, mode, radius in (("favicon.svg", "auto", 76),
+                           ("favicon-dark.svg", "dark", 76),
+                           ("favicon-light.svg", "light", 76),
+                           ("apple-touch-src.svg", "dark", 0)):
+    (out / name).write_text(build(mode, radius))
     print("wrote", out / name)

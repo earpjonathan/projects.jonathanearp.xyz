@@ -669,6 +669,10 @@
                         <div class="stat"><div class="stat__n" data-dg="total_likes">284,505</div><div class="stat__l">Likes</div></div>
                         <div class="stat"><div class="stat__n" data-dg="total_shares">97,274</div><div class="stat__l">Shares</div></div>
                     </div>
+                    <p class="stats__note">
+                        These four are counting up while you read. That is an estimate, not a
+                        live feed — see <a href="#current">how they stay current</a> below.
+                    </p>
 
                     <p>
                         Watch time and plays are different numbers and easy to confuse.
@@ -690,7 +694,7 @@
                         rate for the format.
                     </p>
 
-                    <h3 class="block__sub">Keeping these numbers current</h3>
+                    <h3 class="block__sub" id="current">Keeping these numbers current</h3>
                     <p>
                         Every figure in this section is pulled from the Instagram Graph API by
                         <code>tools/refresh_data.py</code>, which writes <code>data/</code> and
@@ -705,6 +709,16 @@
                         the data file at load, so refreshing the data rewrites the prose too.
                         Without that the stat tiles would update while the paragraph beside them
                         kept last month's figure.
+                    </p>
+                    <p>
+                        The four tiles then tick forward while you're on the page. Each refresh
+                        records how fast every counter grew since the previous one, and the tiles
+                        extrapolate from the last figure at that rate — currently about
+                        <strong>one play every 1.4&nbsp;seconds</strong>. It is arithmetic on a
+                        stored number, not a request to Instagram; a public page cannot hold an
+                        API token, and the underlying figures only move when the weekly job runs.
+                        The extrapolation stops after nine days, so a workflow that breaks leaves
+                        a stale number on screen instead of an invented one.
                     </p>
 
                     <div class="callout">

@@ -299,6 +299,11 @@ a.prow:hover .prow__go { color: var(--accent); transform: translateX(3px); }
 .stat__n small { font-size: var(--t-sub); color: var(--fg-soft); }
 .stat__l { font-size: var(--t-caption); text-transform: uppercase; color: var(--fg-soft); margin-top: 10px; line-height: 1.4; }
 .stats--3 { grid-template-columns: repeat(3, 1fr); }
+/* .block__body p already owns the bottom margin; only pull the note up
+   under the tiles, which carry a 41px margin of their own. */
+.stats__note { margin-top: -29px; font-size: var(--t-caption); line-height: 1.5; color: var(--fg-soft); }
+.stats__note a { color: var(--fg); border-bottom: 1px solid var(--line); }
+.stats__note a:hover { border-bottom-color: var(--accent); }
 
 /* tl;dr strip */
 .tldr {

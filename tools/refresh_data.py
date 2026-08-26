@@ -167,6 +167,7 @@ def build_summary(posts: list, previous: dict) -> dict:
         s.pop(dead, None)
     s.update({
         "generated": time.strftime("%Y-%m-%d"),
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "window": {"first": stamps[0], "last": stamps[-1]} if stamps else previous.get("window", {}),
         "posts": len(posts),
         "total_watch_hours": total_watch,
@@ -191,7 +192,58 @@ def build_summary(posts: list, previous: dict) -> dict:
         "mean_plays": int(round(statistics.fmean(plays))) if plays else 0,
         "median_watch_hours": round(statistics.median(watch), 2) if watch else 0,
     })
+    s["rates_per_hour"] = observed_rates(s, previous)
     return s
+
+
+# Metrics the page extrapolates between refreshes. Counters only - anything
+# that is a mean or a ratio must not be ticked forward.
+TICKING = ("total_plays", "total_reach", "total_likes", "total_shares")
+
+
+def observed_rates(current: dict, previous: dict) -> dict:
+    """Per-hour growth measured between this refresh and the last one.
+
+    The page uses these to tick the headline counters while somebody is
+    reading, rather than showing a number frozen at the last cron run. They
+    are an observation, not a forecast: each refresh overwrites them with
+    whatever actually happened over the interval, so a slow week corrects
+    itself the following week.
+
+    Returns {} when there is nothing to measure from - a first run, a clock
+    that went backwards, or a total that dropped (Instagram does revise
+    figures down). The page falls back to showing the static number.
+    """
+    prev_at = previous.get("generated_at")
+    if not prev_at and previous.get("generated"):
+        # Summaries written before this field existed carry only a date.
+        # Midnight is a guess, so require a long enough interval that being
+        # up to a day out cannot distort the rate much. The next refresh has
+        # a real timestamp on both ends and this branch stops being used.
+        prev_at = previous["generated"] + "T00:00:00Z"
+        min_hours = 24.0
+    else:
+        min_hours = 1 / 60.0
+    if not prev_at:
+        return {}
+    try:
+        elapsed_h = (
+            time.mktime(time.strptime(current["generated_at"], "%Y-%m-%dT%H:%M:%SZ"))
+            - time.mktime(time.strptime(prev_at, "%Y-%m-%dT%H:%M:%SZ"))
+        ) / 3600.0
+    except (ValueError, KeyError):
+        return {}
+    # Too close together is two runs of the same cron, not an interval to
+    # measure; the delta is noise divided by almost nothing.
+    if elapsed_h < min_hours:
+        return {}
+
+    rates = {}
+    for k in TICKING:
+        delta = current.get(k, 0) - previous.get(k, 0)
+        if delta > 0 and previous.get(k):
+            rates[k] = round(delta / elapsed_h, 3)
+    return rates
 
 
 def write_data_js(posts, findings, render, summary) -> None:

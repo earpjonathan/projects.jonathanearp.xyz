@@ -74,7 +74,29 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- data desmos/data.js; then
+
+          # Every run rewrites generated_at and rates_per_hour, so a plain
+          # `git diff` is never empty any more and would commit weekly noise.
+          # Ask whether an actual figure moved instead.
+          MOVED=$(python3 - <<'PY'
+          import json, subprocess
+          CLOCK = {"generated", "generated_at", "rates_per_hour"}
+          def strip(d): return {k: v for k, v in d.items() if k not in CLOCK}
+          try:
+              old = json.loads(subprocess.check_output(
+                  ["git", "show", "HEAD:data/summary.json"], text=True))
+          except Exception:
+              print("yes"); raise SystemExit
+          new = json.load(open("data/summary.json"))
+          posts = subprocess.call(
+              ["git", "diff", "--quiet", "--", "data/instagram_posts.json"])
+          print("yes" if strip(old) != strip(new) or posts else "no")
+          PY
+          )
+
+          if [ "$MOVED" != "yes" ]; then
+            # Leave the tree clean so the clock churn is not carried forward.
+            git checkout -- data desmos/data.js
             echo "No change in the numbers." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi

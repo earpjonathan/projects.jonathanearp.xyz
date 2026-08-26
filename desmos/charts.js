@@ -225,6 +225,66 @@
     });
   })();
 
+  /* ---------- live counters on the four headline tiles ----------
+     The tiles tick forward from the last refresh at the rate measured
+     between the last two refreshes, so the section is not frozen at
+     whenever the weekly job happened to run. This is an estimate and the
+     copy says so - the real figures only move when refresh_data.py runs.
+
+     Three things keep it from lying too hard: it only ever ticks the four
+     raw counters (never a mean or a ratio, which do not accumulate), it
+     only touches the stat tiles and leaves every number in the prose at
+     its refreshed value, and it stops extrapolating after CAP_H so a
+     broken workflow shows a stale figure rather than an invented one. */
+  (function liveCounters() {
+    var S = D.summary || {};
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var t0 = Date.parse(S.generated_at || "");
+    if (!t0) return;
+
+    var nodes = document.querySelectorAll(".stats .stat__n[data-dg]");
+    if (!nodes.length) return;
+
+    /* No fallback rate on purpose. Dividing lifetime totals by the posting
+       window gives ~5 plays a second, which looks impressive and is wrong -
+       views keep accruing long after a post lands. With no measured rate
+       the tiles just sit at the refreshed figure. */
+    var CAP_H = 9 * 24;          // a little past the weekly refresh cadence
+    var rates = S.rates_per_hour || {};
+    var tiles = [];
+
+    for (var i = 0; i < nodes.length; i++) {
+      var key = nodes[i].getAttribute("data-dg");
+      var base = S[key];
+      if (typeof base !== "number") continue;
+      var rate = rates[key];
+      if (!(rate > 0)) continue;
+      tiles.push({ el: nodes[i], base: base, rate: rate, shown: -1 });
+    }
+    if (!tiles.length) return;
+
+    function tick() {
+      var h = Math.min((Date.now() - t0) / 36e5, CAP_H);
+      if (h < 0) h = 0;
+      for (var i = 0; i < tiles.length; i++) {
+        var t = tiles[i];
+        var v = Math.floor(t.base + t.rate * h);
+        if (v !== t.shown) { t.shown = v; t.el.textContent = fmt(v); }
+      }
+    }
+
+    var timer = null;
+    function start() { tick(); if (!timer) timer = setInterval(tick, 1000); }
+    function stop() { clearInterval(timer); timer = null; }
+
+    start();
+    /* A background tab does not need to count; it catches up on return. */
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) stop(); else start();
+    });
+  })();
+
   /* ---------- mount + keep in step with the layout ---------- */
   var charts = {
     "fig-render-profile": renderProfile,

@@ -97,9 +97,10 @@ and the IDs make individual post permalinks derivable.
 
 ### The counters that tick
 
-The four headline tiles in section 08 count up while somebody is reading. It is
-an estimate, not a live feed — a public page cannot hold an API token, and
-Instagram has no push channel.
+The four Instagram tiles in the headline block count up while somebody is
+reading. It is extrapolation, not a live feed — a public page cannot hold an API
+token, and Instagram has no push channel. The page itself does not say so;
+if you want it labelled, add the note back yourself.
 
 Each refresh records `generated_at` and, in `rates_per_hour`, how fast each
 counter actually grew since the previous refresh. `liveCounters()` in
@@ -112,8 +113,8 @@ Four rules it follows, all of which matter:
 - **Only the four raw counters** — `total_plays`, `total_reach`, `total_likes`,
   `total_shares`. Means and ratios do not accumulate; ticking `mean_watch_s`
   would be a lie rather than an estimate.
-- **Only the stat tiles.** Every number in the prose stays at its refreshed
-  value, so a sentence never disagrees with itself mid-read.
+- **Only `.stats .stat__n[data-dg]`.** Any figure written into prose stays at
+  its refreshed value, so a sentence can never disagree with itself mid-read.
 - **It stops after nine days.** A workflow that dies leaves a stale number on
   screen rather than an invented one that keeps climbing forever.
 - **No fallback rate.** With no measured rate the tiles sit still. Dividing

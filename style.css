@@ -262,7 +262,7 @@ main { padding-top: 0; }
    it can pin to the fold, and naming it here (0,2,0) beat that (0,1,0) and put
    it back in the flex flow - which is why the cue sat jammed under the meta
    strip with a gap of dead space beneath it. It only needs the z-index. */
-.hero__eyebrow, .hero__title, .hero__lead, .hero .metastrip,
+.hero__eyebrow, .hero__title, .hero__acro, .hero__lead, .hero .metastrip,
 .hero__actions { position: relative; z-index: 1; }
 .hero .scroll-prompt { z-index: 1; }
 .hero__eyebrow { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--fg); }
@@ -273,6 +273,17 @@ main { padding-top: 0; }
   font-size: var(--t-sub); line-height: 1.33; color: var(--fg);
 }
 .hero__lead b { color: var(--accent); font-weight: 500; }
+
+/* The backronym, under the title on a case study and beside it on the index.
+   Same shape in both places: the letters, then what they stand for, with the
+   initials picked out so the reader can check the joke rather than take it on
+   trust. <em> is doing the picking-out, so it is reset out of italic. */
+.hero__acro {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
+  margin-top: 16px; max-width: 76ch; color: var(--fg-soft);
+}
+.hero__acro b { color: var(--accent); font-weight: 500; letter-spacing: 0.08em; }
+.hero__acro em, .prow__acro em { font-style: normal; color: var(--fg); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
 .hero .metastrip { margin-top: auto; }
@@ -315,6 +326,12 @@ a.prow:hover .prow__go { color: var(--accent); transform: translateX(3px); }
 
 .prow__no { font-size: var(--t-caption); color: var(--accent); padding-top: 6px; }
 .prow__title { font-size: var(--t-h); line-height: 1; font-weight: 500; text-transform: uppercase; transition: color var(--t-base); }
+.prow__acro {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+  margin-top: 10px; font-size: var(--t-caption); text-transform: uppercase;
+  line-height: 1.2; color: var(--fg-soft);
+}
+.prow__acro b { color: var(--accent); font-weight: 500; letter-spacing: 0.08em; }
 .prow__desc { margin-top: 14px; font-size: var(--t-body); line-height: 1.5; color: var(--fg-soft); max-width: 58ch; }
 .prow__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 .prow__tags span {
@@ -777,4 +794,258 @@ input[type="range"]:focus-visible { outline: 1px solid var(--accent); outline-of
   .tl__bv { font-size: var(--t-caption); }
   .demo__canvas { height: 240px; }
   .demo__hint { margin-left: 0; flex-basis: 100%; }
+}
+
+/* ============================================================
+   CASE STUDY 02 — FPV GAUSSIAN SPLATTING
+   Same idiom throughout: dashed hairlines, no fills, no shadows,
+   accent reserved for the one thing you are meant to look at.
+   ============================================================ */
+
+/* ---------- abstract (paper-shaped opener) ---------- */
+.abstract {
+  display: grid; grid-template-columns: 68px 1fr; gap: 24px;
+  border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line);
+  padding: 31px 0; margin-top: 41px;
+}
+.abstract__k { color: var(--accent); padding-top: 3px; }
+.abstract__body p { font-size: var(--t-sub); line-height: 1.45; max-width: 74ch; }
+.abstract__body p + p { margin-top: 14px; }
+.abstract__body code { font-family: var(--font); color: var(--accent); border-bottom: 1px solid var(--line); }
+.abstract__body em { font-style: italic; color: var(--accent); }
+
+/* ---------- a four-up stat row and a six-stage pipeline ---------- */
+.stats--4 { grid-template-columns: repeat(4, 1fr); }
+.pipe--6 { grid-template-columns: repeat(6, 1fr); }
+
+/* ---------- numbered list, for the takeaways ---------- */
+.nlist { list-style: none; counter-reset: n; color: var(--fg-soft); font-size: var(--t-body); max-width: 74ch; }
+.nlist li { position: relative; padding-left: 26px; margin-bottom: 12px; line-height: 1.5; counter-increment: n; }
+.nlist li::before {
+  content: counter(n, decimal-leading-zero);
+  position: absolute; left: 0; top: 1px;
+  font-size: var(--t-caption); color: var(--accent);
+}
+.nlist li strong { color: var(--fg); font-weight: 500; }
+
+/* ---------- figures that want the full column ---------- */
+.fig--wide { margin-top: 41px; }
+
+/* ---------- the paired video: footage beside reconstruction ---------- */
+.vpair { position: relative; border: 1px dashed var(--line); }
+.vpair__v { width: 100%; height: auto; display: block; }
+/* the seam between the two halves — the video itself has no divider,
+   so the hairline is drawn here and follows the theme */
+.vpair__rule {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 1px;
+  background: var(--bg); opacity: 0.85; pointer-events: none;
+}
+.vpair__l {
+  position: absolute; bottom: 8px;
+  font-size: var(--t-caption); text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--cream); background: rgba(16, 9, 4, 0.62);
+  padding: 4px 8px; pointer-events: none;
+}
+.vpair__l--a { left: 8px; }
+.vpair__l--b { left: calc(50% + 8px); color: var(--cream); }
+
+/* ---------- before/after wipe ---------- */
+.abpair { position: relative; border: 1px dashed var(--line); overflow: hidden; }
+.abpair__img { width: 100%; height: auto; display: block; }
+.abpair__img--top { position: absolute; inset: 0; clip-path: inset(0 0 0 50%); }
+/* the range covers the figure so the whole image is draggable, and it is
+   still a real input — arrow keys work, and so does a screen reader */
+.abpair__range {
+  position: absolute; inset: 0; width: 100%; max-width: none; height: 100%;
+  margin: 0; opacity: 0; cursor: ew-resize; z-index: 2;
+}
+.abpair__handle {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 1px;
+  background: var(--accent); pointer-events: none; z-index: 1;
+}
+.abpair__handle::before,
+.abpair__handle::after {
+  content: ""; position: absolute; left: -5px; width: 11px; height: 11px;
+  border-left: 1px solid var(--accent); border-top: 1px solid var(--accent);
+}
+.abpair__handle::before { top: calc(50% - 6px); transform: rotate(-45deg); }
+.abpair__handle::after  { top: calc(50% - 6px); transform: rotate(135deg); }
+.abpair__l {
+  position: absolute; bottom: 8px; z-index: 1;
+  font-size: var(--t-caption); text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--cream); background: rgba(16, 9, 4, 0.62);
+  padding: 4px 8px; pointer-events: none;
+}
+.abpair__l--a { left: 8px; }
+.abpair__l--b { right: 8px; }
+.abpair:focus-within .abpair__handle { box-shadow: 0 0 0 1px var(--accent); }
+
+/* ---------- extra canvas sizes for this page's demos ---------- */
+.demo__canvas--tall { height: 340px; }
+.demo__canvas--map { height: 560px; }
+
+/* ---------- the live renderer ---------- */
+.viewer {
+  border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line);
+  margin: 31px 0; padding: 20px 0 24px;
+}
+.viewer__head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.viewer__stage {
+  position: relative; width: 100%; height: clamp(320px, 52vh, 560px);
+  border: 1px dashed var(--line);
+  /* holes read as the page's own ground, which is exactly what they are:
+     nothing reached the pixel. The canvas clears to transparent. */
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+.viewer__canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.viewer__canvas:active { cursor: grabbing; }
+.viewer.is-live .viewer__stage { background: var(--bg); }
+.viewer__load {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-family: var(--font); background: transparent; color: var(--fg);
+  border: 1px solid var(--fg); border-radius: 36px; padding: 16px 28px; cursor: pointer;
+  transition: border-color var(--t-base), color var(--t-base);
+}
+.viewer__load:hover { border-color: var(--accent); color: var(--accent); }
+.viewer__load[disabled] { opacity: 0.6; cursor: default; }
+/* display:flex above would otherwise beat the hidden attribute */
+.viewer__load[hidden] { display: none; }
+.viewer__loadk { font-size: var(--t-body); font-weight: 500; }
+.viewer__loadv { font-size: var(--t-caption); text-transform: uppercase; color: var(--fg-soft); }
+.viewer__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--line); z-index: 2; }
+.viewer__bar i { display: block; height: 2px; width: 0; background: var(--accent); transition: width 0.2s linear; }
+.viewer__ctl { margin-top: 16px; }
+.viewer__ctl[hidden] { display: none; }
+.viewer__fallback {
+  margin-top: 14px; font-size: var(--t-body); color: var(--fg-soft); line-height: 1.5; max-width: 74ch;
+}
+.viewer__fallback[hidden] { display: none; }
+/* while the near plane is eating geometry, mark the readout */
+.viewer.is-culling #viewer-cut { color: var(--accent); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) {
+  .pipe--6 { grid-template-columns: repeat(3, 1fr); }
+  .pipe--6 .pipe__s:nth-child(3n + 1) { border-left: 0; padding-left: 0; }
+  .pipe--6 .pipe__s:nth-child(-n + 3) { border-bottom: 1px dashed var(--line); }
+}
+@media (max-width: 900px) {
+  .stats--4 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 620px) {
+  .abstract { grid-template-columns: 1fr; gap: 10px; }
+  .abstract__body p { font-size: var(--t-body); }
+  .stats--4 { grid-template-columns: 1fr; }
+  .pipe--6 { grid-template-columns: 1fr 1fr; }
+  .pipe--6 .pipe__s:nth-child(odd) { border-left: 0; padding-left: 0; }
+  .demo__canvas--tall { height: 300px; }
+  /* the base images are about 1.8:1, so a 320px box left a third of it
+     empty on a phone; 280 fits the image at both ends of this range */
+  .demo__canvas--map { height: 280px; }
+  .vpair__l { font-size: 9px; padding: 3px 6px; }
+}
+
+/* ---------- ten chapters in the sticky nav ----------
+   The shared nav scrolls sideways with a hidden scrollbar, which is right on a
+   phone where you can swipe it. Ten chapters overrun a 1190px row by about a
+   hundred pixels, and on a desktop there is no gesture that reveals the last
+   one, so above the breakpoint it wraps instead. */
+@media (min-width: 720px) {
+  .paper .chapnav { flex-wrap: wrap; overflow-x: visible; row-gap: 10px; }
+}
+
+/* ---------- paper-length captions ----------
+   The shared caption is 10px uppercase, which is right for the one-line
+   captions on the other case study. These run to four or five lines and
+   uppercase at that length is genuinely hard to read, so on this page the
+   figure label keeps the caption voice and the sentence goes back to
+   sentence case. */
+.paper .fig { margin-bottom: 24px; }
+.paper .fig figcaption {
+  text-transform: none;
+  font-size: 12.5px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  max-width: 88ch;
+}
+.paper .fig figcaption strong {
+  text-transform: uppercase;
+  font-size: var(--t-caption);
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin-right: 4px;
+}
+.paper .fig figcaption b { color: var(--fg); font-weight: 500; }
+.paper .fig figcaption em { font-style: italic; }
+.paper .fig figcaption code {
+  font-family: var(--font); color: var(--accent);
+  border-bottom: 1px solid var(--line);
+}
+.paper .demo__note { font-size: 12.5px; line-height: 1.6; }
+.paper .dtable caption { text-transform: none; font-size: 12.5px; }
+
+/* ---------- the near-plane sweep: a real render beside its measurement ---------- */
+.znear__stage { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; align-items: start; }
+.znear__shot { margin: 0; }
+.znear__shot img {
+  width: 100%; height: auto; display: block; border: 1px dashed var(--line);
+  background: var(--bg);
+}
+.znear__shot figcaption {
+  padding-top: 8px; font-size: var(--t-caption); text-transform: uppercase;
+  color: var(--fg-soft);
+}
+.znear__side { display: flex; flex-direction: column; gap: 14px; }
+.znear__hist { width: 100%; height: 150px; display: block; border: 1px dashed var(--line); }
+.znear__curve { width: 100%; height: 150px; display: block; border: 1px dashed var(--line); }
+@media (max-width: 760px) {
+  .znear__stage { grid-template-columns: 1fr; }
+  .znear__hist, .znear__curve { height: 130px; }
+}
+
+/* ---------- the scale figures ----------
+   A single video rather than a pair, and a ladder of stills beside a gauge
+   that says where the camera is. Both exist to answer one question the rest
+   of the page never does: how big is the reconstruction. */
+.vsolo { position: relative; border: 1px dashed var(--line); background: var(--bg); }
+.vsolo__v { width: 100%; height: auto; display: block; aspect-ratio: 16 / 9; }
+.vsolo__l {
+  position: absolute; bottom: 8px;
+  font-size: var(--t-caption); text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--cream); background: rgba(16, 9, 4, 0.62);
+  padding: 4px 8px; pointer-events: none;
+}
+.vsolo__l--a { left: 8px; }
+.vsolo__l--b { right: 8px; }
+
+.stats--5 { grid-template-columns: repeat(5, 1fr); }
+
+/* button groups inside a demo control row, so two independent sets of
+   choices do not read as one long row of alternatives */
+.sgroup { display: inline-flex; gap: 8px; align-items: center; }
+.sgroup + .sgroup { margin-left: 6px; padding-left: 14px; border-left: 1px dashed var(--line); }
+.srange--wide { flex: 1 1 320px; }
+.srange--wide input[type="range"] { flex: 1 1 auto; max-width: none; }
+
+.ladder { display: grid; grid-template-columns: 1fr 190px; gap: 18px; align-items: stretch; }
+.ladder__shot {
+  width: 100%; height: auto; display: block;
+  border: 1px dashed var(--line); background: var(--bg); aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.ladder__gauge { width: 100%; height: 100%; min-height: 220px; display: block; border: 1px dashed var(--line); }
+
+@media (max-width: 1050px) {
+  .stats--5 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 760px) {
+  .ladder { grid-template-columns: 1fr; }
+  .ladder__gauge { min-height: 120px; height: 120px; }
+}
+@media (max-width: 620px) {
+  .stats--5 { grid-template-columns: 1fr; }
+  .vsolo__l { font-size: 9px; padding: 3px 6px; }
+  .sgroup + .sgroup { margin-left: 0; padding-left: 0; border-left: 0; }
 }

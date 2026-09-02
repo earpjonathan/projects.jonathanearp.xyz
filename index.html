@@ -42,6 +42,12 @@
       "hasPart": [
         {
           "@type": "CreativeWork",
+          "name": "FPV Gaussian Splatting",
+          "url": "https://projects.jonathanearp.xyz/splat/",
+          "description": "Two FPV drone flights over two sites, six days apart, rebuilt as one 3D Gaussian splatting scene and flown back through in the browser."
+        },
+        {
+          "@type": "CreativeWork",
           "name": "Desmos Guy",
           "url": "https://projects.jonathanearp.xyz/desmos/",
           "description": "An automated pipeline that turns TV clips into Desmos graphing-calculator animations and publishes them."
@@ -133,7 +139,7 @@
             <div class="metastrip" data-reveal style="--i:3">
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Live</span>
-                    <span class="metastrip__v">1 project</span>
+                    <span class="metastrip__v">2 projects</span>
                 </div>
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Focus</span>
@@ -141,7 +147,7 @@
                 </div>
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Written in</span>
-                    <span class="metastrip__v">Python</span>
+                    <span class="metastrip__v">Python · Rust</span>
                 </div>
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Data</span>
@@ -162,10 +168,45 @@
 
             <div class="plist">
 
+                <a class="prow" href="splat/" data-reveal>
+                    <span class="prow__no">02</span>
+                    <div>
+                        <h2 class="prow__title">FPV Gaussian Splatting</h2>
+                        <p class="prow__acro">
+                            <b>S.P.L.O.O.G.E</b>
+                            <span>Structure-from-motion, poses, levelling, optimisation,
+                            orientation, Gaussians, export</span>
+                        </p>
+                        <p class="prow__desc">
+                            Two drone flights over two sites, six days apart, rebuilt as a single
+                            photorealistic 3D reconstruction and then flown back through in a
+                            browser alongside the footage they came from. COLMAP for the camera
+                            solve, a Rust and WebGPU trainer for the Gaussians, WebGL for playback.
+                            The write-up is laid out as a paper, because the ground turning
+                            see-through turned out to be one line in the renderer rather than the
+                            training failure I spent a week measuring.
+                        </p>
+                        <div class="prow__tags">
+                            <span>3DGS</span><span>COLMAP</span><span>Rust</span>
+                            <span>WebGPU</span><span>WebGL</span><span>Python</span>
+                        </div>
+                    </div>
+                    <div class="prow__stats">
+                        <div class="prow__stat"><b>7,470</b><span>Frames registered<br>of 7,471</span></div>
+                        <div class="prow__stat"><b>3.36M</b><span>Triangulated<br>3D points</span></div>
+                        <div class="prow__stat"><b>11.6×</b><span>Fewer ground holes<br>after one line</span></div>
+                    </div>
+                    <span class="prow__go" aria-hidden="true">↗</span>
+                </a>
+
                 <a class="prow" href="desmos/" data-reveal>
                     <span class="prow__no">01</span>
                     <div>
                         <h2 class="prow__title">Desmos Guy</h2>
+                        <p class="prow__acro">
+                            <b>P.E.T.E.R</b>
+                            <span>Pipeline for edge tracing and expression rendering</span>
+                        </p>
                         <p class="prow__desc">
                             One command goes and finds a TV clip, figures out which episode it's
                             from, traces it to line art, rebuilds it as parametric expressions

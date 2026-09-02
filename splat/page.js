@@ -1,5 +1,5 @@
 /* ============================================================
-   FPV Gaussian Splatting — page wiring.
+   SPLOOG — page wiring.
    The negative-results table, the before/after wipe, and the
    controls for the live renderer. Kept apart from charts.js and
    interactive.js so those two stay about drawing.

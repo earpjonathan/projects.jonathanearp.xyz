@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FPV Gaussian Splatting — Jonathan Earp</title>
+    <title>SPLOOG — Jonathan Earp</title>
     <meta name="description" content="Photorealistic 3D Gaussian Splatting reconstructions built from FPV drone footage on Apple Silicon, with no CUDA — gyro-driven frame selection, COLMAP, a Rust/WebGPU trainer, a depth-distortion loss written from the paper, and the one-line viewer bug that drove weeks of work.">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -14,14 +14,14 @@
 
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Jonathan Earp">
-    <meta property="og:title" content="FPV Gaussian Splatting — 3D reconstruction from drone footage on a Mac">
+    <meta property="og:title" content="SPLOOG — 3D reconstruction from drone footage on a Mac">
     <meta property="og:description" content="Two flights, six days apart, merged into one 3D Gaussian Splatting model on Apple Silicon — and the one-line rendering bug that four reconstruction-side interventions were measured against.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/splat/">
     <meta property="og:image" content="https://projects.jonathanearp.xyz/splat/media/znear_fix.jpg">
     <meta property="og:image:width" content="900">
     <meta property="og:image:height" content="675">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="FPV Gaussian Splatting — 3D reconstruction from drone footage on a Mac">
+    <meta name="twitter:title" content="SPLOOG — 3D reconstruction from drone footage on a Mac">
     <meta name="twitter:description" content="Gyro-driven frame selection, COLMAP, a Rust/WebGPU trainer, a depth-distortion loss from the paper, and a one-line viewer bug.">
     <meta name="twitter:image" content="https://projects.jonathanearp.xyz/splat/media/znear_fix.jpg">
     <meta name="twitter:creator" content="@JonathanEarp_">
@@ -30,7 +30,7 @@
     {
       "@context": "https://schema.org",
       "@type": "TechArticle",
-      "headline": "FPV Gaussian Splatting — building 3D reconstructions from drone footage on a Mac",
+      "headline": "SPLOOG — building 3D reconstructions from drone footage on a Mac",
       "description": "A 3D Gaussian Splatting pipeline built end to end on Apple Silicon without CUDA: gyro-driven frame selection, COLMAP structure-from-motion across two sessions, a Rust/WebGPU trainer extended with a 2DGS depth-distortion loss, a WebGL viewer with trajectory replay, and the measurement work that found a one-line rendering bug underneath four reconstruction-side interventions.",
       "url": "https://projects.jonathanearp.xyz/splat/",
       "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
@@ -83,7 +83,7 @@
 </head>
 <body class="paper">
 
-    <div class="vlabel" aria-hidden="true">FPV Splatting — 02</div>
+    <div class="vlabel" aria-hidden="true">SPLOOG — 02</div>
 
     <header class="topbar">
         <div class="topbar__inner">
@@ -113,13 +113,15 @@
                 <span>Apple Silicon, no CUDA</span>
                 <span>7,470 registered frames</span>
             </div>
-            <h1 class="hero__title" data-reveal style="--i:1">FPV Gaussian<br>Splatting</h1>
-            <p class="hero__acro mono" data-reveal style="--i:2">
-                <b>S.P.L.O.O.G.E</b>
-                <span><em>S</em>tructure-from-motion, <em>P</em>oses, <em>L</em>evelling,
-                <em>O</em>ptimisation, <em>O</em>rientation, <em>G</em>aussians, <em>E</em>xport</span>
-            </p>
-            <p class="hero__lead" data-reveal style="--i:3">
+            <h1 class="hero__title acro" data-reveal style="--i:1" aria-label="SPLOOG">
+                <span class="acro__r"><span class="acro__c">S</span><span class="acro__w">Structure-from-motion</span></span>
+                <span class="acro__r"><span class="acro__c">P</span><span class="acro__w">Poses</span></span>
+                <span class="acro__r"><span class="acro__c">L</span><span class="acro__w">Levelling</span></span>
+                <span class="acro__r"><span class="acro__c">O</span><span class="acro__w">Optimisation</span></span>
+                <span class="acro__r"><span class="acro__c">O</span><span class="acro__w">Orientation</span></span>
+                <span class="acro__r"><span class="acro__c">G</span><span class="acro__w">Gaussians</span></span>
+            </h1>
+            <p class="hero__lead" data-reveal style="--i:2">
                 Two drone flights over two sites, six days apart, rebuilt as a single
                 photorealistic <b>3D reconstruction</b> — and then flown back through,
                 in a browser, alongside the footage they came from.
@@ -1078,7 +1080,7 @@
                 </a>
                 <a href="../desmos/" style="text-align:right">
                     <span class="pnav__side">Project 01</span>
-                    <span class="pnav__t">Desmos Guy</span>
+                    <span class="pnav__t">PETER</span>
                 </a>
             </nav>
 

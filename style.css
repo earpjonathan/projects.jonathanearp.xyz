@@ -262,7 +262,7 @@ main { padding-top: 0; }
    it can pin to the fold, and naming it here (0,2,0) beat that (0,1,0) and put
    it back in the flex flow - which is why the cue sat jammed under the meta
    strip with a gap of dead space beneath it. It only needs the z-index. */
-.hero__eyebrow, .hero__title, .hero__acro, .hero__lead, .hero .metastrip,
+.hero__eyebrow, .hero__title, .hero__lead, .hero .metastrip,
 .hero__actions { position: relative; z-index: 1; }
 .hero .scroll-prompt { z-index: 1; }
 .hero__eyebrow { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--fg); }
@@ -274,16 +274,20 @@ main { padding-top: 0; }
 }
 .hero__lead b { color: var(--accent); font-weight: 500; }
 
-/* The backronym, under the title on a case study and beside it on the index.
-   Same shape in both places: the letters, then what they stand for, with the
-   initials picked out so the reader can check the joke rather than take it on
-   trust. <em> is doing the picking-out, so it is reset out of italic. */
-.hero__acro {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
-  margin-top: 16px; max-width: 76ch; color: var(--fg-soft);
+/* The project name is the title, so it runs down the page and each letter's
+   source word runs across from it. The letter cell is a fixed width: six
+   different letter widths would otherwise start the words at six different x
+   positions and the column would read as ragged rather than as a key. */
+.acro { display: grid; row-gap: 6px; }
+/* centred on the letter, not sat on its baseline: at this size difference a
+   baseline-aligned word floats between two letters and it stops being
+   obvious which one it belongs to */
+.acro__r { display: flex; align-items: center; }
+.acro__c { flex: none; width: 1em; }
+.acro__w {
+  font-size: var(--t-caption); font-weight: 400; line-height: 1;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-soft);
 }
-.hero__acro b { color: var(--accent); font-weight: 500; letter-spacing: 0.08em; }
-.hero__acro em, .prow__acro em { font-style: normal; color: var(--fg); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
 .hero .metastrip { margin-top: auto; }
@@ -326,12 +330,6 @@ a.prow:hover .prow__go { color: var(--accent); transform: translateX(3px); }
 
 .prow__no { font-size: var(--t-caption); color: var(--accent); padding-top: 6px; }
 .prow__title { font-size: var(--t-h); line-height: 1; font-weight: 500; text-transform: uppercase; transition: color var(--t-base); }
-.prow__acro {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
-  margin-top: 10px; font-size: var(--t-caption); text-transform: uppercase;
-  line-height: 1.2; color: var(--fg-soft);
-}
-.prow__acro b { color: var(--accent); font-weight: 500; letter-spacing: 0.08em; }
 .prow__desc { margin-top: 14px; font-size: var(--t-body); line-height: 1.5; color: var(--fg-soft); max-width: 58ch; }
 .prow__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 .prow__tags span {

@@ -4,9 +4,13 @@ Side-projects section of [jonathanearp.xyz](https://jonathanearp.xyz). Static, n
 build step, no dependencies. Deployed with GitHub Pages exactly like the other
 three sites.
 
-Two projects so far: **Desmos Guy**, an automated pipeline that renders video
-clips as Desmos graphing-calculator animations, and **FPV Gaussian Splatting**,
-two drone flights rebuilt as one 3D reconstruction and written up as a paper.
+Two projects so far, each named for what its pipeline actually does:
+**PETER** (pipeline for edge tracing and expression rendering), which renders
+video clips as Desmos graphing-calculator animations, and **SPLOOG**
+(structure-from-motion, poses, levelling, optimisation, orientation,
+Gaussians), two drone flights rebuilt as one 3D reconstruction and written up
+as a paper. Both pages carry the backronym down the left of the hero with each
+letter's source word beside it; the index lists the names alone.
 
 ```
 index.html          Project index

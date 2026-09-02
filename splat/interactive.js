@@ -1,5 +1,5 @@
 /* ============================================================
-   FPV Gaussian Splatting — the playable figures.
+   SPLOOG — the playable figures.
    Each one runs the real arithmetic rather than replaying a
    recorded answer: the frame selector is the selection rule from
    scripts/select_frames2.py over real gyro samples, the near-plane

@@ -5,8 +5,8 @@ build step, no dependencies. Deployed with GitHub Pages exactly like the other
 three sites.
 
 Two projects so far, each named for what its pipeline actually does:
-**PETER** (pipeline for edge tracing and expression rendering), which renders
-video clips as Desmos graphing-calculator animations, and **SPLOOGE**
+**P.E.T.E.R** (pipeline for edge tracing and expression rendering), which renders
+video clips as Desmos graphing-calculator animations, and **S.P.L.O.O.G.E**
 (structure-from-motion, poses, levelling, optimisation, orientation,
 Gaussians, export), two drone flights rebuilt as one 3D reconstruction and written up
 as a paper. Both pages carry the backronym down the left of the hero with each

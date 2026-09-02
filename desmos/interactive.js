@@ -1,5 +1,5 @@
 /* ============================================================
-   PETER — the playable bits.
+   P.E.T.E.R — the playable bits.
 
    Four demos, all running the same algorithms the real pipeline
    runs, just smaller:

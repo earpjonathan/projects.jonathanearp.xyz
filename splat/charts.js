@@ -1,5 +1,5 @@
 /* ============================================================
-   SPLOOG — figures.
+   SPLOOGE — figures.
    Inline SVG drawn from window.SPLAT (data.js), styled entirely
    through CSS classes so every figure follows the light/dark
    toggle with no redraw. Re-rendered on resize at a 1:1 viewBox

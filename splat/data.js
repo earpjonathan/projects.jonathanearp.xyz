@@ -1,5 +1,5 @@
 /* ============================================================
-   SPLOOG — measured data.
+   SPLOOGE — measured data.
    Every figure on the page reads from here. Numbers come from the
    logs in the project repo (work/*.log, reports/) and from COLMAP's
    own model summary; nothing is retyped into the prose.

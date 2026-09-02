@@ -6,9 +6,9 @@ three sites.
 
 Two projects so far, each named for what its pipeline actually does:
 **PETER** (pipeline for edge tracing and expression rendering), which renders
-video clips as Desmos graphing-calculator animations, and **SPLOOG**
+video clips as Desmos graphing-calculator animations, and **SPLOOGE**
 (structure-from-motion, poses, levelling, optimisation, orientation,
-Gaussians), two drone flights rebuilt as one 3D reconstruction and written up
+Gaussians, export), two drone flights rebuilt as one 3D reconstruction and written up
 as a paper. Both pages carry the backronym down the left of the hero with each
 letter's source word beside it; the index lists the names alone.
 

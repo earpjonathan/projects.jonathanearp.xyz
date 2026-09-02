@@ -157,22 +157,26 @@
 
             <!-- ============ FIGURE 2 — the size of the thing ============ -->
             <figure class="fig fig--wide" data-reveal>
-                <div class="vsolo" id="pullback">
-                    <video class="vsolo__v" muted loop playsinline preload="none"
-                           poster="media/pullback-poster.jpg" data-lazyvideo="media/pullback.mp4"
-                           aria-label="The camera rises from one recorded drone pose until the whole reconstructed site is in frame"></video>
-                    <span class="vsolo__l vsolo__l--a">Recorded pose</span>
-                    <span class="vsolo__l vsolo__l--b">2.0 units up &middot; about 19&times; flight altitude</span>
+                <div class="vsolo" id="reel">
+                    <div class="vsolo__frame">
+                        <video class="vsolo__v" muted loop playsinline preload="none"
+                               poster="media/reel-poster.jpg" data-lazyvideo="media/reel.mp4"
+                               aria-label="Five camera moves through the reconstruction: a climb out of the flight corridor, a run west off the crest, a low level pass, a move from the first site to the second, and a descent straight down"></video>
+                        <span class="vsolo__l vsolo__l--a" data-reel="a">Recorded pose</span>
+                        <span class="vsolo__l vsolo__l--b" data-reel="b">2.0 units up &middot; about 19&times; flight altitude</span>
+                    </div>
                 </div>
                 <figcaption>
-                    <strong>Figure 2.</strong> Same 3,000,000-splat file as Figure 1, same rasteriser,
-                    but this camera leaves the flight corridor. It starts on a real registered pose at
-                    the height I was actually flying and climbs until the whole site fits in frame.
-                    Nothing above that first frame was ever seen from there. There is no metric scale
-                    anywhere in this project, because the DJI telemetry gives orientation and no GPS. So
-                    everything is in the viewer's own units. If you want something physical to hold onto,
-                    use the drone's median height above the ground, which is <b>0.104</b> units across
-                    all 7,470 registered frames.
+                    <strong>Figure 2.</strong> Five camera moves through the same 3,000,000-splat file
+                    as Figure 1, cut together, rendered with the same CPU rasteriser. The very first
+                    frame is a real registered pose at the height I was actually flying. Nothing after
+                    it is a position the drone ever occupied, which is most of the reason to build a
+                    reconstruction instead of just keeping the video. The last shot drops the sky dome,
+                    because the camera starts level with it. There is no metric scale anywhere in this
+                    project, because the DJI telemetry gives orientation and no GPS. So everything is in
+                    the viewer's own units. If you want something physical to hold onto, use the drone's
+                    median height above the ground, which is <b>0.104</b> units across all 7,470
+                    registered frames.
                 </figcaption>
             </figure>
 

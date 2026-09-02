@@ -1020,7 +1020,8 @@ input[type="range"]:focus-visible { outline: 1px solid var(--accent); outline-of
    A single video rather than a pair, and a ladder of stills beside a gauge
    that says where the camera is. Both exist to answer one question the rest
    of the page never does: how big is the reconstruction. */
-.vsolo { position: relative; border: 1px dashed var(--line); background: var(--bg); }
+.vsolo { border: 1px dashed var(--line); background: var(--bg); }
+.vsolo__frame { position: relative; }
 .vsolo__v { width: 100%; height: auto; display: block; aspect-ratio: 16 / 9; }
 .vsolo__l {
   position: absolute; bottom: 8px;
@@ -1030,6 +1031,14 @@ input[type="range"]:focus-visible { outline: 1px solid var(--accent); outline-of
 }
 .vsolo__l--a { left: 8px; }
 .vsolo__l--b { right: 8px; }
+
+@media (max-width: 620px) {
+  /* the two captions change per shot and collide side by side on the longer
+     shot names, so stack them rather than drop the one carrying the heights */
+  .vsolo__l { max-width: calc(100% - 16px); }
+  .vsolo__l--a { bottom: 32px; }
+  .vsolo__l--b { left: 8px; right: auto; }
+}
 
 .stats--5 { grid-template-columns: repeat(5, 1fr); }
 

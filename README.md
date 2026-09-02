@@ -80,11 +80,11 @@ same renderer with one parameter changed.
 | `gyro.json` | 26 s of raw 50 Hz telemetry quaternions from clip 0057 |
 | `poses.json` | bottom-third hole fraction at 72 poses, before and after the fix |
 | `sweep.json`, `sweep/*.jpg` | four poses × seven near planes, all 28 rendered and measured |
-| `pullback.mp4`, `pullback-poster.jpg` | 16 s climbing from one recorded pose to 2.0 units up, then a 34° orbit — the only camera move on the page that leaves the flight corridor. Rendered at 1280×720 and encoded down to 1024×576 |
+| `reel.mp4`, `reel-poster.jpg` | 40 s of camera moves that leave the flight corridor, hard-cut into five shots: the 16 s climb-and-orbit, a run west off the crest, a level pass at 3× flight altitude, a move from session 1 to session 2, and a descent straight down. Rendered at 1280×720 and encoded down to 1024×576 |
 | `ladder/0.jpg`–`6.jpg` | the same climb as seven stills, from the recorded pose to 2.0 units, same lens throughout |
 | `nadir.jpg` | the whole reconstruction straight down from 6.0 units, 1600×874, with the flight tracks projected to pixels |
 | `site.splat` | a 400,000-splat whole-site LOD the live viewer can swap to, floaters and sky dome removed |
-| `extent.json` | every measured number the scale figures quote, plus the ladder heights, the nadir projection and the aerial camera poses |
+| `extent.json` | every measured number the scale figures quote, plus the ladder heights, the nadir projection, the aerial camera poses, and the reel's shot boundaries in seconds |
 
 ### Regenerating it
 
@@ -111,11 +111,17 @@ easy to get backwards and both generators depend on it: `assets.py` cuts at
 `y < 0.4065`, just under the lowest camera, and `scale.py` cuts at `y < -2.23`,
 just above the highest one.
 
-`scale.py` renders everything the scale chapter uses: the pull-back video
-frames, the seven ladder stills, the nadir view, the whole-site splat asset and
-`extent.json`. The pull-back is the long job by a wide margin, so `--only pull`
-re-renders just that at a different `--w`/`--h` and `--only stills` does
-everything else. Two filters make an aerial view possible at all. Splats far
+`scale.py` renders everything the scale chapter uses: the reel, the seven
+ladder stills, the nadir view, the whole-site splat asset and `extent.json`.
+The reel is the long job by a wide margin — 1,200 frames, about half an hour on
+ten processes — so `--only pull` re-renders just that at a different
+`--w`/`--h`, `--resume` keeps whatever frames are already in the scratch
+directory, and `--only stills` does everything else. Each shot is a function of
+`t` in `[0, 1]` in the `SHOTS` table, and camera heights there are above the
+terrain under the camera rather than above `y = 0`, so a move holds its
+altitude over a slope. `--only pull` also encodes the mp4 and writes the shot
+boundaries into `extent.json`, which is where the page reads its labels from.
+Two filters make an aerial view possible at all. Splats far
 above the local terrain are floaters — invisible from underneath, a white haze
 from above — so a per-cell AGL cut removes them, with a looser second cut that
 keeps small high splats so tree canopy survives. The sky is a dome of very large

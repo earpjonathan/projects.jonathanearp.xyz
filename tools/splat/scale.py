@@ -14,7 +14,7 @@ sky is a dome of very large splats above the highest camera - fine to fly
 under, opaque to fly over - so the views that climb above it drop it, and the
 caption says so.
 """
-import argparse, json, math, os, sys
+import argparse, json, math, os, shutil, subprocess, sys
 import numpy as np
 
 
@@ -32,6 +32,8 @@ def paths():
     # the pull-back is the long job by a wide margin; --only pull re-renders it
     # at a different size without redoing the stills and the JSON
     ap.add_argument("--only", default="all", choices=["all", "pull", "stills"])
+    ap.add_argument("--resume", action="store_true",
+                    help="keep frames already in the scratch directory")
     a = ap.parse_args()
     sys.path.insert(0, os.path.join(a.project, "scripts"))
     os.chdir(a.project)
@@ -57,9 +59,11 @@ AGL_CANOPY, CANOPY_SIZE = 1.5, 0.02  # small splats this high are foliage
 MAX_SIZE = 0.05                     # anything larger is a blob, not a surface
 CELL = 0.12                         # ground-height cell, scene units
 DRAW = 1_200_000
-N_RISE, N_ORBIT = 330, 150          # frames; 30 fps -> 11 s + 5 s
+FPS = 30
+N_RISE, N_ORBIT = 330, 150          # shot 1; 30 fps -> 11 s + 5 s
 TOP_H, TOP_BACK = 2.0, 2.4          # aerial hold, below the sky dome
 ORBIT_DEG = 34.0
+SKY_Y = -2.23                       # the dome sits above every camera
 SITE_N = 400_000                    # whole-site LOD, splats
 SITE_SIZE = 0.02                    # and the size cap that keeps it crisp
 SITE_H, SITE_BACK = 2.4, 1.2        # where the viewer opens on it
@@ -102,6 +106,29 @@ def agl_at(p):
     """Height of a point above the terrain under it, or None off the map."""
     k = int((math.floor(p[0] / CELL) - GI0) * 100000 + (math.floor(p[2] / CELL) - GK0))
     return (-p[1]) - GROUND[k] if k in GROUND else None
+
+
+def terrain(x, z):
+    """Ground height (in -y) under a plan position, widening the search a
+    ring at a time. A single cell can be empty where the reconstruction is
+    thin, and a shot that hits one of those would otherwise put the camera
+    at whatever height the last frame happened to have."""
+    ci, ck = math.floor(x / CELL) - GI0, math.floor(z / CELL) - GK0
+    for r in range(0, 6):
+        vals = [GROUND[k] for k in
+                (int((ci + i) * 100000 + (ck + j))
+                 for i in range(-r, r + 1) for j in range(-r, r + 1))
+                if k in GROUND]
+        if vals:
+            return float(np.median(vals))
+    raise ValueError(f"no terrain under ({x:.2f}, {z:.2f})")
+
+
+def above(x, z, h):
+    """The world point h scene units above the terrain under (x, z). Every
+    camera in the reel is placed this way, so a move reads as a constant
+    height over the ground instead of a constant y that drifts into a hill."""
+    return np.array([x, -(terrain(x, z) + h), z])
 
 
 AGL = ground_height()
@@ -189,7 +216,7 @@ def top_camera(deg):
 
 
 def pose(k):
-    """Frame k of the shot: rise from the capture pose, then orbit."""
+    """Frame k of shot 1: rise from the capture pose, then orbit."""
     if k < N_RISE:
         t = ease(k / (N_RISE - 1))
         C1 = top_camera(0.0)
@@ -201,6 +228,107 @@ def pose(k):
     deg = ORBIT_DEG * ease(t)
     C = top_camera(deg)
     return C, look(C, CTR)
+
+
+# ---------------------------------------------------------------- the reel
+# Figure 2 is several separate camera moves hard-cut together. One continuous
+# pull-back answers "how far up do you have to go", and nothing else; these
+# answer the other size questions, which are how steep the ground is, what the
+# gap between the two sites looks like, and how much detail survives when you
+# come back down. Only the first frame of shot 1 is a pose the drone occupied.
+# Everything else is the reconstruction being asked for a view the capture
+# never contained, which is the whole point of having built one.
+#
+# Each shot is a function of t in [0, 1] returning a camera centre and a
+# rotation. Heights are above the terrain under the camera, not above y = 0,
+# so a move holds its altitude over a slope.
+
+HILLTOP = np.array([-0.22, -1.22])      # session 1 track centroid, plan only
+CEMETERY = np.array([0.22, 1.25])       # session 2
+
+
+def track(t, a, b):
+    """Ease from plan-and-height a to plan-and-height b: (x, z, height)."""
+    e = ease(t)
+    return above(*(np.asarray(a, float) + (np.asarray(b, float) - np.asarray(a, float)) * e))
+
+
+def shot_ridge(t):
+    """West off the crest and down into the valley. The near flank was flown;
+    the far one was only ever seen across the gap, so this is the shot where
+    the reconstruction is carrying the most weight."""
+    C = track(t, (1.30, -1.70, 0.13), (-0.55, -1.15, 0.66))
+    T = above(*(np.array([0.10, -1.50]) + np.array([-2.55, 0.55]) * ease(t)), 0.02)
+    return C, look(C, T)
+
+
+def shot_pass(t):
+    """A level pass at low altitude, holding its height over the slope. This
+    is the one that shows the near-field blur honestly: at three times flight
+    altitude the ground is soft, and no amount of splats fixed that."""
+    C = track(t, (0.75, -1.95, 0.30), (0.75, 0.85, 0.30))
+    T = above(C[0], C[2] + 1.30, 0.02)
+    return C, look(C, T)
+
+
+def shot_sites(t):
+    """Hilltop to cemetery, high enough to hold both. The two sessions were
+    flown six days apart and share a coordinate frame only because the mapper
+    found real image matches between them."""
+    p = HILLTOP + (CEMETERY - HILLTOP) * ease(t)
+    # trail the target by about its own height, which puts the horizon just
+    # off the top edge: at this altitude the far distance is all grazing-angle
+    # splats and it reads as a black band rather than as anything
+    C = above(p[0] - 0.15, p[1] - 1.05, 1.20)
+    T = above(p[0], p[1], 0.02)
+    return C, look(C, T)
+
+
+def shot_nadir(t):
+    """Straight down over the cemetery, dropping from a map to a street. The
+    sky dome is dropped for this one because the camera starts level with it,
+    and nothing above the camera is in frame anyway."""
+    C = track(t, (0.55, 1.75, 2.30), (0.16, 1.16, 0.52))
+    return C, look(C, np.array([C[0], -terrain(C[0], C[2]), C[2]]),
+                   np.array([1.0, 0.0, 0.0]))
+
+
+SHOTS = [
+    ("pullback", N_RISE + N_ORBIT, None, True,
+     "Recorded pose", "2.0 units up \u00b7 about 19\u00d7 flight altitude"),
+    ("ridge", 150, shot_ridge, True,
+     "Over the crest", "The far flank was never flown"),
+    ("pass", 180, shot_pass, True,
+     "Level pass", "0.30 units up \u00b7 about 3\u00d7 flight altitude"),
+    ("sites", 210, shot_sites, True,
+     "Session 1 to session 2", "One coordinate frame, six days apart"),
+    ("nadir", 180, shot_nadir, False,
+     "Straight down", "2.3 units to 0.5 \u00b7 sky dome dropped"),
+]
+N_REEL = sum(s[1] for s in SHOTS)
+
+
+def reel_pose(k):
+    """Global frame index to (camera, rotation, keep-the-sky)."""
+    for _, n, fn, sky, _, _ in SHOTS:
+        if k < n:
+            if fn is None:
+                return (*pose(k), sky)
+            return (*fn(k / (n - 1)), sky)
+        k -= n
+    raise IndexError(k)
+
+
+def reel_meta():
+    """Shot boundaries in seconds, so the page can label the reel as it plays
+    without anyone retyping the cut points."""
+    out, k = [], 0
+    for name, n, _, _, la, lb in SHOTS:
+        out.append({"name": name, "start": round(k / FPS, 3),
+                    "seconds": round(n / FPS, 3), "a": la, "b": lb})
+        k += n
+    return {"fps": FPS, "frames": N_REEL, "seconds": round(N_REEL / FPS, 2),
+            "shots": out}
 
 
 def cam_at(C, R, fx=None):
@@ -218,11 +346,17 @@ def frame_width(C, T, fx):
 
 
 def job_pull(k):
-    C, R = pose(k)
-    img, _, _ = render(xyz[IDX_SKY], S3[IDX_SKY], rgba[IDX_SKY], cam_at(C, R),
+    # a full reel is twenty-odd minutes of CPU, so a run that dies part way
+    # through resumes instead of starting over
+    dst = f"{SCRATCH}/pull/{k:04d}.jpg"
+    if A.resume and os.path.exists(dst) and os.path.getsize(dst) > 0:
+        return k
+    C, R, sky = reel_pose(k)
+    i = IDX_SKY if sky else IDX_BARE
+    img, _, _ = render(xyz[i], S3[i], rgba[i], cam_at(C, R),
                        A.w, A.h, znear=0.01, fade=True)
     Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8)).save(
-        f"{SCRATCH}/pull/{k:04d}.jpg", quality=90)
+        dst, quality=90)
     return k
 
 
@@ -397,6 +531,29 @@ def site_asset():
             "views": aerial_views()}
 
 
+def encode():
+    """JPEG sequence to the file the page loads. Rendered at 1280x720 and
+    encoded down: the extra pixels go into the encoder rather than onto the
+    screen, which is cheaper than rendering at output size for the same
+    apparent sharpness."""
+    if not shutil.which("ffmpeg"):
+        print("no ffmpeg on PATH; frames left in " + SCRATCH, flush=True)
+        return
+    mp4 = f"{OUT}/reel.mp4"
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-framerate", str(FPS),
+                    "-i", f"{SCRATCH}/pull/%04d.jpg",
+                    "-vf", "scale=1024:576:flags=lanczos",
+                    "-c:v", "libx264", "-preset", "slow", "-crf", "26",
+                    "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an",
+                    mp4], check=True)
+    # the poster is the first frame, so nothing moves when playback starts
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{SCRATCH}/pull/0000.jpg",
+                    "-vf", "scale=1024:576:flags=lanczos", "-q:v", "4",
+                    f"{OUT}/reel-poster.jpg"], check=True)
+    print(f"reel.mp4 {os.path.getsize(mp4) / 1e6:.1f} MB, "
+          f"{N_REEL / FPS:.0f} s, {len(SHOTS)} shots", flush=True)
+
+
 if __name__ == "__main__":
     print(f"surface {int(SURFACE.sum()):,}  sky {int(SKY.sum()):,}  drawing {len(IDX_SKY):,}")
     mp.set_start_method("fork")
@@ -415,8 +572,17 @@ if __name__ == "__main__":
             print("nadir.jpg written", flush=True)
             json.dump(meta, open(f"{OUT}/extent.json", "w"))
         if A.only in ("all", "pull"):
-            n = N_RISE + N_ORBIT
+            n = N_REEL
             for i, k in enumerate(p.imap_unordered(job_pull, range(n), chunksize=4)):
-                if i % 25 == 0:
-                    print(f"  pull {i}/{n}", flush=True)
+                if i % 50 == 0:
+                    print(f"  reel {i}/{n}", flush=True)
+            encode()
+            # the cut points belong with the other measured numbers, so the
+            # page can label each shot without anyone retyping them
+            f = f"{OUT}/extent.json"
+            if os.path.exists(f):
+                meta = json.load(open(f))
+                meta["reel"] = reel_meta()
+                json.dump(meta, open(f, "w"))
+                print("extent.json reel updated", flush=True)
     print("DONE", flush=True)

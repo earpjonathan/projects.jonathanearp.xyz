@@ -47,6 +47,44 @@
     Array.prototype.forEach.call(vids, function (v) { io.observe(v); });
   })();
 
+  /* ---------- Figure 2, the reel ----------
+     Five camera moves hard-cut into one file, so the two captions have to
+     follow the cuts. The shot table lives in extent.json next to the numbers
+     the renderer measured, which is the only way the times here cannot drift
+     away from the ones the video was actually built with. Without it the
+     figure still plays; the captions just stay on the first shot.
+     timeupdate fires about four times a second, which is late enough on a cut
+     to be visible, so this reads the clock on a frame instead. */
+  (function () {
+    var root = document.getElementById("reel");
+    if (!root) return;
+    var vid = root.querySelector("video");
+    var la = root.querySelector('[data-reel="a"]');
+    var lb = root.querySelector('[data-reel="b"]');
+
+    fetch("media/extent.json").then(function (r) { return r.json(); })
+      .then(function (e) {
+        var shots = (e.reel && e.reel.shots) || [];
+        if (shots.length < 2) return;
+        var cur = -1, raf = 0;
+
+        function tick() {
+          var t = vid.currentTime, i = 0;
+          for (var k = 0; k < shots.length; k++) if (t >= shots[k].start) i = k;
+          if (i === cur) return;
+          cur = i;
+          la.textContent = shots[i].a;
+          lb.textContent = shots[i].b;
+        }
+
+        function loop() { tick(); raf = vid.paused ? 0 : requestAnimationFrame(loop); }
+        vid.addEventListener("play", function () { if (!raf) raf = requestAnimationFrame(loop); });
+        vid.addEventListener("pause", tick);
+        vid.addEventListener("seeked", tick);
+        tick();
+      }).catch(function () { /* the captions are a bonus; the video is the figure */ });
+  })();
+
   /* ---------- the before/after wipe ----------
      Two stacked images with the top one clipped. A range input sits over
      the whole figure so the control is a real slider: keyboard-reachable,

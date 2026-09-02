@@ -211,10 +211,10 @@
 
       var NOTES = [
         "The frame as it arrives, straight out of the decoder.",
-        "Colour is thrown away first — nothing downstream uses it.",
-        "Sobel gives an edge strength per pixel. Bright means “something changes here”.",
+        "Colour gets thrown away first. Nothing after this uses it.",
+        "Sobel gives an edge strength per pixel. Bright means something changes here.",
         "Threshold it, then walk each border pixel-by-pixel to get ordered outlines.",
-        "Straight runs get collapsed. This is the slider that decides how much Desmos has to swallow."
+        "Straight runs get collapsed. This slider decides how much Desmos has to swallow."
       ];
 
       function paint() {
@@ -507,7 +507,7 @@
     {
       tag: "v2", name: "Settle fix",
       blurb: "Parallel capture disagreed with serial, so I assumed parallel was broken. " +
-             "Serial was the broken one — it had been screenshotting half-finished frames " +
+             "Serial was the broken one. It had been screenshotting half-finished frames " +
              "for months, perfectly consistently.",
       bars: [["Render, 13.8 s clip", 110.4, 171.6, "s"],
              ["Frames matching converged output", 40, 40, "of 40"],

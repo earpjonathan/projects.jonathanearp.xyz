@@ -131,15 +131,16 @@
            small the thing they have been flying is inside the whole scene. */
         var ASSETS = {
           scene: { file: "scene.splat", views: a.state.meta.views,
-                   note: "A crop, so the site ends a short distance out and the horizon is " +
-                         "thinner than in the full three-million-splat build. Everything else — " +
-                         "the format, the sort, the projection, the blend — is what ships." },
+                   note: "This is a crop, so the site stops a short way out and the horizon " +
+                         "is thinner than in the full three-million-splat build. Everything " +
+                         "else about it is what ships: the format, the sort, the projection " +
+                         "and the blend." },
           site: { file: "site.splat", views: null,
-                  note: "The whole flown area at 400,000 splats — every part of the scene, " +
-                        "thinned, rather than one part of it in full. Floaters above the terrain " +
-                        "and the sky dome are dropped so the camera can climb above them; that is " +
-                        "why there is no sky up here, and why the surface is speckled where the " +
-                        "thinning left gaps." }
+                  note: "The whole flown area at 400,000 splats. This is all of the scene " +
+                        "thinned out, instead of one piece of it in full. Floaters above the " +
+                        "terrain and the sky dome get dropped so the camera can climb past them, " +
+                        "which is why there is no sky up here, and why the surface looks speckled " +
+                        "where the thinning left gaps." }
         };
         var noteEl = document.getElementById("viewer-note");
         var assetBox = document.getElementById("viewer-asset");

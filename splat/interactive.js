@@ -182,8 +182,8 @@
       out.note.textContent = capped === 0
         ? "Every kept frame was chosen by rotation. The time cap never fired."
         : Math.round(100 * capped / Math.max(gaps.length, 1)) +
-          "% of gaps hit the kmax time cap — those are the straight, translation-dominated stretches, " +
-          "where rotation alone would have sampled far too sparsely.";
+          "% of gaps hit the kmax time cap. Those are the straight, translation-heavy stretches, " +
+          "where going on rotation alone would have sampled way too sparsely.";
     }
 
     getJSON(MEDIA + "gyro.json").then(function (g) {
@@ -563,9 +563,9 @@
       var shipped = d.holes["0.2"], best = d.holes["0.01"];
       out.note.textContent = shipped < 1
         ? "This pose barely notices, even though the shipped near plane removes " +
-          removedShare(0.2, d).toFixed(0) + "% of the opacity under it — there is enough " +
-          "geometry behind to saturate the ray anyway. It is the kind of camera the cohort " +
-          "means were full of, which is why the near plane looked innocent for so long."
+          removedShare(0.2, d).toFixed(0) + "% of the opacity under it. There is enough " +
+          "geometry behind it to saturate the ray anyway. The cohort means were full of " +
+          "cameras like this one, which is why the near plane looked fine for so long."
         : "At the shipped near plane this pose loses " + shipped.toFixed(0) +
           "% of its bottom third; at 0.01 it loses " + best.toFixed(1) +
           "%. Nothing about the reconstruction changed between those two frames.";
@@ -660,7 +660,7 @@
         ? "Nothing in this sample is bad enough to notice."
         : "The mean is " + mean.toFixed(1) + "%, which reads as a mild defect. " + bad +
           " of these " + n + " poses are above 20% and one is at " + worst.toFixed(1) +
-          "% — and those are the poses somebody flying the viewer actually passes through.";
+          "%. Those are the poses somebody flying the viewer actually goes through.";
     }
 
     getJSON(MEDIA + "poses.json").then(function (p) {
@@ -817,8 +817,8 @@
       out.n.textContent = N;
       out.spread.textContent = (+spreadIn.value).toFixed(2);
       out.note.textContent = (+spreadIn.value) > 0.28
-        ? "A thick, faint slab: the same total opacity spread over a long stretch of the ray, and the loss is large. This is what fog looks like to the regulariser."
-        : "A thin, dense band: the same total opacity concentrated at one depth, and the loss falls towards zero. This is the arrangement the term is asking for.";
+        ? "A thick, faint slab. Same total opacity, smeared over a long stretch of the ray, and the loss is big. This is what fog looks like to the regulariser."
+        : "A thin, dense band. All that opacity is now piled up at one depth and the loss drops to almost nothing, which is what the term wants.";
     }
 
     var redraw = mount(canvas, draw);

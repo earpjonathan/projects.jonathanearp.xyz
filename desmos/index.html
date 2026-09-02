@@ -120,9 +120,9 @@
                 <span class="acro__r"><span class="acro__c">R</span><span class="acro__w">Rendering</span></span>
             </h1>
             <p class="hero__lead" data-reveal style="--i:2">
-                Desmos was not built to animate anything. This renders video inside it
-                anyway, as <b>equations</b> — one command finds a clip, traces it, rebuilds
-                it in the calculator and posts the result.
+                Desmos was never meant to animate anything. This renders video inside it
+                anyway, as <b>equations</b>. One command goes and finds a clip, traces it,
+                rebuilds it in the calculator and posts the result.
             </p>
 
             <!-- A finished reel drops in here: see README, "Adding a hero reel". -->
@@ -392,9 +392,9 @@
                     </p>
                     <p>
                         Zero of 40 frames differed. Perfectly deterministic. I took that as proof it
-                        was correct, which is why the bug lasted as long as it did.
-                        <em>A deterministic process repeats the same mistake every run</em>, so
-                        consistency said nothing about whether the output was right.
+                        was correct, which is why the bug survived as long as it did.
+                        <em>Something that is broken the same way every time is still deterministic.</em>
+                        All I had actually shown was that it was consistent.
                     </p>
                     <p>
                         The bug was in the settle logic. After moving the slider I wait for the canvas
@@ -475,10 +475,11 @@
                         </div>
                         <figcaption>
                             20 clips against a 12× reference line. The two batches are different
-                            clips, so the gap between them isn't a clean measure of the speedup —
-                            the 1.55× comes from the same-clip test above. Practical version:
+                            clips, so the gap between them isn't a clean measure of the speedup.
+                            The 1.55× comes from the same-clip test above. In practice:
                             <strong>ten 15-second clips take about half an hour. Ten 45-second clips
-                            take an hour and a half.</strong> Clip length is the lever that matters.
+                            take an hour and a half.</strong> How long the clip is, is basically the
+                            only thing deciding how long I'm sat waiting.
                         </figcaption>
                     </figure>
                 </div>
@@ -514,10 +515,9 @@
                     </div>
 
                     <p>
-                        <strong>Both of the largest improvements came from measuring something I
-                        assumed I already understood.</strong> I was sure tracing was the bottleneck
-                        and I was sure serial capture was correct. Neither held up once there was a
-                        number attached to it.
+                        <strong>Both of the big wins came from measuring something I was already
+                        sure I understood.</strong> I knew tracing was the bottleneck and I knew
+                        serial capture was correct. Neither one survived getting a number put on it.
                     </p>
                 </div>
             </section>
@@ -607,8 +607,9 @@
                     <p>
                         <strong>2 of 140 uploads got Content-ID blocked. Both were over 89 seconds.
                         Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds.
-                        That costs nothing in practice, because the entire top ten by plays is under
-                        32 seconds anyway, and it removes most of the exposure.
+                        That costs me nothing in practice, since the entire top ten by plays is
+                        under 32 seconds anyway, and it keeps everything well clear of the range
+                        where things actually got blocked.
                     </p>
                 </div>
             </section>
@@ -647,7 +648,7 @@
                             <tr class="is-key">
                                 <td>Predicted retention → plays</td>
                                 <td class="num"><strong>+0.02</strong></td>
-                                <td>Nothing. Not "weak but positive" — nothing</td>
+                                <td>Nothing at all, not even a weak signal</td>
                             </tr>
                             <tr><td>Measured retention → plays</td><td class="num">+0.40</td><td>Real, but I only get it after posting</td></tr>
                             <tr><td>Duration → plays</td><td class="num">−0.15</td><td>Noise</td></tr>
@@ -664,13 +665,14 @@
                     </p>
 
                     <div class="callout">
-                        <strong>So it doesn't forecast anything.</strong> It filters on length,
-                        whether I can caption it, and whether I've seen it before — that's where the
-                        real work happens. It records one guess, how many views the original uploader
-                        got, clearly labelled as an <em>untested hypothesis</em> with the test written
-                        and currently reporting <code>n = 0</code>. And then it just does volume. Hit
-                        rate is about 4.9%, so ten clips is roughly a 40% shot at one that lands.
-                        When nothing predicts, more attempts beats better picking.
+                        <strong>So it doesn't forecast anything.</strong> It filters on length, on
+                        whether I can caption it, and on whether I've already seen it. That's where
+                        the real work happens. It does record one guess, how many views the original
+                        uploader got, and that's labelled as an <em>untested hypothesis</em> with the
+                        test written and currently reporting <code>n = 0</code>. Past that it just
+                        does volume. The hit rate is about 4.9%, so ten clips is roughly a 40% shot
+                        at one that lands. If I can't tell which clips will do well, making more of
+                        them is the only lever I've got left.
                     </div>
                 </div>
             </section>
@@ -681,11 +683,11 @@
                 <div class="block__body">
                     <h2 class="block__h">Still broken</h2>
                     <ul class="dlist">
-                        <li><strong>About a week of data, one account, one show.</strong> None of this generalises anywhere, and the correlations above come from a small sample of a single genre.</li>
+                        <li><strong>About a week of data, one account, one show.</strong> None of this generalises anywhere. The correlations up there come from a tiny sample of one very specific kind of video.</li>
                         <li><strong>The source-popularity signal is untested.</strong> It's a hypothesis. The test is written and currently reports <code>n = 0</code>. I have not shown it works.</li>
                         <li><strong>Instagram posting is still manual.</strong> YouTube is fully automatic. The platform that produced all <span data-dg="total_watch_hours">12,837</span> hours is the one I still upload by hand.</li>
-                        <li><strong><code>yt-dlp</code> is a single point of failure.</strong> Whenever YouTube changes something, harvest breaks. It fails loudly and skips the run rather than posting bad output.</li>
-                        <li><strong>Content-ID risk scales with automation.</strong> Two of 140 got blocked; a 45-second cap is a mitigation, not a guarantee.</li>
+                        <li><strong><code>yt-dlp</code> is a single point of failure.</strong> Any time YouTube changes something, harvest breaks. At least it breaks loudly and skips the run instead of posting garbage.</li>
+                        <li><strong>The more it posts, the more Content-ID hits I take.</strong> Two of 140 got blocked so far. The 45-second cap helps, but it doesn't make the problem go away.</li>
                     </ul>
                 </div>
             </section>
@@ -731,7 +733,7 @@
             </div>
             <div class="foot__bar">
                 <span>© <span id="year">2026</span> Jonathan Earp</span>
-                <span>All figures measured 17—23 Aug 2026</span>
+                <span>All figures measured 17–23 Aug 2026</span>
             </div>
         </div>
     </footer>

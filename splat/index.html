@@ -123,9 +123,9 @@
                 <span class="acro__r"><span class="acro__c">E</span><span class="acro__w">Export</span></span>
             </h1>
             <p class="hero__lead" data-reveal style="--i:2">
-                Two drone flights over two sites, six days apart, rebuilt as a single
-                photorealistic <b>3D reconstruction</b> — and then flown back through,
-                in a browser, alongside the footage they came from.
+                I flew a drone over two spots six days apart and turned both flights into one
+                photorealistic <b>3D reconstruction</b>. Then I built a viewer so you can fly the
+                original paths back through it in a browser, with the real video next to it.
             </p>
 
             <div class="scroll-prompt" aria-hidden="true"><span>Scroll</span><span class="chev"></span></div>
@@ -145,12 +145,13 @@
                     <span class="vpair__l vpair__l--b">Reconstruction</span>
                 </div>
                 <figcaption>
-                    <strong>Figure 1.</strong> Fourteen seconds of clip 0057, played twice. On the left,
-                    the drone's own video. On the right, the reconstruction rendered from the
-                    <em>same recorded camera pose</em>, frame for frame, by a CPU reimplementation of the
-                    web viewer's rasteriser. Nothing on the right is footage. The footage on the left has
-                    been undistorted into the render's own pinhole camera, which is what makes the two
-                    directly comparable — see <a href="#viewer" class="tlink">§3</a>.
+                    <strong>Figure 1.</strong> Fourteen seconds of clip 0057, played twice. Left is the
+                    drone's actual video. Right is the reconstruction, rendered from the
+                    <em>same recorded camera pose</em>, frame for frame. I wrote a CPU copy of the web
+                    viewer's rasteriser so I could do that. Nothing on the right is footage. I also
+                    undistorted the left side into the render's own pinhole camera, because otherwise
+                    you're comparing a fisheye to a flat projection and it isn't a fair test. More on
+                    that in <a href="#viewer" class="tlink">§3</a>.
                 </figcaption>
             </figure>
 
@@ -164,14 +165,14 @@
                     <span class="vsolo__l vsolo__l--b">2.0 units up &middot; about 19&times; flight altitude</span>
                 </div>
                 <figcaption>
-                    <strong>Figure 2.</strong> The same 3,000,000-splat asset as Figure 1, and the same
-                    rasteriser, on a camera that leaves the flight corridor: it starts on a real
-                    registered pose at the height the drone was actually flying and rises until the whole
-                    reconstruction is in frame. Nothing above the first frame was ever observed from
-                    there. The reconstruction has no metric scale &mdash; the telemetry carries
-                    orientation only, no GPS &mdash; so distances here are in the viewer's own units, and
-                    the useful yardstick is the drone's own height above the ground, a median of
-                    <b>0.104</b> units across all 7,470 registered frames.
+                    <strong>Figure 2.</strong> Same 3,000,000-splat file as Figure 1, same rasteriser,
+                    but this camera leaves the flight corridor. It starts on a real registered pose at
+                    the height I was actually flying and climbs until the whole site fits in frame.
+                    Nothing above that first frame was ever seen from there. There is no metric scale
+                    anywhere in this project, because the DJI telemetry gives orientation and no GPS. So
+                    everything is in the viewer's own units. If you want something physical to hold onto,
+                    use the drone's median height above the ground, which is <b>0.104</b> units across
+                    all 7,470 registered frames.
                 </figcaption>
             </figure>
 
@@ -190,22 +191,22 @@
                 <div class="abstract__body">
                     <p>
                         I flew a DJI O4 Pro over two sites and built 3D Gaussian Splatting
-                        reconstructions from the raw footage, entirely on an Apple Silicon Mac with
-                        no CUDA. The pipeline runs video → gyro-driven frame selection → COLMAP
+                        reconstructions from the raw footage, all on an Apple Silicon Mac with no
+                        CUDA. The pipeline goes video → gyro-driven frame selection → COLMAP
                         structure-from-motion → <a href="https://github.com/ArthurBrussee/brush" target="_blank" rel="noopener" class="tlink">Brush</a>,
                         a Rust/WebGPU 3DGS trainer → a WebGL viewer that replays the original flight
                         paths through the reconstruction next to the source video. Along the way I
-                        implemented the 2DGS depth-distortion loss in Rust and CubeCL from the paper,
-                        merged two sessions six days apart into one coordinate frame, and spent most
-                        of the effort chasing a visual defect.
+                        implemented the 2DGS depth-distortion loss in Rust and CubeCL from the paper
+                        and merged two sessions six days apart into one coordinate frame. Most of my
+                        time went on one visual bug.
                     </p>
                     <p>
-                        The defect — <em>the ground looks see-through when flying low</em> — turned out
-                        to be <code>const znear = 0.2</code> in the viewer. Four separate
-                        reconstruction-side interventions had been built and measured against a symptom
-                        that a one-line rendering bug was causing. The negative results are kept here
-                        deliberately; disproving my own hypotheses took more work than the parts that
-                        worked.
+                        The bug was that <em>the ground looks see-through when you fly low</em>. It
+                        turned out to be <code>const znear = 0.2</code> in the viewer, one line. By
+                        then I had already built and measured four separate fixes on the
+                        reconstruction side, none of which could have worked, because I was aiming at
+                        the wrong thing. I have left all of that in. Proving my own guesses wrong took
+                        more work than the parts that actually worked.
                     </p>
                 </div>
             </section>
@@ -230,13 +231,14 @@
                 <div class="block__body">
                     <h2 class="block__h">Capture, and which frames to keep</h2>
                     <p class="lede">
-                        Consumer FPV footage is close to the worst input structure-from-motion can be
-                        given: fast motion, rolling shutter, a wide fisheye lens, and a camera bolted
-                        on pointing <em>up</em>, so the ground is only ever seen at a grazing angle.
+                        Consumer FPV footage is about the worst thing you can hand
+                        structure-from-motion. It moves fast, the shutter rolls, the lens is a wide
+                        fisheye, and the camera is bolted on pointing <em>up</em>, so you only ever see
+                        the ground at a grazing angle.
                     </p>
                     <p>
-                        Four constraints set the shape of everything that follows. None of them are
-                        choices I made; they are what the hardware and the footage are.
+                        Four things decided the shape of this whole project. I didn't pick any of
+                        them. They're just what the hardware and the footage are.
                     </p>
 
                     <table class="dtable">
@@ -244,7 +246,7 @@
                         <thead><tr><th>Constraint</th><th>Consequence</th></tr></thead>
                         <tbody>
                             <tr>
-                                <td>No CUDA — Apple Silicon only, 48&nbsp;GB unified</td>
+                                <td>No CUDA. Apple Silicon only, 48&nbsp;GB unified</td>
                                 <td>Rules out every mainstream 3DGS implementation. Brush, a Rust/WebGPU trainer, on the Metal backend. COLMAP runs CPU-only.</td>
                             </tr>
                             <tr>
@@ -257,11 +259,11 @@
                             </tr>
                             <tr class="is-key">
                                 <td>A <strong>4&nbsp;GiB</strong> single-buffer limit on the GPU</td>
-                                <td>A hard ceiling near <strong>23.7 M splats</strong> at ~181 bytes each — unrelated to the 48&nbsp;GB of system RAM, and found by crashing into it.</td>
+                                <td>A hard ceiling near <strong>23.7 M splats</strong> at ~181 bytes each. Nothing to do with the 48&nbsp;GB of system RAM. I found it by crashing into it.</td>
                             </tr>
                             <tr>
                                 <td>Everything runs locally</td>
-                                <td>One training run is 5–28 hours. Experiment <em>design</em> is the bottleneck, not compute.</td>
+                                <td>One training run is 5–28 hours, so the slow part is deciding <em>what</em> to test, not the compute.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -277,12 +279,12 @@
 
                     <h3 class="block__sub">Selection follows rotation, not the clock</h3>
                     <p>
-                        Sampling every <em>n</em>th frame is the obvious approach and it is wrong for this
-                        footage. A drone diving down a straight line barely changes what the camera sees;
-                        a fast yaw changes it completely in a tenth of a second. So the selector keeps a
-                        frame once the accumulated rotation since the last kept one crosses a threshold,
-                        with a floor of <code>kmin</code> frames so it cannot pick neighbours, and a
-                        ceiling of <code>kmax</code> so translation-dominated flight still gets sampled.
+                        Taking every <em>n</em>th frame is the obvious thing to do, and it's wrong here.
+                        A drone flying straight barely changes what the camera sees. A fast yaw changes
+                        everything in a tenth of a second. So instead the selector waits until the camera
+                        has turned a certain amount since the last frame it kept, then keeps another one.
+                        There's a floor of <code>kmin</code> frames so it can't grab two neighbours, and
+                        a ceiling of <code>kmax</code> so long straight stretches still get sampled.
                     </p>
 
                     <div class="demo demo--select">
@@ -316,18 +318,20 @@
                     </div>
 
                     <p>
-                        At the settings that shipped — 8°, <code>kmin</code>&nbsp;2,
-                        <code>kmax</code>&nbsp;15 — the nine clips give 7,471 frames out of about
-                        seventy thousand. Push the threshold up and the kept ticks bunch into the turns
-                        and vanish on the straights; that is the failure the time cap exists to prevent.
+                        The settings I shipped are 8°, <code>kmin</code>&nbsp;2 and
+                        <code>kmax</code>&nbsp;15, which gets 7,471 frames out of about seventy thousand
+                        across the nine clips. Push the threshold up and watch the kept ticks pile into
+                        the turns and disappear on the straights. That's exactly what the time cap is
+                        there to stop.
                     </p>
                     <p>
-                        One guard in the selector is there because of a silent failure. DJI sometimes
-                        writes the telemetry with an identity quaternion on every sample — two clips did
-                        this — and the extractor reports success either way. The angle between two
-                        identical quaternions is zero forever, so selection degrades quietly to the time
-                        cap and nothing tells you. It now counts distinct quaternions and refuses rather
-                        than pretending.
+                        There's one check in the selector that only exists because something broke
+                        without telling me. DJI sometimes writes the telemetry with an identity
+                        quaternion on every single sample. Two of my clips came out like that, and the
+                        extractor said it worked fine both times. The angle between two identical
+                        quaternions is always zero, so selection just quietly falls back to the time cap
+                        and you get no warning at all. Now it counts how many distinct quaternions there
+                        are and refuses to run if the answer is one.
                     </p>
                 </div>
             </section>
@@ -338,10 +342,10 @@
                 <div class="block__body">
                     <h2 class="block__h">Structure from motion, and merging two sessions</h2>
                     <p class="lede">
-                        Two sites, flown six days apart, reconstructed into one model. The failure mode
-                        worth worrying about was not a bad merge but a <em>silent</em> one: two
-                        disconnected components in the same file, which look fine until you fly between
-                        them.
+                        Two sites, flown six days apart, rebuilt into one model. The thing I was
+                        actually worried about wasn't a bad merge. It was a <em>silent</em> one, where
+                        you get two disconnected chunks sitting in the same file and everything looks
+                        fine until you try to fly from one to the other.
                     </p>
 
                     <div class="demo demo--ladder">
@@ -370,11 +374,11 @@
                     </div>
 
                     <p>
-                        Rung 0 is a registered frame &mdash; the same kind of render as the right half of
-                        Figure 1, at the height the drone flew. Every rung above it is the same splats
-                        seen from a camera that never existed, and the reconstruction holds up because
-                        the geometry was solved from thousands of overlapping views rather than from the
-                        one in front of you.
+                        Rung 0 is a registered frame, the same kind of render as the right half of
+                        Figure 1, at the height I was flying. Every rung above it is those same splats
+                        seen from a camera that never existed. It holds up because the geometry came
+                        from thousands of overlapping views, not from whichever one happens to be in
+                        front of you.
                     </p>
 
                     <div class="demo demo--map">
@@ -401,39 +405,41 @@
                             <span>Session centres <b>2.5</b> apart</span>
                             <span>Live-viewer crop <b>1.4</b> across</span>
                             <span class="demo__note">
-                                The reconstruction seen straight down, rendered from the same splats as
-                                every other figure, with the nine flight tracks over it: the
-                                sienna ones are <b>session 1</b>, the rest <b>session 2</b>. The dashed circle
-                                is the crop the live renderer in Figure 11 loads: 1.4 units across,
-                                about thirteen flight altitudes, out of a site eight units long. The two
-                                sessions were flown six days apart and share a coordinate frame only
-                                because the mapper found real image matches where they overlap.
+                                The reconstruction straight down, rendered from the same splats as
+                                every other figure, with the nine flight tracks drawn over it. The
+                                sienna ones are <b>session 1</b>, the rest <b>session 2</b>. The dashed
+                                circle is the crop the live renderer in Figure 11 loads: 1.4 units
+                                across, about thirteen flight altitudes, out of a site eight units long.
+                                The two sessions were flown six days apart, and the only reason they
+                                share a coordinate frame is that the mapper found real image matches
+                                where they overlap.
                             </span>
                         </div>
                     </div>
 
                     <h3 class="block__sub">Proving the merge was possible before paying for it</h3>
                     <p>
-                        A merged mapper run is eighteen hours. Rather than start it and find out, I ran
-                        the feature matching alone and counted verified two-view geometries between a
-                        hilltop frame and a cemetery frame. That is a few hours, and it answers the only
-                        question that matters.
+                        A merged mapper run takes eighteen hours. I didn't want to burn that just to
+                        find out it wouldn't work, so first I ran only the feature matching and counted
+                        verified two-view geometries between hilltop frames and cemetery frames. That
+                        part takes a few hours and it answers the one question I cared about: is there
+                        anything linking these two sites at all?
                     </p>
 
                     <figure class="fig" data-reveal>
                         <div id="fig-cross"></div>
                         <figcaption>
-                            <strong>Figure 6.</strong> 279,778 cross-session pairs survived geometric
-                            verification; 13,482 of those are usable links with at least 30 inliers,
-                            touching 568 hilltop frames and 445 cemetery frames. Spread across seven
-                            clip pairs rather than concentrated in one, which is what a real shared area
-                            looks like.
+                            <strong>Figure 6.</strong> 279,778 cross-session pairs made it through
+                            geometric verification. 13,482 of those are usable links with at least 30
+                            inliers, touching 568 hilltop frames and 445 cemetery frames. They're spread
+                            over seven clip pairs instead of all piled into one, which is what you'd
+                            expect if the two sites genuinely overlap.
                         </figcaption>
                     </figure>
 
                     <p>
-                        The merged mapper then produced <strong>one</strong> model rather than two
-                        components, registering 7,470 of 7,471 frames.
+                        The merged mapper then gave me <strong>one</strong> model instead of two
+                        pieces, and registered 7,470 of 7,471 frames.
                     </p>
 
                     <table class="dtable">
@@ -451,15 +457,16 @@
                     </table>
 
                     <p class="callout">
-                        Two traps here cost real time. Brush writes a <code>Vertical axis</code> comment
-                        into its PLY with Z negated, and a wrong up-vector puts every camera underground
-                        while still looking entirely plausible in the viewer. Every scene's up direction
-                        is now derived from ground geometry and validated by asserting the cameras sit
-                        <em>above</em> the terrain: on the merged scene the correct sign puts 1% of
-                        cameras below terrain and the wrong one puts 99%. Separately, the terrain fit
-                        that check relies on fits <em>one</em> height field, so on a two-site scene it
-                        interpolates across the empty ground between them and reports nonsense — 52% of
-                        cameras underground, and a flattering 1.2% hole figure that nearly got believed.
+                        Two things here ate a lot of my time. Brush writes a <code>Vertical axis</code>
+                        comment into its PLY with Z negated, and if you get the up-vector backwards every
+                        camera ends up underground while the viewer still looks completely normal. So now
+                        I work out each scene's up direction from the ground geometry and then check it by
+                        asserting the cameras are <em>above</em> the terrain. On the merged scene the right
+                        sign puts 1% of cameras below terrain and the wrong sign puts 99%. The second
+                        problem is that the terrain fit behind that check only fits <em>one</em> height
+                        field. On a two-site scene it stretches across the empty gap between them and
+                        reports garbage: 52% of cameras underground, plus a nice-looking 1.2% hole figure
+                        that I very nearly believed.
                     </p>
                 </div>
             </section>
@@ -470,55 +477,58 @@
                 <div class="block__body">
                     <h2 class="block__h">Rendering, and replaying the flights</h2>
                     <p class="lede">
-                        The viewer sorts several million splats back to front and alpha-blends them.
-                        There is no depth buffer anywhere in it. That single fact explains most of what
-                        follows, including the bug.
+                        The viewer sorts a few million splats back to front and alpha-blends them.
+                        There's no depth buffer in it anywhere. Almost everything in the rest of this
+                        write-up comes back to that, including the bug.
                     </p>
                     <p>
-                        Splats are stored 32 bytes each — position, scale, an 8-bit colour and an 8-bit
-                        quaternion — and drawn as one instanced quad apiece, with the 3D covariance
-                        projected to a 2D ellipse per frame. Ordering comes from a 16-bit counting sort
-                        by depth, re-run in a worker whenever the view rotates enough to matter. The
-                        blend is <code>ONE_MINUS_DST_ALPHA</code> / <code>ONE</code>: front-to-back
-                        “under” compositing, where destination alpha is accumulated coverage.
+                        Each splat is 32 bytes: position, scale, an 8-bit colour and an 8-bit
+                        quaternion. They get drawn one instanced quad each, and the 3D covariance gets
+                        projected down to a 2D ellipse every frame. The order comes from a 16-bit
+                        counting sort by depth that re-runs in a worker whenever you turn the view far
+                        enough for it to matter. The blend is <code>ONE_MINUS_DST_ALPHA</code> /
+                        <code>ONE</code>, which is front-to-back "under" compositing, so destination
+                        alpha is how much coverage you've accumulated so far.
                     </p>
 
                     <h3 class="block__sub">Flying the recorded trajectories back through the model</h3>
                     <p>
-                        The differentiating feature is replay. The viewer reconstructs the transform the
-                        exporter applied — recovered from the camera set by least squares, with a
-                        maximum position residual of <code>3.03e-14</code> — and then flies the original
-                        drone trajectories through the reconstruction as coloured ghosts, with the source
-                        video playing in a corner at the same pose.
+                        The part I'm happiest with is the replay. The viewer works out the transform
+                        the exporter applied by least-squares fitting it from the camera set, with a
+                        maximum position residual of <code>3.03e-14</code>, and then flies the original
+                        drone trajectories through the reconstruction as coloured ghosts. The source
+                        video plays in a corner at the same pose.
                     </p>
                     <p>
-                        Two things about it were not obvious. <strong>Time has to come from the frame
-                        index in the filename, not the pose order.</strong> Selection was adaptive, so
-                        poses are dense in the turns and sparse on the straights; playing them at a fixed
-                        rate per pose makes the drone crawl through corners and teleport down straights.
-                        Playing them on real time is what makes a replay a replay.
+                        Two things about it caught me out. <strong>Time has to come from the frame
+                        index in the filename, not from the pose order.</strong> Selection was adaptive,
+                        so the poses bunch up in the turns and thin out on the straights. If you play
+                        them at a fixed rate per pose, the drone crawls through corners and then
+                        teleports down the straights. You have to put them back on real time or it
+                        doesn't look like the flight at all.
                     </p>
                     <p>
-                        And <strong>the blend operator forbids the obvious draw order.</strong> Drawing
-                        the drone models first and the splats over them does not work: anything already
-                        in the buffer at alpha 1 makes every subsequent splat multiply by
-                        <code>(1&nbsp;−&nbsp;1)</code> and the entire scene disappears. The fix is a
-                        depth prepass — the ghosts stake out the depth buffer with colour writes masked
-                        off, the splats are then drawn with depth testing on and depth writes off, and
-                        the ghosts are drawn again in colour underneath. The second pass gets correct
-                        occlusion for free from the blend operator itself.
+                        The second one: <strong>the blend operator won't let you draw in the obvious
+                        order.</strong> I tried drawing the drone models first and the splats on top,
+                        which doesn't work at all. Anything sitting in the buffer at alpha 1 makes every
+                        splat after it multiply by <code>(1&nbsp;−&nbsp;1)</code>, so the whole scene
+                        vanishes. What I do now is a depth prepass. The ghosts fill in the depth buffer
+                        with colour writes turned off, the splats get drawn with depth testing on and
+                        depth writes off, then the ghosts get drawn again in colour underneath. The
+                        second pass gets the occlusion right on its own, straight out of the blend
+                        operator.
                     </p>
 
                     <figure class="fig" data-reveal>
                         <div id="fig-undistort"></div>
                         <figcaption>
-                            <strong>Figure 7.</strong> The picture-in-picture was raw fisheye while the
-                            render is a pinhole projection, so the two agreed only near the optical axis.
-                            Undistorting the proxy into <em>the render's own camera</em> — not an
-                            optimal new camera matrix, which would leave it misaligned differently —
-                            brings the outer third of the frame from 72.3 px of disagreement to 0.89 px.
-                            Measured on a frame with 9,067 features carrying triangulated 3D points.
-                            This is what Figure 1 relies on.
+                            <strong>Figure 7.</strong> The picture-in-picture was still raw fisheye
+                            while the render is a pinhole projection, so the two only lined up near the
+                            middle of the frame. Undistorting the video into <em>the render's own
+                            camera</em> takes the outer third from 72.3 px of disagreement down to
+                            0.89 px. Using an optimal new camera matrix instead would just misalign it a
+                            different way. Measured on a frame with 9,067 features that carry
+                            triangulated 3D points. Figure 1 depends on this.
                         </figcaption>
                     </figure>
                 </div>
@@ -530,9 +540,10 @@
                 <div class="block__body">
                     <h2 class="block__h">The ground was see-through</h2>
                     <p class="lede">
-                        Flying low in the viewer, the bottom third of the frame showed the background
-                        <em>through</em> the ground. It made the whole reconstruction feel broken
-                        regardless of what the metrics said, and it is the spine of this project.
+                        When I flew low in the viewer, the bottom third of the frame showed the
+                        background <em>through</em> the ground. It made the whole thing feel broken no
+                        matter what the numbers said, and chasing it is most of what this project
+                        turned into.
                     </p>
 
                     <figure class="fig fig--wide" data-reveal>
@@ -542,46 +553,47 @@
                             <input class="abpair__range" type="range" min="0" max="100" value="52"
                                    aria-label="Wipe between znear 0.2 and znear 0.01">
                             <span class="abpair__handle" aria-hidden="true"></span>
-                            <span class="abpair__l abpair__l--a">znear 0.2 — shipped</span>
+                            <span class="abpair__l abpair__l--a">znear 0.2, shipped</span>
                             <span class="abpair__l abpair__l--b">znear 0.01</span>
                         </div>
                         <figcaption>
                             <strong>Figure 8.</strong> Drag the divider. Same splat file, same camera
-                            (<code>0053_001085</code>), same everything — only the near plane changed.
-                            Bottom-third holes go from <b>51.2%</b> to <b>4.4%</b> and accumulated
-                            opacity from 0.520 to 0.897. Black is not black ground; it is nothing
-                            reaching the pixel at all.
+                            (<code>0053_001085</code>), everything identical except the near plane.
+                            Bottom-third holes go from <b>51.2%</b> to <b>4.4%</b>, and accumulated
+                            opacity from 0.520 to 0.897. The black isn't dark ground. It's nothing at
+                            all reaching the pixel.
                         </figcaption>
                     </figure>
 
                     <h3 class="block__sub">Four reconstruction-side hypotheses, all built, all measured</h3>
                     <p>
-                        Before any of that, I was sure this was a reconstruction problem, and I had
-                        measurements that said so. The ground <em>is</em> a slab rather than a surface:
-                        47–49% of its opacity mass sits below the visible surface, the 10→90% opacity
-                        transition spans 131–156% of median flight altitude, ground splat opacity has a
-                        median of 0.26 with 83% under 0.5, and the thin axis of a ground splat sits a
-                        median of 47° off the surface normal. All of that is true. None of it is what
-                        made the ground see-through.
+                        For a long time I was convinced this was a reconstruction problem, and I had
+                        numbers backing me up. The ground really <em>is</em> a slab instead of a
+                        surface. 47–49% of its opacity mass sits below the visible surface. The 10→90%
+                        opacity transition spans 131–156% of median flight altitude. Ground splat
+                        opacity has a median of 0.26, with 83% of it under 0.5. The thin axis of a
+                        ground splat sits a median of 47° off the surface normal. Every one of those is
+                        true, and none of them is why the ground was see-through.
                     </p>
                     <ul class="dlist">
-                        <li><strong>A flatness prior at refine time.</strong> Shrink each splat toward a disc. Made it worse — holes 33.5% → 38.9%. Flattening after export was worse still, 35.9% → 61.3%.</li>
+                        <li><strong>A flatness prior at refine time.</strong> Squash each splat toward a disc. Made it worse: holes went 33.5% → 38.9%. Flattening after export was worse again, 35.9% → 61.3%.</li>
                         <li><strong>A depth-distortion loss.</strong> Written from the 2DGS paper in Rust and CubeCL. <a href="#distortion" class="tlink">§6</a>. A measured negative.</li>
                         <li><strong>A screen-space covariance dilation.</strong> Null at 3.3× the value the trainer actually uses.</li>
-                        <li><strong>A post-hoc opacity boost.</strong> Worked, and was a workaround. Removed once the real cause was found.</li>
+                        <li><strong>A post-hoc opacity boost.</strong> This one worked, but only as a patch over the symptom. I took it out once I found the real cause.</li>
                     </ul>
                     <p>
-                        The flatness prior has the most useful post-mortem, and it is one line of
-                        arithmetic. A ground splat's thin axis is about <strong>1.0%</strong> of flight
-                        altitude; the slab it sits in is about <strong>125%</strong>. The slab is roughly
-                        <strong>129 times thicker than a single splat</strong>. Whatever is wrong, it is
-                        a fact about where splat <em>centres</em> are, not about splat <em>shape</em> —
-                        so every intervention that only rescales axes is aimed at the wrong quantity.
-                        That check would have ruled out a whole class of fix before any of it was built.
+                        The flatness prior is the one I learned the most from, and the whole lesson is
+                        one line of arithmetic I never did. A ground splat's thin axis is about
+                        <strong>1.0%</strong> of flight altitude. The slab it sits in is about
+                        <strong>125%</strong>. So the slab is around <strong>129 times thicker than a
+                        single splat</strong>. That tells you the problem is where the splat
+                        <em>centres</em> are, not what shape the splats are. Anything that just
+                        rescales the axes is aiming at the wrong number. Two minutes with a calculator
+                        would have killed a whole category of fix before I wrote any of it.
                     </p>
 
                     <h3 class="block__sub">The actual cause</h3>
-                    <p><code>const znear = 0.2;</code> — one line in <code>viewer/main.js</code>.</p>
+                    <p>It was <code>const znear = 0.2;</code>, one line in <code>viewer/main.js</code>.</p>
                     <p>
                         Splats are frustum-culled on their <strong>centre depth</strong>. The reject test
                         is <code>pz &lt; −margin·z</code>, which for this projection matrix reduces to a
@@ -591,7 +603,7 @@
                     <div class="eqs">
                         <div class="eqrow">
                             <div class="eqrow__e">z &lt; znear·k / (margin + k)</div>
-                            <div class="eqrow__d"><strong>with k = zfar / (zfar − znear).</strong> At <code>zfar 200</code> and <code>margin 1.2</code> that puts the cut at <strong>z &lt; 0.0910</strong> for <code>znear 0.2</code> and <strong>z &lt; 0.0045</strong> for <code>znear 0.01</code>. The shipped cull was never at 0.2 — the margin divides it by about 2.2 — but 0.091 is still well inside the flight envelope.</div>
+                            <div class="eqrow__d"><strong>with k = zfar / (zfar − znear).</strong> At <code>zfar 200</code> and <code>margin 1.2</code> the cut lands at <strong>z &lt; 0.0910</strong> for <code>znear 0.2</code>, and <strong>z &lt; 0.0045</strong> for <code>znear 0.01</code>. So the shipped cull was never actually at 0.2, since the margin divides it by about 2.2. 0.091 is still well inside where I was flying, though.</div>
                         </div>
                     </div>
 
@@ -630,27 +642,27 @@
                     <p>
                         Median flight altitude in normalised viewer units on these scenes runs 0.24 to
                         0.47. A cut at 0.091 sits inside that, and everything within it is dropped before
-                        it is drawn — including, when the camera is low, the ground directly beneath it.
-                        Since the viewer has no depth buffer, <code>znear</code> was buying nothing and
-                        cost nothing to shrink.
+                        it is drawn. When the camera is low, that includes the ground right underneath
+                        it. And since the viewer has no depth buffer, <code>znear</code> wasn't buying
+                        anything in the first place, so shrinking it cost nothing.
                     </p>
 
                     <figure class="fig" data-reveal>
                         <div id="fig-znear-cohorts"></div>
                         <figcaption>
                             <strong>Figure 10.</strong> Ten cohorts across three scenes and two export
-                            sizes, 56 poses in total. Bars are cohort means, the dashed tick is the worst
-                            single pose in that cohort. Not one pose of the 56 got worse.
+                            sizes, 56 poses total. The bars are cohort means and the dashed tick is the
+                            worst single pose in each one. None of the 56 got worse.
                         </figcaption>
                     </figure>
 
                     <h3 class="block__sub">Try it</h3>
                     <p>
-                        Below is a real splat renderer, not a video — the same format, the same sort,
-                        the same shaders, running on a 208,000-splat crop of the deployed asset taken
-                        around one low capture pose. The view presets are real COLMAP poses and
-                        <b>Fly the recorded path</b> follows an eighteen-second segment of the actual
-                        flight. Drag the near-plane control and the ground goes away underneath you.
+                        This is a real splat renderer, not a video. Same format, same sort, same
+                        shaders, running on a 208,000-splat crop of the deployed asset taken around one
+                        low capture pose. The view presets are real COLMAP poses, and <b>Fly the
+                        recorded path</b> follows an eighteen-second chunk of the actual flight. Drag
+                        the near-plane control and you can watch the ground disappear underneath you.
                     </p>
 
                     <div class="viewer" id="liveviewer">
@@ -688,9 +700,10 @@
                                 <span>Near cut <b id="viewer-cut">—</b></span>
                                 <span>Frame rate <b id="viewer-fps">—</b></span>
                                 <span class="demo__note" id="viewer-note">
-                                    A crop, so the site ends a short distance out and the horizon is
-                                    thinner than in the full three-million-splat build. Everything else —
-                                    the format, the sort, the projection, the blend — is what ships.
+                                    This is a crop, so the site stops a short way out and the horizon
+                                    is thinner than in the full three-million-splat build. Everything
+                                    else about it is what ships: the format, the sort, the projection
+                                    and the blend.
                                 </span>
                             </div>
                         </div>
@@ -705,17 +718,18 @@
                 <div class="block__body">
                     <h2 class="block__h">Why it hid for so long</h2>
                     <p class="lede">
-                        I tested <code>znear</code> early and wrote it off. The note in the log reads:
-                        “lowering znear to 0.01 moved bottom-third opacity by &lt;0.03.” That was a
-                        cohort mean.
+                        I actually tested <code>znear</code> early on and dismissed it. My note in the
+                        log says "lowering znear to 0.01 moved bottom-third opacity by &lt;0.03". That
+                        number was a cohort mean.
                     </p>
                     <p>
-                        Every tool I had built reported a middle. The measurement script reports a
-                        cohort mean; the slab profiler aggregates over three hundred ground columns; the
-                        detail metric averages forty frames. The defect lived in the tail, and averaging
-                        over a cohort that is mostly fine dilutes a thirty-six-point effect into nothing.
-                        Somebody actually flying the viewer sees it instantly, because they fly
-                        <em>through</em> the bad poses instead of averaging over them.
+                        Every tool I'd built reported an average. The measurement script gives a
+                        cohort mean. The slab profiler aggregates over three hundred ground columns. The
+                        detail metric averages forty frames. But the bug lived in the tail, and
+                        averaging it across a cohort that's mostly fine turns a thirty-six-point effect
+                        into nothing. Anyone actually flying the viewer spots it in about two seconds,
+                        because they fly <em>through</em> the bad poses instead of averaging over
+                        them.
                     </p>
 
                     <div class="demo demo--tail">
@@ -744,17 +758,17 @@
                         time:
                     </p>
                     <ul class="dlist">
-                        <li><strong>corr(alpha, splats per pixel) = +0.94, but corr(alpha, splats within 0.3 of the camera) = −0.46.</strong> More geometry near the camera, <em>less</em> alpha on screen. Geometry present and not being rendered is only explicable by culling, and that sign flip was on the page before the near plane was ever swept.</li>
-                        <li><strong>corr(alpha, altitude) = +0.35.</strong> Lower flight, worse holes. That is the signature of a fixed near plane. A diffuse slab does not care how high you are.</li>
+                        <li><strong>corr(alpha, splats per pixel) = +0.94, but corr(alpha, splats within 0.3 of the camera) = −0.46.</strong> More geometry near the camera, <em>less</em> alpha on screen. If the geometry is there and isn't showing up, something has to be throwing it away, and culling is the only thing that does that. This sign flip was sitting on my results page before I ever swept the near plane.</li>
+                        <li><strong>corr(alpha, altitude) = +0.35.</strong> The lower I flew, the worse the holes got. That's what a fixed near plane does. A diffuse slab wouldn't care how high I was.</li>
                     </ul>
                     <p>
-                        One more thing only became clear afterwards, and it is the part I found hardest
-                        to accept: <strong>severity was set by the scene's normalisation, not by the
-                        flying.</strong> The exporter scales every scene so the camera p90 radius lands
-                        at 3.0, which gave the cemetery a median altitude of 0.24 and the hilltop 0.47.
-                        Same drone, same day, same pilot — one scene hit twice as hard as the other
-                        purely because of a normalisation constant. No amount of looking at the
-                        reconstruction would have found that.
+                        One thing I only worked out afterwards, and it's the bit I found hardest to
+                        accept: <strong>how bad the bug looked came down to the scene's normalisation,
+                        not to how I flew.</strong> The exporter scales every scene so the camera p90
+                        radius lands at 3.0, which gave the cemetery a median altitude of 0.24 and the
+                        hilltop 0.47. Same drone, same day, same pilot, and one scene got hit twice as
+                        hard as the other because of a constant in the export step. I could have stared
+                        at the reconstruction forever and never found that.
                     </p>
                 </div>
             </section>
@@ -765,23 +779,24 @@
                 <div class="block__body">
                     <h2 class="block__h">A depth-distortion loss, written in Rust</h2>
                     <p class="lede">
-                        Brush ships without a surface regulariser, and 3DGS has no prior that makes a
-                        surface thin. From a grazing view, a thick semi-transparent slab and a thin
-                        opaque surface produce an identical image and therefore an identical loss.
+                        Brush doesn't ship with a surface regulariser, and 3DGS has nothing in it that
+                        pushes a surface to be thin. Looking along the ground, a thick see-through slab
+                        and a thin solid surface give you the same image, so they also give you the
+                        same loss. The optimiser has no reason to prefer either.
                     </p>
                     <p>
-                        So I implemented the depth-distortion term from the 2DGS paper: for each ray,
-                        penalise the spread of that ray's own contribution along its depth.
+                        So I implemented the depth-distortion term from the 2DGS paper. For each ray,
+                        you penalise how spread out that ray's own contribution is along its depth.
                     </p>
 
                     <div class="eqs">
                         <div class="eqrow">
                             <div class="eqrow__e">L = Σᵢⱼ wᵢ wⱼ |tᵢ − tⱼ|</div>
-                            <div class="eqrow__d"><strong>As written, O(N²) per ray</strong> — every pair of splats along the ray, with <code>w = α·T</code> the blend weight and <code>t</code> the depth.</div>
+                            <div class="eqrow__d"><strong>As written, O(N²) per ray.</strong> That's every pair of splats along the ray, where <code>w = α·T</code> is the blend weight and <code>t</code> is the depth.</div>
                         </div>
                         <div class="eqrow">
                             <div class="eqrow__e">L = Σᵢ wᵢ (tᵢ·Aᵢ − Bᵢ)</div>
-                            <div class="eqrow__d"><strong>O(N), walking front to back</strong>, with <code>Aᵢ = Σ_{j&lt;i} wⱼ</code> and <code>Bᵢ = Σ_{j&lt;i} wⱼ tⱼ</code>. The rasteriser already traverses in depth order, so both prefix sums are free.</div>
+                            <div class="eqrow__d"><strong>O(N) if you walk front to back</strong>, with <code>Aᵢ = Σ_{j&lt;i} wⱼ</code> and <code>Bᵢ = Σ_{j&lt;i} wⱼ tⱼ</code>. The rasteriser already goes in depth order, so both prefix sums come for free.</div>
                         </div>
                     </div>
 
@@ -818,50 +833,54 @@
                     <h3 class="block__sub">The backward pass is where it gets interesting</h3>
                     <p>
                         The gradient needs a <em>suffix</em> sum as well as a prefix sum, and the
-                        backward rasteriser walks front to back with no second pass available. Euler's
-                        theorem supplies it for nothing. <code>L</code> is homogeneous of degree 2 in
-                        <code>w</code>, so
+                        backward rasteriser walks front to back with no second pass to work with. It
+                        turns out you get the suffix sum for free out of Euler's theorem, because
+                        <code>L</code> is homogeneous of degree 2 in <code>w</code>:
                     </p>
 
                     <div class="eqs">
                         <div class="eqrow">
                             <div class="eqrow__e">R₀ = Σᵢ wᵢ gᵢ = 2L</div>
-                            <div class="eqrow__d"><strong>The suffix sum can be seeded from the forward pass's own output</strong> and then walked down exactly the way the kernel already walks remaining colour — <code>R_{k+1} = R_k − w_k g_k</code>. No second pass, no extra storage per splat.</div>
+                            <div class="eqrow__d"><strong>So you can seed the suffix sum from the forward pass's own output</strong> and then walk it down the same way the kernel already walks remaining colour: <code>R_{k+1} = R_k − w_k g_k</code>. No second pass and no extra storage per splat.</div>
                         </div>
                         <div class="eqrow">
                             <div class="eqrow__e">SA_k = A_tot − A_k − w_k</div>
-                            <div class="eqrow__d"><strong>And the per-splat suffix sums come from the totals.</strong> The forward saves <code>ΣW</code> and <code>ΣWt</code> into two spare output channels, so the backward reconstructs what is behind splat <em>k</em> without ever seeing it.</div>
+                            <div class="eqrow__d"><strong>The per-splat suffix sums come out of the totals.</strong> The forward pass stashes <code>ΣW</code> and <code>ΣWt</code> in two spare output channels, so the backward pass can work out what's behind splat <em>k</em> without ever looking at it.</div>
                         </div>
                     </div>
                     <p>
-                        Alpha also reaches the loss by <em>two</em> routes — directly through
-                        <code>wᵢ = αᵢ·Tᵢ</code>, and indirectly because every <code>Tⱼ</code> for
-                        <code>j &gt; i</code> carries a <code>(1 − αᵢ)</code> factor — and both have to
-                        be accumulated or the gradient is quietly wrong rather than loudly broken.
+                        Alpha also gets to the loss by <em>two</em> different routes. Directly, through
+                        <code>wᵢ = αᵢ·Tᵢ</code>, and indirectly, because every <code>Tⱼ</code> for
+                        <code>j &gt; i</code> carries a <code>(1 − αᵢ)</code> factor. You have to
+                        accumulate both. Miss one and the gradient comes out slightly wrong instead of
+                        obviously broken, which is much harder to notice.
                     </p>
 
                     <p class="callout">
-                        <strong>Two traps, both of which would have failed silently.</strong> The gradient
-                        buffer stride was widened from 10 to 11 <em>unconditionally</em> rather than only
-                        when the loss is enabled — a stride that differs between two kernels is silent
-                        corruption, not a crash. And the projection backward had an early-out
-                        <code>if !any_grad { return }</code> that would have dropped depth-only gradients
-                        without a word. Verified with finite differences, including a guard asserting the
-                        gradient is <em>non-zero</em>, because a finite-difference test passes trivially
+                        <strong>Two traps here, and both of them would have failed silently.</strong>
+                        I widened the gradient buffer stride from 10 to 11 <em>unconditionally</em>
+                        instead of only when the loss is turned on. If two kernels disagree about the
+                        stride you don't get a crash, you get quiet corruption. The other one was an
+                        early-out in the projection backward, <code>if !any_grad { return }</code>,
+                        which would have thrown away depth-only gradients without saying anything. I
+                        checked the whole thing with finite differences, and added an assert that the
+                        gradient is <em>non-zero</em>, because a finite-difference test passes just fine
                         when both sides are zero.
                     </p>
 
                     <h3 class="block__sub">And it did not help</h3>
                     <p>
-                        At weight 0.05 unnormalised, the loss collapsed the scene's depth range — splat
-                        radius p99 fell 17.45 → 7.78 and PSNR dropped 22.14 → 19.80 dB. The term is
-                        degree-1 in <code>t</code> and unbounded, so rays through distant geometry have
-                        larger absolute depth spread and dominate the gradient. With per-ray
-                        normalisation it stopped collapsing and still degraded detail, 22.6% → 16.9%.
+                        At weight 0.05 with no normalisation, the loss crushed the scene's depth range.
+                        Splat radius p99 fell 17.45 → 7.78 and PSNR dropped 22.14 → 19.80 dB. The term
+                        is degree-1 in <code>t</code> and has no upper bound, so rays going through
+                        distant geometry have a bigger absolute depth spread and end up dominating the
+                        gradient. Adding per-ray normalisation stopped the collapse, but it still made
+                        detail worse, 22.6% → 16.9%.
                     </p>
                     <p>
-                        The implementation is correct and the intervention does not help this scene. It
-                        is also, in hindsight, aimed at a defect that was mostly the viewer.
+                        So the implementation is right and it just doesn't help on this scene. Looking
+                        back, I was also aiming it at a problem that turned out to be mostly the
+                        viewer's fault anyway.
                     </p>
                 </div>
             </section>
@@ -870,81 +889,85 @@
             <section class="block" id="blur" data-reveal>
                 <div class="block__no">07</div>
                 <div class="block__body">
-                    <h2 class="block__h">Near-field blur — a real defect, badly measured</h2>
+                    <h2 class="block__h">Near-field blur, and a metric that lied about it</h2>
                     <p class="lede">
-                        With the transparency fixed, a second defect remained and it is genuine: the
-                        near-field ground is blurry. Different failure mode, different cause, and the
-                        obvious metric conflates it with something else entirely.
+                        Once the transparency was fixed there was still a second problem, and this one
+                        is real: the ground close to the camera is blurry. It's a different failure with
+                        a different cause, and the obvious way to measure it mixes it up with something
+                        else completely.
                     </p>
                     <p>
-                        The sharpness metric divides render high-frequency energy by ground-truth
-                        high-frequency energy, per region. The bottom third scored 18% and the top half
-                        40%, which reads as a catastrophic near-field defect. But the bottom third's
-                        ground truth carries <strong>2.44×</strong> the high-frequency energy — close
-                        grass against sky and distant hills. The two regions were never comparable.
-                        Grass at two metres largely is not multi-view consistent: blades self-occlude
-                        and change with parallax, and no number of splats can reconstruct that.
+                        My sharpness metric divides render high-frequency energy by ground-truth
+                        high-frequency energy, region by region. The bottom third scored 18% and the top
+                        half 40%, which looks like a disaster in the near field. Except the bottom
+                        third's ground truth has <strong>2.44×</strong> the high-frequency energy in it,
+                        because it's close-up grass and the top half is sky and distant hills. I was
+                        never comparing like with like. Grass at two metres mostly isn't multi-view
+                        consistent anyway. The blades block each other and shift as you move, and no
+                        number of splats is going to reconstruct that.
                     </p>
                     <p>
-                        Binning 8×8 blocks by their <em>own</em> local ground-truth texture and comparing
-                        near against far at matched difficulty separates the two.
+                        What does separate the two is binning 8×8 blocks by their <em>own</em> local
+                        ground-truth texture, then comparing near against far only at matched
+                        difficulty.
                     </p>
 
                     <figure class="fig" data-reveal>
                         <div id="fig-bands"></div>
                         <figcaption>
-                            <strong>Figure 14.</strong> At identical content difficulty the near field
-                            retains under half what the far field does, so the defect is real — but
-                            roughly half the apparent gap was just harder content. The ratio being
-                            <em>flat</em> across every texture band is the signature of a scale problem
-                            rather than a content one.
+                            <strong>Figure 14.</strong> At the same content difficulty the near field
+                            keeps under half what the far field does, so the problem is real. But about
+                            half of the gap I thought I had was just harder content. The ratio staying
+                            <em>flat</em> across every texture band means it's a scale problem, not a
+                            content one.
                         </figcaption>
                     </figure>
 
                     <h3 class="block__sub">A controlled ablation</h3>
                     <p>
-                        Five training runs on the cemetery scene, all 20,000 iterations, all sharing one
-                        learning-rate schedule so they rank fairly against each other.
+                        Five training runs on the cemetery scene, all 20,000 iterations, all on the
+                        same learning-rate schedule so I could actually rank them against each other.
                     </p>
 
                     <figure class="fig" data-reveal>
                         <div id="fig-ablation"></div>
                         <figcaption>
-                            <strong>Figure 15.</strong> <b>P2</b> is the only intervention that moved the
-                            near/far ratio rather than lifting everything equally, and the near field
-                            gained roughly twice what the far field did. Raising the splat cap alone does
-                            almost nothing; a perceptual loss actively hurts.
+                            <strong>Figure 15.</strong> <b>P2</b> is the only one that actually moved
+                            the near/far ratio instead of lifting everything by the same amount, and the
+                            near field gained about twice what the far field did. Raising the splat cap
+                            on its own does almost nothing. A perceptual loss makes things worse.
                         </figcaption>
                     </figure>
 
                     <h3 class="block__sub">Three things that ablation changed my mind about</h3>
                     <p>
-                        <strong>Saturation proves a cap binds. It says nothing about whether relieving it
-                        helps.</strong> Every run ever done exported <em>exactly</em> 8,000,000 splats,
-                        and had done since iteration 10,000. That looked like overwhelming evidence the
-                        cap was the constraint. Given a 16 M budget the optimiser took
-                        <strong>8.67 M</strong> by the same iteration. The real gap was 8.0 against 8.67,
-                        not 8 against 16.
+                        <strong>A cap being saturated tells you it binds. It doesn't tell you that
+                        lifting it helps.</strong> Every run I'd ever done exported <em>exactly</em>
+                        8,000,000 splats, and had been doing that since iteration 10,000. I took that as
+                        obvious proof the cap was what was holding me back. Then I gave it a 16 M budget
+                        and the optimiser only took <strong>8.67 M</strong> by the same iteration. So
+                        the real gap was 8.0 against 8.67, not 8 against 16.
                     </p>
                     <p>
-                        <strong>The flag that turned out to be the lever had never fired.</strong>
+                        <strong>The flag that turned out to matter had never once fired.</strong>
                         <code>--split-at-screen-size</code> defaults to 0.5, but the actual distribution
-                        has a p99 of 0.103 and only 0.01% of splats above 0.5 — five times past p99.9.
-                        Nothing was ever force-split. Worse, its splits are funded from
-                        <code>max_splats − current</code>, which had been zero since iteration 10,000, so
-                        lowering the threshold on its own would also have done nothing. The two flags only
-                        work together, which is why neither showed anything alone.
+                        has a p99 of 0.103, and only 0.01% of splats are above 0.5. That's five times
+                        past p99.9, so nothing was ever getting force-split. It gets worse: those splits
+                        are paid for out of <code>max_splats − current</code>, which had been zero since
+                        iteration 10,000. So lowering the threshold by itself would also have done
+                        nothing. The two flags only do anything together, which is why I got nothing
+                        from testing either one alone.
                     </p>
                     <p>
-                        <strong>Resolution is not the lever, and the metric lies about it by
-                        default.</strong> Training at native 2688 scored 20.2% once brought down to a
-                        common yardstick — a dead tie with 20.3% at 1920 — and 16.1% against its own 2688
-                        ground truth. It failed <em>proportionally</em> at a harder target rather than
-                        resolving more detail. The metric originally credited it 19.7%, because it picked
-                        the first ground-truth directory alphabetically and upscaled a 1920 reference to
-                        meet a 2688 render, scoring against a reference carrying no detail above 1920's
-                        Nyquist. When comparing runs at different resolutions, bring them to one yardstick
-                        first.
+                        <strong>Resolution isn't the answer either, and my metric lied about it by
+                        default.</strong> Training at native 2688 scored 20.2% once I brought everything
+                        to a common yardstick, which is a dead tie with the 20.3% I got at 1920. Against
+                        its own 2688 ground truth it scored 16.1%. It didn't resolve more detail, it
+                        just failed by the same proportion at a harder target. My metric had originally
+                        given it 19.7%, because it grabbed the first ground-truth directory
+                        alphabetically and upscaled a 1920 reference to match a 2688 render, so it was
+                        scoring against a reference with no detail above 1920's Nyquist. If you're
+                        comparing runs at different resolutions, put them on one yardstick first.
                     </p>
                 </div>
             </section>
@@ -955,17 +978,18 @@
                 <div class="block__body">
                     <h2 class="block__h">The final run, and the mistake that undid it</h2>
                     <p class="lede">
-                        The winning configuration went to a 60,000-iteration run on the merged scene:
-                        28 hours, 16 M splats, all 7,470 cameras. Texture improved exactly as predicted.
-                        It also looked visibly worse.
+                        I took the config that won and ran it for 60,000 iterations on the merged
+                        scene: 28 hours, 16 M splats, all 7,470 cameras. The texture improved exactly
+                        like I said it would. It also looked obviously worse.
                     </p>
 
                     <figure class="fig" data-reveal>
                         <div id="fig-detail-curve"></div>
                         <figcaption>
-                            <strong>Figure 16.</strong> Detail retention against iteration on the cemetery
-                            scene. Training had been stopping at 30k, which is where the curve was still
-                            climbing fastest — the reason the long run looked worth 28 hours.
+                            <strong>Figure 16.</strong> Detail retention against iteration on the
+                            cemetery scene. I'd been stopping training at 30k, right where the curve is
+                            still climbing fastest, which is why a 28-hour run looked like a good
+                            idea.
                         </figcaption>
                     </figure>
 
@@ -975,20 +999,22 @@
                         And the ground was see-through again.
                     </p>
                     <p>
-                        The cause was the export step, not the training. The exporter keeps the top
-                        <em>N</em> splats by opacity × projected area. The old run kept 3 M of 8 M —
-                        37.5%. The new one kept 3 M of 16 M — 18.8%. Doubling the trained splat count
-                        while holding the export cap fixed throws away four fifths instead of two thirds,
-                        and <code>--split-at-screen-size</code> had made each survivor smaller. Both
-                        effects cut coverage.
+                        It was the export step, not the training. The exporter keeps the top
+                        <em>N</em> splats by opacity × projected area. The old run kept 3 M out of 8 M,
+                        so 37.5%. The new one kept 3 M out of 16 M, so 18.8%. I'd doubled the trained
+                        splat count and left the export cap where it was, which means throwing away four
+                        fifths instead of two thirds. On top of that
+                        <code>--split-at-screen-size</code> had made every surviving splat smaller. Both
+                        of those cut coverage.
                     </p>
 
                     <figure class="fig fig--wide" data-reveal>
                         <div id="fig-export"></div>
                         <figcaption>
-                            <strong>Figure 17.</strong> Three exports of the same scene. Raising the export
-                            cap to 8 M recovers essentially all of the lost coverage with no retraining at
-                            all — which is what makes this an export bug rather than a training one.
+                            <strong>Figure 17.</strong> Three exports of the same scene. Raising the
+                            export cap to 8 M gets back basically all the lost coverage without
+                            retraining anything, which is how I know it was an export bug and not a
+                            training one.
                         </figcaption>
                     </figure>
 
@@ -997,17 +1023,18 @@
                         <figcaption>
                             <strong>Figure 18.</strong> The same eight low level-flight poses under all
                             three exports. The mean for the 3 M export off the 60k run is 5.6%, which
-                            sounds survivable; one pose is at 18.1%.
+                            sounds fine until you notice one pose sitting at 18.1%.
                         </figcaption>
                     </figure>
 
                     <p class="callout">
-                        <strong>This is the same metric mistake twice in one project.</strong> The
-                        sharpness metric measures <em>texture</em>; the hole metric measures whether a ray
-                        accumulates <em>alpha</em>. They are different failure modes and they can move in
-                        opposite directions. A 28-hour run was gated on the first without re-checking the
-                        second — the exact confusion that earlier made a blur defect look like a
-                        transparency defect. The build that ships is still the 8M / 30k one.
+                        <strong>I made the same metric mistake twice in one project.</strong> The
+                        sharpness metric measures <em>texture</em>. The hole metric measures whether a
+                        ray picks up any <em>alpha</em>. Those are two different failures and they can
+                        move in opposite directions. I gated a 28-hour run on the first one and never
+                        went back to check the second, which is the exact same mix-up that made a blur
+                        problem look like a transparency problem earlier on. The build that ships is
+                        still the 8M / 30k one.
                     </p>
                 </div>
             </section>
@@ -1018,8 +1045,9 @@
                 <div class="block__body">
                     <h2 class="block__h">Everything that did not work</h2>
                     <p class="lede">
-                        Kept because the disproofs took more effort than the successes, and because a
-                        negative result you cannot trust is worse than no result at all.
+                        I'm keeping all of this because disproving my own ideas took more work than the
+                        ones that panned out, and because a negative result you can't trust is worse
+                        than not having one.
                     </p>
                     <table class="dtable" id="negtable">
                         <caption>Interventions built and measured, in order of how much they cost</caption>
@@ -1029,11 +1057,11 @@
 
                     <h3 class="block__sub">Engineering notes worth keeping</h3>
                     <ul class="dlist">
-                        <li><strong>LPIPS was broken, then unaffordable, then harmful.</strong> It panicked four seconds into training: the Burn fork carries autodiff-ness at runtime in an enum rather than in the type, so weights loaded from a record are plain float variants and the first op mixing them with autodiff activations calls <code>.autodiff()</code> on a plain tensor. Fixed by lifting each parameter through <code>Tensor::from_inner</code>. Then it ran, at 29 s/iter against roughly 0.5 for the entire rest of the step — a 20k run would have taken months. Adding a random 256 px crop made it affordable, and then it turned out to hurt quality anyway.</li>
+                        <li><strong>LPIPS was broken, then too slow, then actively bad.</strong> It panicked four seconds into training. The Burn fork tracks autodiff-ness at runtime in an enum instead of in the type, so weights loaded from a record come back as plain float variants, and the first op that mixes them with autodiff activations ends up calling <code>.autodiff()</code> on a plain tensor. I fixed that by lifting each parameter through <code>Tensor::from_inner</code>. Then it actually ran, at 29 s/iter, against roughly 0.5 for the entire rest of the step. A 20k run would have taken months. A random 256 px crop made it affordable, and then it turned out to hurt quality anyway.</li>
                         <li><strong>A 4 GiB single-buffer ceiling, not a RAM ceiling.</strong> A 24 M-splat run died with <code>failed to reserve 4336857088 bytes</code>. That is just past 4 GiB; at ~181 bytes per splat the hard ceiling is about 23.7 M splats, on a machine with 48 GB of RAM.</li>
-                        <li><strong>A waiter that lied.</strong> <code>until pgrep -f 'a\|b'</code> exits immediately and prints its success message, because <code>pgrep -f</code> takes an extended regex where alternation is a bare pipe. It reported that all scans were done while three renders were still running. A clean exit is not evidence.</li>
-                        <li><strong>Editing a running bash script.</strong> Bash reads scripts incrementally by file offset, so an edit mid-run can resume at the wrong offset. Every chain script here was killed by PID, edited, checked with <code>bash -n</code>, and relaunched — never edited in place.</li>
-                        <li><strong>A scoring bug that read as a result.</strong> The comparison script had hardcoded ground-truth paths, so on any newer frame set it reported <code>images: 0</code> — which looks like a finding rather than an error.</li>
+                        <li><strong>A wait loop that lied to me.</strong> <code>until pgrep -f 'a\|b'</code> exits straight away and prints its success message, because <code>pgrep -f</code> wants an extended regex where alternation is a bare pipe. It told me every scan had finished while three renders were still going. Something exiting cleanly doesn't mean it did anything.</li>
+                        <li><strong>Don't edit a bash script while it's running.</strong> Bash reads the file as it goes, by offset, so editing it mid-run can make it pick back up in the wrong place. Every chain script here got killed by PID, edited, checked with <code>bash -n</code>, and relaunched. I never edited one in place.</li>
+                        <li><strong>A scoring bug that looked like a result.</strong> The comparison script had hardcoded ground-truth paths, so on any newer frame set it printed <code>images: 0</code>, which reads like a finding instead of a broken path.</li>
                     </ul>
                 </div>
             </section>
@@ -1044,31 +1072,31 @@
                 <div class="block__body">
                     <h2 class="block__h">Limitations</h2>
                     <ul class="dlist">
-                        <li><strong>Near-field blur is unfixed.</strong> Bottom-third detail retention is 14.8% on the shipped merged build against 34.7% for the far field, and the ablation moved it two points. The cause is a scale problem, not a capacity one, and I do not have a fix.</li>
-                        <li><strong>Residual holes survive at a few poses.</strong> The worst 1.5 M cemetery pose is still 26% after the near-plane fix, so there is genuine missing near-field geometry underneath the rendering bug.</li>
-                        <li><strong>Two sites, one day each, one drone.</strong> Nothing here has been shown to generalise to another camera, another lens, or a scene with different geometry. The floater filter that works on open terrain deletes real ground on a dense city scene, and vice versa.</li>
-                        <li><strong>The ground is still a slab.</strong> 47–49% of its opacity mass sits below the visible surface. That measurement stands; it simply was not the cause of the symptom it was used to explain.</li>
-                        <li><strong>The interactive above is a crop.</strong> 208,000 splats of 3,000,000, chosen around one pose, with the sky culled. The full asset is 96 MB and does not belong on a portfolio page.</li>
+                        <li><strong>Near-field blur is still there.</strong> Bottom-third detail retention is 14.8% on the shipped merged build, against 34.7% for the far field, and my ablation moved it by two points. It's a scale problem, not a capacity one, and I don't have a fix for it.</li>
+                        <li><strong>Some holes survive at a few poses.</strong> The worst 1.5 M cemetery pose is still at 26% even after the near-plane fix, so there's real missing geometry near the camera underneath the rendering bug.</li>
+                        <li><strong>Two sites, one day each, one drone.</strong> I haven't shown any of this works on another camera, another lens, or a scene shaped differently. The floater filter that works on open terrain deletes real ground on a dense city scene, and the other way round.</li>
+                        <li><strong>The ground is still a slab.</strong> 47–49% of its opacity mass sits below the visible surface. That measurement is fine. It just wasn't causing the thing I was using it to explain.</li>
+                        <li><strong>The interactive above is a crop.</strong> 208,000 splats out of 3,000,000, picked around one pose, with the sky culled. The full asset is 96 MB, which is not something I'm putting on a portfolio page.</li>
                     </ul>
 
-                    <h3 class="block__sub">What I would take from it</h3>
+                    <h3 class="block__sub">What I'd take from it</h3>
                     <ol class="nlist">
-                        <li><strong>A cohort mean can hide a catastrophic defect in the tail.</strong> The bug that drove the entire project was measured early, averaged away, and written off in one line.</li>
-                        <li><strong>Two metrics that both sound like “quality” can move in opposite directions.</strong> Texture and coverage are different failure modes; optimising one silently wrecked the other, twice.</li>
-                        <li><strong>Saturation is not causation.</strong> Every run pinning exactly at the splat cap looked like overwhelming evidence the cap was binding. Lifting it changed almost nothing.</li>
-                        <li><strong>Do the cheap ruling-out arithmetic first.</strong> The slab was 129× thicker than a single splat — one line that invalidates an entire category of fix before any of it is built.</li>
-                        <li><strong>Negative results need the same rigour as positive ones</strong>, or you cannot trust them when they contradict your next idea.</li>
+                        <li><strong>An average can completely hide a bad problem in the tail.</strong> The bug that ended up driving this whole project got measured early, averaged away, and dismissed in a single line of my notes.</li>
+                        <li><strong>Two metrics that both sound like "quality" can move in opposite directions.</strong> Texture and coverage are separate failures, and optimising one quietly wrecked the other. Twice.</li>
+                        <li><strong>A number sitting at its limit doesn't prove the limit is the problem.</strong> Every run pinning exactly at the splat cap looked like obvious proof the cap was the issue. Raising it changed almost nothing.</li>
+                        <li><strong>Do the cheap arithmetic before you build anything.</strong> The slab was 129× thicker than a single splat. That one line rules out an entire category of fix, and I could have worked it out in a minute.</li>
+                        <li><strong>Negative results need to be as careful as positive ones</strong>, or you won't trust them later when they get in the way of your next idea.</li>
                     </ol>
 
                     <h3 class="block__sub">Tools</h3>
                     <p>
-                        COLMAP 4.1.1 on CPU; Brush (Rust / WebGPU / Metal) with Burn and CubeCL;
-                        Python, NumPy, OpenCV and Pillow for analysis — including a from-scratch CPU
-                        splat rasteriser that reproduces the viewer's projection, covariance, half-float
-                        packing and blend arithmetic exactly, so rendering hypotheses could be tested
-                        without a GPU and so Figure 1 could be rendered at all; WebGL2 for the viewer,
-                        extended from the antimatter15 splat viewer; ffmpeg, and bash orchestration with
-                        GPU-serialised job queues.
+                        COLMAP 4.1.1 on CPU. Brush (Rust / WebGPU / Metal) with Burn and CubeCL.
+                        Python, NumPy, OpenCV and Pillow for the analysis. That includes a CPU splat
+                        rasteriser I wrote from scratch, which copies the viewer's projection,
+                        covariance, half-float packing and blend arithmetic exactly, so I could test
+                        rendering ideas without a GPU. It's also the only reason Figure 1 exists. The
+                        viewer is WebGL2, extended from the antimatter15 splat viewer. Then ffmpeg, and
+                        a pile of bash scripts running GPU-serialised job queues.
                     </p>
                 </div>
             </section>
@@ -1114,7 +1142,7 @@
             </div>
             <div class="foot__bar">
                 <span>© <span id="year">2026</span> Jonathan Earp</span>
-                <span>Flights 21 &amp; 27 Aug 2026 · figures measured 26 Aug — 1 Sep 2026</span>
+                <span>Flights 21 &amp; 27 Aug 2026 · figures measured 26 Aug – 1 Sep 2026</span>
             </div>
         </div>
     </footer>

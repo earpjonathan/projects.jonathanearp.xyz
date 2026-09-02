@@ -1,5 +1,5 @@
 /* ============================================================
-   PETER - measured data, inlined.
+   P.E.T.E.R - measured data, inlined.
 
    GENERATED FILE - do not hand-edit.
    Regenerate with:  python3 tools/refresh_data.py

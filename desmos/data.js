@@ -1,5 +1,5 @@
 /* ============================================================
-   Desmos Guy - measured data, inlined.
+   PETER - measured data, inlined.
 
    GENERATED FILE - do not hand-edit.
    Regenerate with:  python3 tools/refresh_data.py

@@ -252,7 +252,7 @@ def write_data_js(posts, findings, render, summary) -> None:
              "watch_hours": p["watch_hours"], "plays": p["plays"]} for p in posts]
     j = lambda o: json.dumps(o, separators=(",", ":"))
     out = ["""/* ============================================================
-   Desmos Guy - measured data, inlined.
+   PETER - measured data, inlined.
 
    GENERATED FILE - do not hand-edit.
    Regenerate with:  python3 tools/refresh_data.py

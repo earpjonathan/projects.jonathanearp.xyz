@@ -1,5 +1,5 @@
 /* ============================================================
-   Desmos Guy — figures.
+   PETER — figures.
    Every chart is inline SVG drawn from window.DG (data.js), styled
    entirely through CSS classes so it follows the light/dark toggle
    with no redraw. Charts are re-rendered on resize at a 1:1 viewBox

@@ -1,5 +1,5 @@
 /* ============================================================
-   Desmos Guy — the playable bits.
+   PETER — the playable bits.
 
    Four demos, all running the same algorithms the real pipeline
    runs, just smaller:

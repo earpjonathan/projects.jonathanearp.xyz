@@ -108,20 +108,37 @@ def agl_at(p):
     return (-p[1]) - GROUND[k] if k in GROUND else None
 
 
-def terrain(x, z):
-    """Ground height (in -y) under a plan position, widening the search a
-    ring at a time. A single cell can be empty where the reconstruction is
-    thin, and a shot that hits one of those would otherwise put the camera
-    at whatever height the last frame happened to have."""
-    ci, ck = math.floor(x / CELL) - GI0, math.floor(z / CELL) - GK0
-    for r in range(0, 6):
-        vals = [GROUND[k] for k in
-                (int((ci + i) * 100000 + (ck + j))
-                 for i in range(-r, r + 1) for j in range(-r, r + 1))
-                if k in GROUND]
-        if vals:
-            return float(np.median(vals))
-    raise ValueError(f"no terrain under ({x:.2f}, {z:.2f})")
+GX = GZ = GH = None
+TERRAIN_R = 0.55        # disc the ground height is averaged over, scene units
+
+
+def terrain_grid():
+    """The per-cell ground medians as flat arrays, for the smooth lookup."""
+    global GX, GZ, GH
+    ks = np.fromiter(GROUND.keys(), np.int64, len(GROUND))
+    GH = np.fromiter(GROUND.values(), float, len(GROUND))
+    GX = ((ks // 100000) + GI0 + 0.5) * CELL
+    GZ = ((ks % 100000) + GK0 + 0.5) * CELL
+
+
+def terrain(x, z, r=TERRAIN_R):
+    """Ground height (in -y) under a plan position, as a weighted mean over a
+    disc rather than whichever single cell the point lands in.
+
+    Per-cell medians are a step function. A camera holding its height above
+    them jumps every time it crosses a 0.12-unit boundary, and on a move that
+    travels 0.009 units per frame that jolt is an order of magnitude larger
+    than the move itself: the shot reads as choppy even though the path is
+    smooth. The kernel falls to zero at the rim, so cells enter and leave the
+    average continuously instead of popping in."""
+    if GX is None:
+        terrain_grid()
+    d2 = (GX - x) ** 2 + (GZ - z) ** 2
+    w = np.clip(1.0 - d2 / (r * r), 0.0, None) ** 2
+    s = w.sum()
+    if s <= 0:                     # off the edge of the reconstruction
+        return terrain(x, z, r * 2)
+    return float((w * GH).sum() / s)
 
 
 def above(x, z, h):
@@ -201,6 +218,20 @@ def ease(t):
     return t * t * (3 - 2 * t)
 
 
+def glide(t, r=0.25):
+    """Ease in and out over the first and last r of a move, constant speed
+    in between. smoothstep spends its whole length either accelerating or
+    braking and peaks at 1.5x its own average, which is what made the middle
+    of a short shot judder; this peaks at 1/(1 - r) instead."""
+    t = min(max(t, 0.0), 1.0)
+    v = 1.0 / (1.0 - r)                 # cruise speed that still covers the path
+    if t < r:
+        return v * t * t / (2 * r)
+    if t > 1 - r:
+        return 1 - v * (1 - t) * (1 - t) / (2 * r)
+    return v * (t - r / 2)
+
+
 BASE = cams[ANCHOR]
 C0 = np.asarray(BASE["position"], float)
 Q0 = quat(np.asarray(BASE["rotation"], float))
@@ -248,8 +279,8 @@ CEMETERY = np.array([0.22, 1.25])       # session 2
 
 
 def track(t, a, b):
-    """Ease from plan-and-height a to plan-and-height b: (x, z, height)."""
-    e = ease(t)
+    """Glide from plan-and-height a to plan-and-height b: (x, z, height)."""
+    e = glide(t)
     return above(*(np.asarray(a, float) + (np.asarray(b, float) - np.asarray(a, float)) * e))
 
 
@@ -258,15 +289,19 @@ def shot_ridge(t):
     the far one was only ever seen across the gap, so this is the shot where
     the reconstruction is carrying the most weight."""
     C = track(t, (1.30, -1.70, 0.13), (-0.55, -1.15, 0.66))
-    T = above(*(np.array([0.10, -1.50]) + np.array([-2.55, 0.55]) * ease(t)), 0.02)
+    T = above(*(np.array([0.10, -1.50]) + np.array([-2.55, 0.55]) * glide(t)), 0.02)
     return C, look(C, T)
 
 
 def shot_pass(t):
     """A level pass at low altitude, holding its height over the slope. This
-    is the one that shows the near-field blur honestly: at three times flight
-    altitude the ground is soft, and no amount of splats fixed that."""
-    C = track(t, (0.75, -1.95, 0.30), (0.75, 0.85, 0.30))
+    is the one that shows the near-field blur honestly: at four times flight
+    altitude the ground is soft, and no amount of splats fixed that.
+
+    0.40 rather than the 0.30 this started at. Down there the floaters the AGL
+    cut leaves behind swing past close enough to the camera to pop in and out
+    between frames, and backing off takes the parallax out of them."""
+    C = track(t, (0.75, -1.95, 0.40), (0.75, 0.85, 0.40))
     T = above(C[0], C[2] + 1.30, 0.02)
     return C, look(C, T)
 
@@ -275,7 +310,7 @@ def shot_sites(t):
     """Hilltop to cemetery, high enough to hold both. The two sessions were
     flown six days apart and share a coordinate frame only because the mapper
     found real image matches between them."""
-    p = HILLTOP + (CEMETERY - HILLTOP) * ease(t)
+    p = HILLTOP + (CEMETERY - HILLTOP) * glide(t)
     # trail the target by about its own height, which puts the horizon just
     # off the top edge: at this altitude the far distance is all grazing-angle
     # splats and it reads as a black band rather than as anything
@@ -293,16 +328,20 @@ def shot_nadir(t):
                    np.array([1.0, 0.0, 0.0]))
 
 
+# Frame counts are set by how far the camera travels, not by how long the
+# shot ought to be. At 150 frames the ridge move covered its path at 2.4x the
+# per-frame motion of the pull-back and read as a slideshow. Every path here
+# is the same one it always was; they are just given the frames to cover it.
 SHOTS = [
     ("pullback", N_RISE + N_ORBIT, None, True,
      "Recorded pose", "2.0 units up \u00b7 about 19\u00d7 flight altitude"),
-    ("ridge", 150, shot_ridge, True,
+    ("ridge", 300, shot_ridge, True,
      "Over the crest", "The far flank was never flown"),
-    ("pass", 180, shot_pass, True,
-     "Level pass", "0.30 units up \u00b7 about 3\u00d7 flight altitude"),
-    ("sites", 210, shot_sites, True,
+    ("pass", 300, shot_pass, True,
+     "Level pass", "0.40 units up \u00b7 about 4\u00d7 flight altitude"),
+    ("sites", 300, shot_sites, True,
      "Session 1 to session 2", "One coordinate frame, six days apart"),
-    ("nadir", 180, shot_nadir, False,
+    ("nadir", 270, shot_nadir, False,
      "Straight down", "2.3 units to 0.5 \u00b7 sky dome dropped"),
 ]
 N_REEL = sum(s[1] for s in SHOTS)

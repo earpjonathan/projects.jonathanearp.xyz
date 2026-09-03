@@ -134,7 +134,7 @@
 
             <!-- Headline numbers. Bound to desmos/data.js via data-dg="..."
                  and filled in by charts.js, which also ticks them; refresh
-                 with `python3 tools/refresh_data.py` rather than retyping
+                 with `python3 tools/refresh_data.py` instead of retyping
                  them here. -->
             <div class="stats" data-reveal>
                 <div class="stat"><div class="stat__n" data-dg="total_plays">4,494,696</div><div class="stat__l">Plays</div></div>
@@ -166,10 +166,10 @@
                         and the original clip playing underneath.
                     </p>
                     <p>
-                        It all runs off one command. <code>autopilot.py --count 10</code> goes and
-                        finds ten clips, works out which episode each one is from, throws out the
-                        ones it can't caption, renders them, uploads them to YouTube, and drops the
-                        files and captions in a folder for me.
+                        It runs off one command. <code>autopilot.py --count 10</code> finds ten clips,
+                        works out which episode each is from, throws out the ones it can't caption,
+                        renders them, uploads them to YouTube and leaves the files and captions in a
+                        folder for me.
                     </p>
                     <p>
                         About <strong>4,100 lines of Python across 10 modules</strong>. No framework,
@@ -190,9 +190,8 @@
                     </div>
 
                     <p class="callout">
-                        The next four sections are the render path, in order. Each has an
-                        interactive demo, because <strong>most of this was easier to understand
-                        once I could see it move.</strong>
+                        The next four sections are the render path, in order, with a demo each.
+                        <strong>Most of this was easier to understand once I could see it move.</strong>
                     </p>
                 </div>
             </section>
@@ -207,11 +206,10 @@
                         start being lines.
                     </p>
                     <p>
-                        Each frame gets decoded to grayscale, run through a Sobel filter to find
-                        edges, thresholded, and then I walk the edge pixels one at a time to get
-                        outlines that are actually in order. Basically a list of points you could
-                        draw with a pen without lifting it. Even a simple frame comes back with thousands of
-                        points, which is more than Desmos will happily take. So the last step throws
+                        Each frame gets decoded to grayscale, run through a Sobel filter, thresholded,
+                        then I walk the edge pixels one at a time to get outlines in order: a list of
+                        points you could draw without lifting the pen. Even a simple frame comes back
+                        with thousands of them, far more than Desmos will take, so the last step throws
                         most of them away.
                     </p>
 
@@ -242,10 +240,9 @@
                     </div>
 
                     <p>
-                        That's running the real algorithms in your browser, on a cat I drew in code
-                        so there's nothing copyrighted sitting in this repo. Same Sobel operator,
-                        same border-following, same Ramer–Douglas–Peucker simplification the
-                        renderer uses.
+                        Those are the real algorithms running in your browser, on a cat I drew in code
+                        so there's nothing copyrighted in the repo. Same Sobel operator, same
+                        border-following, same Ramer–Douglas–Peucker simplification.
                     </p>
                     <p>
                         Push the tolerance slider around and you'll see the tradeoff I spent a while
@@ -273,16 +270,15 @@
                         <em>chunks</em> of about ten.
                     </p>
                     <p>
-                        Which creates a new problem. When the slider is sitting on frame 14, chunks
-                        1 and 3 still get evaluated. If they index past the end of their list the
-                        whole graph throws an error and nothing renders.
+                        Which creates a new problem. With the slider on frame 14, chunks 1 and 3 still
+                        get evaluated, and if they index past the end of their list the whole graph
+                        errors and nothing renders.
                     </p>
                     <p>
-                        What fixed it was gating. Each chunk gets an expression that equals
-                        <code>1</code> inside its own frame range and is undefined everywhere else.
-                        Undefined doesn't error in Desmos. It just makes that curve vanish. And the
-                        index gets clamped so it's always a legal position in the list, even when
-                        that chunk isn't the one being drawn. No boundary special-casing anywhere.
+                        Gating fixed it. Each chunk gets an expression that is <code>1</code> inside its
+                        own frame range and undefined everywhere else, and undefined doesn't error in
+                        Desmos, it just makes the curve vanish. The index is clamped alongside it so it
+                        always lands somewhere legal. No boundary special-casing anywhere.
                     </p>
 
                     <div class="eqs">
@@ -346,8 +342,7 @@
 
                     <p>
                         Exactly one chunk is defined at a time. The other two evaluate to nothing and
-                        disappear, and the clamped index means they're still doing perfectly legal
-                        arithmetic while they do it.
+                        disappear, still doing perfectly legal arithmetic while they do it.
                     </p>
                 </div>
             </section>
@@ -385,16 +380,14 @@
 
                     <h3 class="block__sub">The frames had been wrong the whole time</h3>
                     <p>
-                        My first thought was that the parallel version was broken. Serial had been
-                        running for months. Obviously serial was the correct one. So I tested serial
-                        against itself. Rendered the same clip twice on an idle machine and diffed
-                        every frame.
+                        Obviously the parallel version was broken. Serial had been running for months.
+                        So I tested serial against itself: same clip twice on an idle machine, every
+                        frame diffed.
                     </p>
                     <p>
-                        Zero of 40 frames differed. Perfectly deterministic. I took that as proof it
-                        was correct, which is why the bug survived as long as it did. All I'd actually
-                        shown was that it was consistent, and something broken the same way every time
-                        is consistent too.
+                        Zero of 40 frames differed. Perfectly deterministic, which I took as proof it
+                        was correct. All I'd shown was that it was consistent, and something broken the
+                        same way every time is consistent too.
                     </p>
                     <p>
                         The bug was in the settle logic. After moving the slider I wait for the canvas
@@ -452,19 +445,18 @@
                     </table>
 
                     <p>
-                        Every video I'd made before this had incomplete linework on basically every
-                        frame. Nobody noticed, including me, because it was wrong the same way every
-                        time. The fix corrected the linework <em>and</em> made the render faster, since the
-                        parallel capture that exposed the bug was also the speed-up.
+                        Every video I'd made before this had incomplete linework on nearly every frame
+                        and nobody noticed, me included. The fix corrected the linework <em>and</em> made
+                        the render faster, since the parallel capture that exposed the bug was also the
+                        speed-up.
                     </p>
 
                     <h3 class="block__sub">What a render costs</h3>
                     <p>
-                        Render time scales with clip length at roughly 11–12×, but the spread is
-                        wide: <strong>7.3× to 15.5×</strong> in the first batch, depending on how much
-                        the tracer can reuse between frames. My first five measurements all landed
-                        between 10× and 13×, which made me think the constant was way tighter than
-                        it is.
+                        Render time scales with clip length at roughly 11–12×, but the spread is wide:
+                        <strong>7.3× to 15.5×</strong> in the first batch, depending on how much the
+                        tracer reuses between frames. My first five measurements all landed between 10×
+                        and 13×, which made me think the constant was far tighter than it is.
                     </p>
 
                     <figure class="fig">
@@ -515,9 +507,9 @@
                     </div>
 
                     <p>
-                        <strong>Both of the big wins came from measuring something I was already
-                        sure I understood.</strong> I knew tracing was the bottleneck and I knew
-                        serial capture was correct. Neither one survived getting a number put on it.
+                        <strong>Both of the big wins came from measuring something I was already sure
+                        I understood.</strong> Tracing was the bottleneck; serial capture was correct.
+                        Neither survived a number being put on it.
                     </p>
                 </div>
             </section>
@@ -539,10 +531,10 @@
                     </p>
                     <p><code>if not vid or not dur: continue</code></p>
                     <p>
-                        which threw away 100% of them. Shorts are under 60 seconds by definition.
-                        I was searching for 8 to 45 second clips. So the best source I had was being
-                        dropped entirely, and the log printed <code>40 results, 0 in band</code>,
-                        which looks exactly like a source that just doesn't have anything good in it.
+                        which threw away 100% of them. Shorts are under 60 seconds by definition and I
+                        was searching for 8 to 45, so my best source was being dropped entirely while the
+                        log printed <code>40 results, 0 in band</code>, which looks exactly like a source
+                        with nothing good in it.
                     </p>
                     <p>
                         Fixed by letting unknown-duration entries through to the full metadata fetch.
@@ -564,10 +556,10 @@
                     <h3 class="block__sub">Nothing joined to anything</h3>
                     <p>
                         Performance data was keyed by Instagram's re-encoded copy
-                        (<code>ig_&lt;media_id&gt;</code>) and source data by render tag
-                        (<code>auto_s03e09</code>). There was no shared key. So I couldn't answer the
-                        question I'd built the whole thing for: did the original's view count predict
-                        anything? However many posts piled up, there was no way to check.
+                        (<code>ig_&lt;media_id&gt;</code>), source data by render tag
+                        (<code>auto_s03e09</code>), and nothing joined them. So I couldn't answer the
+                        question I'd built the whole thing for: does the original's view count predict
+                        anything?
                     </p>
                     <p>
                         Duration looks like the obvious join key. It isn't:
@@ -584,32 +576,29 @@
 
                     <h3 class="block__sub">Uploads went to the wrong channel</h3>
                     <p>
-                        A Google account can own several YouTube channels, and the OAuth consent
-                        screen has a channel picker that is very easy to click straight past. My first
-                        uploads landed on my personal channel. The <code>youtube.upload</code> scope
-                        is write-only, so the tool couldn't even read back where it had put them.
+                        A Google account can own several YouTube channels, and the OAuth consent screen
+                        has a channel picker that is very easy to click straight past. My first uploads
+                        landed on my personal channel, and the <code>youtube.upload</code> scope is
+                        write-only, so the tool couldn't read back where it had put them.
                     </p>
                     <p>
-                        Fixed by adding <code>youtube.readonly</code>, asserting the channel handle
-                        before every upload, and verifying each video is live afterwards with a retry
-                        backoff, because <code>videos.list</code> lags <code>videos.insert</code>. That
-                        once gave me five false "not visible" reports on videos that were completely
-                        fine.
+                        It now asks for <code>youtube.readonly</code>, asserts the channel handle
+                        before every upload, and checks each video is live afterwards on a retry
+                        backoff, since <code>videos.list</code> lags <code>videos.insert</code>. That lag
+                        once gave me five false "not visible" reports on perfectly fine videos.
                     </p>
                     <p>
-                        YouTube also has two separate daily limits: an API project quota
-                        <em>and</em> a per-channel upload cap around 26 a day. The second one comes
-                        back as HTTP 400 and doesn't contain the word "quota" anywhere. My handler
-                        checked for "quota". It missed, and burned 30 doomed uploads in a row.
+                        YouTube also has two separate daily limits: an API project quota <em>and</em> a
+                        per-channel upload cap around 26 a day. The second comes back as HTTP 400 with
+                        the word "quota" nowhere in it. My handler checked for "quota", missed, and
+                        burned 30 doomed uploads in a row.
                     </p>
 
                     <h3 class="block__sub">How long a clip can safely be</h3>
                     <p>
                         <strong>2 of 140 uploads got Content-ID blocked. Both were over 89 seconds.
-                        Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds.
-                        That costs me nothing in practice, since the entire top ten by plays is
-                        under 32 seconds anyway, and it keeps everything well clear of the range
-                        where things actually got blocked.
+                        Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds,
+                        which costs nothing: the entire top ten by plays is under 32 seconds anyway.
                     </p>
                 </div>
             </section>
@@ -621,14 +610,14 @@
                     <h2 class="block__h">The picker that didn't work</h2>
                     <p class="lede">
                         The original plan was a model that picks which clips to render, ranked by
-                        predicted views. I built it, and it does not predict well enough to be worth
-                        using. The measurements below are why.
+                        predicted views. I built it and it doesn't predict well enough to use. Here's
+                        why.
                     </p>
                     <p>
-                        A retention model is real and holds up out of sample.
-                        <strong>Cross-validated R² of 0.49</strong>. The problem is it's basically
-                        duration wearing a hat, and duration doesn't separate winners from losers.
-                        The top ten posts by plays run 8 to 32 seconds. The bottom ten run 6 to 40.
+                        A retention model is real and holds up out of sample,
+                        <strong>cross-validated R² of 0.49</strong>. The problem is it's duration
+                        wearing a hat, and duration doesn't separate winners from losers: the top ten
+                        posts by plays run 8 to 32 seconds, the bottom ten 6 to 40.
                     </p>
 
                     <figure class="fig">
@@ -658,21 +647,20 @@
 
                     <p>
                         Predicting plays directly is worse than useless:
-                        <strong>cross-validated R² of −0.89</strong>, meaning I'd have done better
-                        guessing the average every single time. And the part of retention that
-                        <em>does</em> predict plays only becomes measurable once the post is already
-                        live, which is too late to help me decide what to render.
+                        <strong>cross-validated R² of −0.89</strong>, so I'd have done better guessing
+                        the average every time. And the part of retention that <em>does</em> predict
+                        plays is only measurable once the post is live, which is too late to decide
+                        what to render.
                     </p>
 
                     <div class="callout">
                         <strong>So it doesn't forecast anything.</strong> It filters on length, on
-                        whether I can caption it, and on whether I've already seen it. That's where
-                        the real work happens. It does record one guess, how many views the original
-                        uploader got, and that's labelled as an <em>untested hypothesis</em> with the
-                        test written and currently reporting <code>n = 0</code>. Past that it just
-                        does volume. The hit rate is about 4.9%, so ten clips is roughly a 40% shot
-                        at one that lands. Since I can't tell in advance which ones will do well,
-                        volume is the only thing left to turn.
+                        whether I can caption it, and on whether I've already seen it, which is where
+                        the real work turned out to be. It records one guess, how many views the
+                        original uploader got, labelled as an <em>untested hypothesis</em> with the test
+                        written and currently reporting <code>n = 0</code>. Past that it does volume:
+                        the hit rate is about 4.9%, so ten clips is roughly a 40% shot at one that
+                        lands.
                     </div>
                 </div>
             </section>
@@ -683,8 +671,8 @@
                 <div class="block__body">
                     <h2 class="block__h">Still broken</h2>
                     <ul class="dlist">
-                        <li><strong>About a week of data, one account, one show.</strong> None of this generalises anywhere. The correlations up there come from a tiny sample of one very specific kind of video.</li>
-                        <li><strong>The source-popularity signal is untested.</strong> It's a hypothesis. The test is written and currently reports <code>n = 0</code>. I have not shown it works.</li>
+                        <li><strong>About a week of data, one account, one show.</strong> The correlations up there come from a tiny sample of one very specific kind of video, and none of it generalises.</li>
+                        <li><strong>The source-popularity signal is untested.</strong> The test is written and reports <code>n = 0</code>. I have not shown it works.</li>
                         <li><strong>Instagram posting is still manual.</strong> YouTube is fully automatic. The platform that produced all <span data-dg="total_watch_hours">12,837</span> hours is the one I still upload by hand.</li>
                         <li><strong><code>yt-dlp</code> is a single point of failure.</strong> Any time YouTube changes something, harvest breaks. At least it breaks loudly and skips the run instead of posting garbage.</li>
                         <li><strong>The more it posts, the more Content-ID hits I take.</strong> Two of 140 got blocked so far. The 45-second cap helps, but it doesn't make the problem go away.</li>

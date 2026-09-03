@@ -209,8 +209,7 @@
                         turned out to be <code>const znear = 0.2</code> in the viewer, one line. By
                         then I had already built and measured four separate fixes on the
                         reconstruction side, none of which could have worked, because I was aiming at
-                        the wrong thing. I have left all of that in. Proving my own guesses wrong took
-                        more work than the parts that actually worked.
+                        the wrong thing. I have left all of that in, because it was most of the work.
                     </p>
                 </div>
             </section>
@@ -1049,9 +1048,8 @@
                 <div class="block__body">
                     <h2 class="block__h">Everything that did not work</h2>
                     <p class="lede">
-                        I'm keeping all of this because disproving my own ideas took more work than the
-                        ones that panned out, and because a negative result you can't trust is worse
-                        than not having one.
+                        None of the following worked. I'm keeping it because it was most of what I
+                        actually did, and because I checked it as carefully as the parts that did work.
                     </p>
                     <table class="dtable" id="negtable">
                         <caption>Interventions built and measured, in order of how much they cost</caption>
@@ -1063,7 +1061,7 @@
                     <ul class="dlist">
                         <li><strong>LPIPS was broken, then too slow, then actively bad.</strong> It panicked four seconds into training. The Burn fork tracks autodiff-ness at runtime in an enum instead of in the type, so weights loaded from a record come back as plain float variants, and the first op that mixes them with autodiff activations ends up calling <code>.autodiff()</code> on a plain tensor. I fixed that by lifting each parameter through <code>Tensor::from_inner</code>. Then it actually ran, at 29 s/iter, against roughly 0.5 for the entire rest of the step. A 20k run would have taken months. A random 256 px crop made it affordable, and then it turned out to hurt quality anyway.</li>
                         <li><strong>A 4 GiB single-buffer ceiling, not a RAM ceiling.</strong> A 24 M-splat run died with <code>failed to reserve 4336857088 bytes</code>. That is just past 4 GiB; at ~181 bytes per splat the hard ceiling is about 23.7 M splats, on a machine with 48 GB of RAM.</li>
-                        <li><strong>A wait loop that lied to me.</strong> <code>until pgrep -f 'a\|b'</code> exits straight away and prints its success message, because <code>pgrep -f</code> wants an extended regex where alternation is a bare pipe. It told me every scan had finished while three renders were still going. Something exiting cleanly doesn't mean it did anything.</li>
+                        <li><strong>A wait loop that lied to me.</strong> <code>until pgrep -f 'a\|b'</code> exits straight away and prints its success message, because <code>pgrep -f</code> wants an extended regex where alternation is a bare pipe. It told me every scan had finished while three renders were still going.</li>
                         <li><strong>Don't edit a bash script while it's running.</strong> Bash reads the file as it goes, by offset, so editing it mid-run can make it pick back up in the wrong place. Every chain script here got killed by PID, edited, checked with <code>bash -n</code>, and relaunched. I never edited one in place.</li>
                         <li><strong>A scoring bug that looked like a result.</strong> The comparison script had hardcoded ground-truth paths, so on any newer frame set it printed <code>images: 0</code>, which reads like a finding instead of a broken path.</li>
                     </ul>
@@ -1085,11 +1083,11 @@
 
                     <h3 class="block__sub">What I'd take from it</h3>
                     <ol class="nlist">
-                        <li><strong>An average can completely hide a bad problem in the tail.</strong> The bug that ended up driving this whole project got measured early, averaged away, and dismissed in a single line of my notes.</li>
-                        <li><strong>Two metrics that both sound like "quality" can move in opposite directions.</strong> Texture and coverage are separate failures, and optimising one quietly wrecked the other. Twice.</li>
-                        <li><strong>A number sitting at its limit doesn't prove the limit is the problem.</strong> Every run pinning exactly at the splat cap looked like obvious proof the cap was the issue. Raising it changed almost nothing.</li>
-                        <li><strong>Do the cheap arithmetic before you build anything.</strong> The slab was 129× thicker than a single splat. That one line rules out an entire category of fix, and I could have worked it out in a minute.</li>
-                        <li><strong>Negative results need to be as careful as positive ones</strong>, or you won't trust them later when they get in the way of your next idea.</li>
+                        <li><strong>The average hid it.</strong> The bug that ended up driving this whole project got measured early, averaged across a cohort that was mostly fine, and dismissed in one line of my notes.</li>
+                        <li><strong>Texture and coverage both sound like "quality" and they moved in opposite directions.</strong> They are separate failures, and optimising one quietly wrecked the other. Twice.</li>
+                        <li><strong>Every run pinned exactly at the splat cap, which looked like proof the cap was the problem.</strong> Raising it changed almost nothing.</li>
+                        <li><strong>The slab was 129× thicker than a single splat.</strong> That one line of arithmetic rules out an entire category of fix, and I could have done it in a minute instead of building four of them.</li>
+                        <li><strong>I had to measure the things that didn't work as carefully as the things that did</strong>, or I wouldn't have trusted them later when they got in the way of the next idea.</li>
                     </ol>
 
                     <h3 class="block__sub">Tools</h3>

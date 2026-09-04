@@ -542,17 +542,6 @@
                         after the fix pulled back 46 Shorts.
                     </p>
 
-                    <h3 class="block__sub">Two channels that were never there</h3>
-                    <p>
-                        I'd seeded the harvest with a couple of channel handles I typed from memory
-                        instead of checking. One had no <code>/videos</code> tab. The other 404'd.
-                        A dead channel prints <code>0 results</code>, same as a channel I've already
-                        used up, so <strong>the curated half of my harvest did nothing for its entire
-                        existence</strong> and never said so. Replaced them with URLs I actually
-                        opened; the best one gives 16 usable clips out of 40. Dead sources now warn
-                        loudly instead of shrugging.
-                    </p>
-
                     <h3 class="block__sub">Nothing joined to anything</h3>
                     <p>
                         Performance data was keyed by Instagram's re-encoded copy
@@ -574,21 +563,9 @@
                         median margin 0.94, zero ambiguous.
                     </p>
 
-                    <h3 class="block__sub">Uploads went to the wrong channel</h3>
+                    <h3 class="block__sub">The limit that doesn't say "quota"</h3>
                     <p>
-                        A Google account can own several YouTube channels, and the OAuth consent screen
-                        has a channel picker that is very easy to click straight past. My first uploads
-                        landed on my personal channel, and the <code>youtube.upload</code> scope is
-                        write-only, so the tool couldn't read back where it had put them.
-                    </p>
-                    <p>
-                        It now asks for <code>youtube.readonly</code>, asserts the channel handle
-                        before every upload, and checks each video is live afterwards on a retry
-                        backoff, since <code>videos.list</code> lags <code>videos.insert</code>. That lag
-                        once gave me five false "not visible" reports on perfectly fine videos.
-                    </p>
-                    <p>
-                        YouTube also has two separate daily limits: an API project quota <em>and</em> a
+                        YouTube has two separate daily limits: an API project quota <em>and</em> a
                         per-channel upload cap around 26 a day. The second comes back as HTTP 400 with
                         the word "quota" nowhere in it. My handler checked for "quota", missed, and
                         burned 30 doomed uploads in a row.

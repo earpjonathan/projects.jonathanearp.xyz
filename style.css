@@ -289,6 +289,9 @@ main { padding-top: 0; }
   text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-soft);
 }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+/* On a case study the actions follow the right-aligned lead, so they take its
+   edge, and sit closer to it than the hero's 31px gap so they read as its link. */
+.hero__lead + .hero__actions { align-self: flex-end; margin-top: -13px; }
 
 .hero .metastrip { margin-top: auto; }
 /* The case-study hero has no meta strip, so nothing holds its bottom edge and
@@ -550,6 +553,7 @@ a.prow:hover .prow__go { color: var(--accent); transform: translateX(3px); }
   .foot__grid { grid-template-columns: 1fr 1fr; }
   .foot__big { grid-column: 1 / -1; }
   .hero__lead { text-align: left; align-self: flex-start; }
+  .hero__lead + .hero__actions { align-self: flex-start; }
   .vlabel { display: none; }
   .prow { grid-template-columns: 44px 1fr auto; }
   .prow__stats { grid-column: 2 / 3; flex-direction: row; flex-wrap: wrap; gap: 24px; }

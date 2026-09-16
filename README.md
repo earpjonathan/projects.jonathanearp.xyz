@@ -59,15 +59,16 @@ frame** — that would put copyrighted footage in the repo.
 
 ## The splat page
 
-`splat/` is a write-up of a separate repo, [fpv-splat], and nothing on the page
-is drawn by hand. Every number is in `splat/data.js`; every still and every
-video frame was rendered by `scripts/raster.py` in that repo, a CPU
+`splat/` is a write-up of a separate repo, [S.P.L.O.O.G.E] (checked out locally
+as `~/Desktop/fpv-splat`), and nothing on the page is drawn by hand. Every number
+is in `splat/data.js`; every still and every video frame was rendered by
+`scripts/raster.py` in that repo, a CPU
 reimplementation of the web viewer's rasteriser that matches it down to the
 half-float packing and the blend arithmetic. That is what makes the A/B pair in
 Figure 8 an argument rather than an illustration: both halves came out of the
 same renderer with one parameter changed.
 
-[fpv-splat]: https://github.com/earpjonathan/fpv-splat
+[S.P.L.O.O.G.E]: https://github.com/earpjonathan/S.P.L.O.O.G.E
 
 ### What is in `splat/media`
 

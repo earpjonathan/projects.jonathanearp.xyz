@@ -1,0 +1,73 @@
+{
+  "name": "Mountain View Cemetery",
+  "centre": [37.834408, -122.230258],
+
+  "paths": {
+    "basemap_dir": "../basemap",
+    "render_dir":  "../../../splat/media",
+    "extent":      "../../../splat/media/extent.json"
+  },
+
+  "basemap": {
+    "fit": {
+      "provider": "usgs_naip",
+      "ground_m": 2400,
+      "px": 2048,
+      "file": "naip.jpg"
+    }
+  },
+
+  "render": {
+    "file": "nadir.jpg",
+    "w": 1600,
+    "h": 874,
+    "px_per_unit": 150.4,
+    "_px_per_unit_source": "extent.json nadir.scale_px_per_unit"
+  },
+
+  "crop_margin_px": 110,
+
+  "control": [
+    { "name": "School sport court, north-west corner",
+      "render_px": [860.0, 140.0], "basemap_px": [861.0, 759.0] },
+    { "name": "Cemetery roundabout",
+      "render_px": [593.8, 498.8], "basemap_px": [648.0, 952.0] },
+    { "name": "Cemetery circular road loop",
+      "render_px": [650.0, 537.0], "basemap_px": [688.8, 990.4] }
+  ],
+
+  "holdout": {
+    "name": "launch pad",
+    "latlon": [37.834408, -122.230258],
+    "render_px": { "source": "track_starts_median",
+                   "extent_path": "nadir.tracks_px" },
+    "_note": "Pilot's remembered coordinate. No influence on the fit."
+  },
+
+  "checks": {
+    "path_units":  "flight.path",
+    "seconds":     "flight.seconds",
+    "agl_median":  "agl.median"
+  },
+
+  "metrics": {
+    "path_m":         "flight.path",
+    "envelope_x_m":   "flight.x",
+    "envelope_z_m":   "flight.z",
+    "separation_m":   "separation",
+    "agl_median_m":   "agl.median",
+    "agl_p10_m":      "agl.p10",
+    "agl_p90_m":      "agl.p90",
+    "crop_radius_m":  "crop_radius",
+    "nadir_camera_m": "nadir.height",
+    "top_view_m":     "site.top.height",
+    "plan_r90_m":     "splat_plan_radius.90"
+  },
+
+  "kml": {
+    "name": "S.P.L.O.O.G.E reconstruction",
+    "description": "3D Gaussian Splatting reconstruction seen from directly above, placed on the ground by hand against USGS NAIP imagery."
+  },
+
+  "outputs": { "prefix": "splooge" }
+}

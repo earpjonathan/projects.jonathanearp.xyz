@@ -99,7 +99,7 @@ python3 tools/splat/sweep.py    --project ~/Desktop/fpv-splat
 python3 tools/splat/flythrough.py --project ~/Desktop/fpv-splat
 python3 tools/splat/scale.py    --project ~/Desktop/fpv-splat --only stills
 python3 tools/splat/scale.py    --project ~/Desktop/fpv-splat --only pull --w 1280 --h 720 --procs 12
-python3 ~/Desktop/fpv-splat/geo/georef.py --site mountain-view --out splat/media
+python3 tools/geo/georef.py --site mountain-view --out splat/media
 ```
 
 `scale.py` runs twice because the two halves want different frame sizes: the
@@ -150,12 +150,16 @@ scene unit is 113.6 m. It writes `geo.json`, the cropped `aerial.jpg` the page
 draws, and a Google Earth `.kmz`. Section 10 of the page explains the fit and
 why three automatic attempts at it failed.
 
-This now runs from `~/Desktop/fpv-splat/geo/`, which takes the site as a config
-file (`geo/sites/mountain-view.geo.json`) rather than module constants, so the
-same tool works for any site. `geo/fetch_basemap.py --site mountain-view` pulls
-`naip.jpg` again if it goes missing, and `geo/serve_align.py` is the control
-point picker. The old `tools/splat/georef.py` is superseded and now refuses to
-run; it is kept only for history, and `geo/test_georef.py` checks the new tool
+This runs from `tools/geo/`, which takes the site as a config file
+(`tools/geo/sites/mountain-view.geo.json`) rather than module constants, so the
+same tool works for any site. It carries its own basemap and its own copy of
+the method write-up, so a fresh clone can regenerate everything offline.
+`tools/geo/serve_align.py` is the control point picker, and
+`tools/geo/fetch_basemap.py --site mountain-view` re-pulls the aerial if it
+goes missing. See `tools/geo/README.md`.
+
+The old `tools/splat/georef.py` is superseded and now refuses to run; it is
+kept only for history, and `tools/geo/test_georef.py` checks the replacement
 reproduces its output bit for bit.
 
 That fit is also what caught a determinant -1 bug in `look()`, which had been

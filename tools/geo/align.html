@@ -1,0 +1,370 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Control point picker</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --bg:#0f1113; --panel:#171a1d; --line:#272b30; --ink:#e7eaee;
+  --dim:#8b949e; --accent:#f0a24a; --ok:#5cc08a; --bad:#e2605a;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+#app{display:grid;grid-template-rows:auto 1fr auto;height:100%}
+header{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;
+  padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:15px;margin:0;font-weight:600}
+header .site{color:var(--accent)}
+.stat{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.stat b{color:var(--ink);font-weight:600}
+#panes{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+  min-height:0}
+.pane{position:relative;background:#000;overflow:hidden;cursor:crosshair}
+.pane canvas{position:absolute;top:0;left:0}
+.tag{position:absolute;top:8px;left:10px;z-index:3;font-family:var(--mono);
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  background:#000a;padding:3px 7px;border-radius:3px}
+.tag.armed{background:var(--accent);color:#1a1205}
+.pos{position:absolute;bottom:8px;left:10px;z-index:3;font-family:var(--mono);
+  font-size:11px;color:var(--dim);background:#000a;padding:3px 7px;border-radius:3px}
+footer{border-top:1px solid var(--line);background:var(--panel);
+  max-height:38vh;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:5px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:500;font-size:11px;text-transform:uppercase;
+  letter-spacing:.06em;position:sticky;top:0;background:var(--panel)}
+td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+tr.bad td.n.r{color:var(--bad)} tr.ok td.n.r{color:var(--ok)}
+button{font:inherit;background:#22262b;color:var(--ink);border:1px solid var(--line);
+  border-radius:5px;padding:4px 10px;cursor:pointer}
+button:hover{border-color:#3a4047} button:disabled{opacity:.4;cursor:default}
+button.p{background:var(--accent);color:#1a1205;border-color:var(--accent);font-weight:600}
+.bar{display:flex;gap:8px;align-items:center;padding:8px 10px;flex-wrap:wrap}
+.hint{color:var(--dim);font-size:12px}
+input[type=text]{font:inherit;background:#0c0e10;color:var(--ink);
+  border:1px solid var(--line);border-radius:5px;padding:4px 8px;width:260px}
+.err{color:var(--bad);padding:10px 14px;font-family:var(--mono);font-size:12px;
+  white-space:pre-wrap}
+</style>
+
+<div id="app">
+  <header>
+    <h1>Control points — <span class="site" id="hSite">no site</span></h1>
+    <span class="stat">m/unit <b id="sUnit">—</b></span>
+    <span class="stat">north <b id="sNorth">—</b></span>
+    <span class="stat">worst residual <b id="sRes">—</b></span>
+    <span class="stat">implied speed <b id="sSpd">—</b></span>
+    <span class="stat" id="sWarn"></span>
+  </header>
+
+  <div id="panes">
+    <div class="pane" id="pR">
+      <canvas></canvas><div class="tag" id="tR">render</div><div class="pos"></div>
+    </div>
+    <div class="pane" id="pB">
+      <canvas></canvas><div class="tag" id="tB">basemap</div><div class="pos"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="bar">
+      <input type="text" id="name" placeholder="name for the next point…">
+      <button id="undo">Undo last</button>
+      <button id="clear">Clear all</button>
+      <span style="flex:1"></span>
+      <span class="hint">click the render, then the same feature on the basemap ·
+        wheel zooms · drag pans · shift-drag nudges the last point</span>
+      <button class="p" id="save">Download updated config</button>
+    </div>
+    <div id="err" class="err" hidden></div>
+    <table><thead><tr>
+      <th>#</th><th>name</th><th>render px</th><th>basemap px</th>
+      <th style="text-align:right">residual</th><th></th>
+    </tr></thead><tbody id="rows"></tbody></table>
+  </footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------------
+   Control point picker.
+
+   Reads the same sites/<name>.geo.json that georef.py reads, lets you read
+   control points off by eye at high zoom, fits live, and writes the control
+   array straight back out. That removes the copy-the-numbers-by-hand step
+   that used to sit between this tool and georef.py.
+
+   The fit here is the same Umeyama similarity as geocore.fit_similarity,
+   reflection disallowed, so the numbers in the header are the numbers
+   georef.py will print.
+   --------------------------------------------------------------------------- */
+const qs = new URLSearchParams(location.search);
+const SITE = qs.get('site') || 'mountain-view';
+
+let cfg=null, merc=null, control=[], pending=null, imgs={};
+
+const el = id => document.getElementById(id);
+const fail = m => { el('err').hidden=false; el('err').textContent=m; };
+
+/* ------------------------------------------------------------- projection */
+const R_EARTH = 6378137.0;
+function makeMercator(lat, lon, groundM, px){
+  const k = Math.cos(lat*Math.PI/180);
+  const cx = R_EARTH*lon*Math.PI/180;
+  const cy = R_EARTH*Math.log(Math.tan(Math.PI/4 + (lat*Math.PI/180)/2));
+  const half = (groundM/k)/2;
+  return { px, mPerPx: groundM/px, half,
+           bbox:[cx-half, cy-half, cx+half, cy+half] };
+}
+
+/* -------------------------------------------------------------------- fit */
+function fitSimilarity(src, dst){
+  const n = src.length;
+  if(n < 3) return null;
+  const mp=[0,0], mq=[0,0];
+  for(let i=0;i<n;i++){ mp[0]+=src[i][0]; mp[1]+=src[i][1];
+                        mq[0]+=dst[i][0]; mq[1]+=dst[i][1]; }
+  mp[0]/=n; mp[1]/=n; mq[0]/=n; mq[1]/=n;
+  /* 2x2 covariance A^T B, and its SVD in closed form */
+  let h00=0,h01=0,h10=0,h11=0,varA=0;
+  for(let i=0;i<n;i++){
+    const ax=src[i][0]-mp[0], ay=src[i][1]-mp[1];
+    const bx=dst[i][0]-mq[0], by=dst[i][1]-mq[1];
+    h00+=ax*bx; h01+=ax*by; h10+=ay*bx; h11+=ay*by;
+    varA+=ax*ax+ay*ay;
+  }
+  /* For a 2D similarity with reflection disallowed the rotation that
+     maximises trace(R^T H) is simply atan2 of the antisymmetric and
+     symmetric parts. Equivalent to the SVD route, without needing one. */
+  const th = Math.atan2(h01-h10, h00+h11);
+  const c=Math.cos(th), s=Math.sin(th);
+  const R=[[c,-s],[s,c]];
+  const scale = ((h00+h11)*c + (h01-h10)*s)/varA;
+  const t=[ mq[0]-scale*(R[0][0]*mp[0]+R[0][1]*mp[1]),
+            mq[1]-scale*(R[1][0]*mp[0]+R[1][1]*mp[1]) ];
+  return { scale, deg: th*180/Math.PI, R, t,
+           fwd: p => [ scale*(R[0][0]*p[0]+R[0][1]*p[1]) + t[0],
+                       scale*(R[1][0]*p[0]+R[1][1]*p[1]) + t[1] ] };
+}
+
+/* ------------------------------------------------------------------ panes */
+function Pane(rootId, onClick){
+  const root=el(rootId), cv=root.querySelector('canvas'),
+        ctx=cv.getContext('2d'), posEl=root.querySelector('.pos');
+  const S={img:null, k:1, x:0, y:0, pts:[], drag:null, userMoved:false};
+
+  /* Fit the image to the pane. Must survive being called before layout has
+     settled: at that point clientHeight is 0 and a naive fit sets the zoom to
+     zero, which draws the image at no size at all and looks like a load
+     failure. So bail until the pane has a real size, and refit on resize
+     until the user takes the view over. */
+  function fitToView(){
+    if(!S.img || !root.clientWidth || !root.clientHeight) return false;
+    const z = Math.min(root.clientWidth/S.img.width, root.clientHeight/S.img.height);
+    if(!(z > 0)) return false;
+    S.k = z;
+    S.x = (root.clientWidth  - S.img.width  * z)/2;
+    S.y = (root.clientHeight - S.img.height * z)/2;
+    return true;
+  }
+
+  function resize(){
+    cv.width=root.clientWidth; cv.height=root.clientHeight;
+    if(!S.userMoved) fitToView();
+    draw();
+  }
+  function toImg(ev){
+    const r=root.getBoundingClientRect();
+    return [ (ev.clientX-r.left-S.x)/S.k, (ev.clientY-r.top-S.y)/S.k ];
+  }
+  function draw(){
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,cv.width,cv.height);
+    if(!S.img) return;
+    ctx.imageSmoothingEnabled = S.k < 3;   /* crisp pixels at high zoom */
+    ctx.setTransform(S.k,0,0,S.k,S.x,S.y);
+    ctx.drawImage(S.img,0,0);
+    ctx.setTransform(1,0,0,1,0,0);
+    S.pts.forEach((p,i)=>{
+      const x=p[0]*S.k+S.x, y=p[1]*S.k+S.y;
+      ctx.strokeStyle = p.ghost ? '#5cc08a' : '#f0a24a';
+      ctx.lineWidth = p.ghost ? 1 : 1.5;
+      if(p.ghost) ctx.setLineDash([3,3]); else ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(x,y,7,0,7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x-12,y); ctx.lineTo(x+12,y);
+                       ctx.moveTo(x,y-12); ctx.lineTo(x,y+12); ctx.stroke();
+      ctx.setLineDash([]);
+      if(!p.ghost){ ctx.fillStyle='#f0a24a'; ctx.font='bold 11px ui-monospace,monospace';
+                    ctx.fillText(String(i+1), x+10, y-9); }
+    });
+  }
+  root.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const r=root.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+    if(!(S.k > 0) && !fitToView()) return;
+    const f=Math.exp(-e.deltaY*0.0016), nk=Math.min(60,Math.max(0.05,S.k*f));
+    S.x = mx-(mx-S.x)*(nk/S.k); S.y = my-(my-S.y)*(nk/S.k); S.k=nk;
+    S.userMoved=true; draw();
+  },{passive:false});
+  root.addEventListener('pointerdown', e=>{
+    root.setPointerCapture(e.pointerId);
+    S.drag={x:e.clientX,y:e.clientY,ox:S.x,oy:S.y,moved:false,shift:e.shiftKey};
+  });
+  root.addEventListener('pointermove', e=>{
+    const p=toImg(e);
+    posEl.textContent = S.img ? `${p[0].toFixed(1)}, ${p[1].toFixed(1)}  ×${S.k.toFixed(1)}` : '';
+    if(!S.drag) return;
+    const dx=e.clientX-S.drag.x, dy=e.clientY-S.drag.y;
+    if(Math.abs(dx)+Math.abs(dy)>3) S.drag.moved=true;
+    if(S.drag.shift){ if(S.nudge) S.nudge(p); }
+    else { S.x=S.drag.ox+dx; S.y=S.drag.oy+dy; S.userMoved=true; }
+    draw();
+  });
+  root.addEventListener('pointerup', e=>{
+    const d=S.drag; S.drag=null;
+    if(d && !d.moved && !d.shift) onClick(toImg(e));
+  });
+  new ResizeObserver(resize).observe(root);
+
+  return { S, draw, resize,
+    setImage(img){ S.img=img; S.userMoved=false; fitToView(); draw(); },
+    refit(){ S.userMoved=false; resize(); },
+    setPoints(p){ S.pts=p; draw(); },
+    onNudge(f){ S.nudge=f; } };
+}
+
+/* ------------------------------------------------------------------ state */
+function recompute(){
+  const good = control.filter(c=>c.render_px && c.basemap_px);
+  const fit = fitSimilarity(good.map(c=>c.render_px), good.map(c=>c.basemap_px));
+  const mpp = merc ? merc.mPerPx : 1;
+
+  let worst=0;
+  good.forEach(c=>{
+    if(!fit){ c._r=null; return; }
+    const q=fit.fwd(c.render_px);
+    c._r = Math.hypot(q[0]-c.basemap_px[0], q[1]-c.basemap_px[1])*mpp;
+    worst=Math.max(worst,c._r);
+  });
+
+  if(fit && cfg){
+    const mPerRenderPx = fit.scale*mpp;
+    const mPerUnit = mPerRenderPx*(cfg.render.px_per_unit||1);
+    el('sUnit').textContent  = mPerUnit.toFixed(1)+' m';
+    el('sNorth').textContent = (((-fit.deg)%360+360)%360).toFixed(1)+'°';
+    el('sRes').textContent   = worst.toFixed(1)+' m';
+    const f = cfg._extent && cfg._extent.flight;
+    if(f && f.seconds){
+      const v = f.path*mPerUnit/f.seconds;
+      el('sSpd').textContent = v.toFixed(1)+' m/s';
+      el('sWarn').innerHTML = (v<5||v>40)
+        ? '<b style="color:var(--bad)">speed implausible — the scale is wrong</b>'
+        : (v<15||v>30 ? '<span style="color:var(--accent)">speed outside FPV cruise</span>' : '');
+    }
+  } else {
+    el('sUnit').textContent=el('sNorth').textContent=
+    el('sRes').textContent=el('sSpd').textContent='—';
+    el('sWarn').textContent = good.length?`${3-good.length} more point(s) needed`:'';
+  }
+
+  /* ghosts: where the fit says each basemap point should be */
+  const rPts = control.filter(c=>c.render_px).map(c=>c.render_px.slice());
+  if(pending) rPts.push(Object.assign(pending.slice(),{ghost:true}));
+  const bPts = control.filter(c=>c.basemap_px).map(c=>c.basemap_px.slice());
+  if(fit) good.forEach(c=>{ const g=fit.fwd(c.render_px); g.ghost=true; bPts.push(g); });
+  paneR.setPoints(rPts); paneB.setPoints(bPts);
+
+  el('tR').className = 'tag'+(pending?'':' armed');
+  el('tB').className = 'tag'+(pending?' armed':'');
+  el('tR').textContent = pending ? 'render' : 'render — click a feature';
+  el('tB').textContent = pending ? 'basemap — click the SAME feature' : 'basemap';
+
+  el('rows').innerHTML = control.map((c,i)=>`<tr class="${
+      c._r==null?'':(c._r<=10?'ok':'bad')}">
+    <td class="n">${i+1}</td><td>${esc(c.name||'')}</td>
+    <td class="n">${c.render_px?c.render_px.map(v=>v.toFixed(1)).join(', '):'—'}</td>
+    <td class="n">${c.basemap_px?c.basemap_px.map(v=>v.toFixed(1)).join(', '):'—'}</td>
+    <td class="n r">${c._r==null?'—':c._r.toFixed(1)+' m'}</td>
+    <td><button data-del="${i}">×</button></td></tr>`).join('');
+  el('rows').querySelectorAll('[data-del]').forEach(b=>
+    b.onclick=()=>{ control.splice(+b.dataset.del,1); recompute(); });
+  el('save').disabled = !fit;
+}
+const esc = s => String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+/* ------------------------------------------------------------------- wire */
+const paneR = Pane('pR', p=>{ pending=p; recompute(); });
+const paneB = Pane('pB', p=>{
+  if(!pending){ return; }
+  const nm = el('name').value.trim() || `point ${control.length+1}`;
+  control.push({ name:nm, render_px:[+pending[0].toFixed(1),+pending[1].toFixed(1)],
+                 basemap_px:[+p[0].toFixed(1),+p[1].toFixed(1)] });
+  pending=null; el('name').value=''; recompute();
+});
+paneB.onNudge(p=>{ const c=control[control.length-1];
+  if(c){ c.basemap_px=[+p[0].toFixed(1),+p[1].toFixed(1)]; recompute(); } });
+paneR.onNudge(p=>{ const c=control[control.length-1];
+  if(c){ c.render_px=[+p[0].toFixed(1),+p[1].toFixed(1)]; recompute(); } });
+
+el('undo').onclick  = ()=>{ if(pending) pending=null; else control.pop(); recompute(); };
+el('clear').onclick = ()=>{ if(confirm('Remove all control points?')){
+                              control=[]; pending=null; recompute(); } };
+el('save').onclick  = ()=>{
+  const out = JSON.parse(JSON.stringify(cfg));
+  delete out._extent;
+  out.control = control.map(c=>({name:c.name, render_px:c.render_px,
+                                 basemap_px:c.basemap_px}));
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=`${SITE}.geo.json`; a.click();
+};
+addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(e.key==='Escape'){ pending=null; recompute(); }
+  if(e.key==='z' && (e.metaKey||e.ctrlKey)){ el('undo').click(); }
+});
+
+/* ------------------------------------------------------------------- load */
+const load = src => new Promise((res,rej)=>{
+  const i=new Image(); i.onload=()=>res(i);
+  i.onerror=()=>rej(new Error('could not load '+src)); i.src=src; });
+
+(async function(){
+  try{
+    cfg = await (await fetch(`sites/${SITE}.geo.json`)).json();
+  }catch(e){ return fail(
+    `Could not read sites/${SITE}.geo.json\n\n`+
+    `Start it with serve_align.py, which also mounts this site's images:\n`+
+    `  python3 geo/serve_align.py --site ${SITE}`); }
+
+  el('hSite').textContent = cfg.name || SITE;
+  document.title = `Control points — ${cfg.name||SITE}`;
+  const bm = cfg.basemap.fit;
+  merc = makeMercator(cfg.centre[0], cfg.centre[1], bm.ground_m, bm.px);
+  control = (cfg.control||[]).map(c=>Object.assign({},c));
+
+  /* serve_align.py mounts the configured render_dir and basemap_dir here,
+     so these URLs work no matter where on disk a site keeps its assets. */
+  const rSrc = 'asset/render/'+cfg.render.file;
+  const bSrc = 'asset/basemap/'+(bm.file||'basemap.jpg');
+  try{
+    const [ri,bi] = await Promise.all([load(rSrc), load(bSrc)]);
+    paneR.setImage(ri); paneB.setImage(bi);
+    if(ri.width !== cfg.render.w)
+      fail(`note: render is ${ri.width}px wide but the config says `+
+           `${cfg.render.w}. px_per_unit is tied to the config width, so fix `+
+           `one of them before trusting the scale.`);
+  }catch(e){ fail(e.message+
+    `\n\nThe picker needs both images reachable from this page.\n`+
+    `render_dir and basemap_dir in the config are resolved relative to it;\n`+
+    `absolute paths outside the server root will not load.`); }
+
+  /* optional: extent.json makes the live speed check possible */
+  const extName = (cfg.paths&&cfg.paths.extent)
+    ? cfg.paths.extent.split('/').pop() : null;
+  if(extName){ try{
+    cfg._extent = await (await fetch('asset/extent/'+extName)).json();
+  }catch(e){} }
+  recompute();
+})();
+</script>

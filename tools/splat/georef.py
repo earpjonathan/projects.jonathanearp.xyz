@@ -37,13 +37,13 @@ held out of the fit entirely and lands 71 m away.
 import sys
 
 # ---------------------------------------------------------------- SUPERSEDED
-# Replaced by ~/Desktop/fpv-splat/geo/, which takes the site as a config file
+# Replaced by tools/geo/, which takes the site as a config file
 # instead of the module constants below, and so runs for any site.
 #
 #     python3 ~/Desktop/fpv-splat/geo/georef.py --site mountain-view \
 #             --out splat/media
 #
-# geo/test_georef.py checks the replacement reproduces this file's output bit
+# tools/geo/test_georef.py checks the replacement reproduces this file's output bit
 # for bit: fit, residuals, scale, north, crop geometry and every metric.
 #
 # This script still writes the OLD key names (control[].naip_px rather than
@@ -52,8 +52,8 @@ import sys
 if __name__ == "__main__":
     sys.exit(
         "tools/splat/georef.py is superseded and does not run.\n"
-        "Use:  python3 ~/Desktop/fpv-splat/geo/georef.py "
-        "--site mountain-view --out splat/media\n"
+        "Use:  python3 tools/geo/georef.py --site mountain-view "
+        "--out splat/media\n"
         "See the georeferencing section of README.md.")
 
 import json

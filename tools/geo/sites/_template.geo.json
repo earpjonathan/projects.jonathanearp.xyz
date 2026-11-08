@@ -1,0 +1,51 @@
+{
+  "_": "Copy to <yoursite>.geo.json and edit. Delete the _ comment keys.",
+  "name": "My Site",
+  "centre": [0.0, 0.0],
+
+  "_paths": "Relative to THIS file. render_dir/basemap_dir may point anywhere; serve_align.py mounts them for the picker.",
+  "paths": {
+    "basemap_dir": ".",
+    "render_dir": ".",
+    "extent": null
+  },
+
+  "_basemap": "fit = what you read control points against (may be licence-restricted). publish = optional, must be openly licensed.",
+  "basemap": {
+    "fit": {
+      "provider": "usgs_naip",
+      "ground_m": 2400,
+      "px": 2048,
+      "file": "basemap.jpg"
+    }
+  },
+
+  "_render": "A straight-down render. px_per_unit is how many render pixels one scene unit spans.",
+  "render": {
+    "file": "nadir.jpg",
+    "w": 1600,
+    "h": 874,
+    "px_per_unit": 150.4
+  },
+
+  "crop_margin_px": 110,
+
+  "_control": "3 minimum, 5-6 better. Read them with align.html; it writes this array back.",
+  "control": [],
+
+  "_holdout": "A coordinate with NO influence on the fit. Any GPS fix from the site.",
+  "holdout": null,
+
+  "_checks": "Dotted paths into the extent file, for the physics checks.",
+  "checks": {
+    "path_units": "flight.path",
+    "seconds": "flight.seconds",
+    "agl_median": "agl.median"
+  },
+
+  "_metrics": "name -> dotted path. Each is multiplied by m_per_unit into geo.json.",
+  "metrics": {},
+
+  "kml": { "name": "My Site", "description": "Reconstruction seen from above." },
+  "outputs": { "prefix": "mysite" }
+}

@@ -2,3 +2,6 @@
 .DS_Store
 __pycache__/
 *.pyc
+
+# georeferencing scratch output
+tools/geo/out/

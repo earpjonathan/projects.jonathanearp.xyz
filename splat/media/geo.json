@@ -1,11 +1,13 @@
 {
- "note": "Fitted by hand from three control points. See tools/splat/georef.py. Render coordinates are plain nadir.jpg pixels; the determinant -1 mirror in look() was fixed before this was generated.",
+ "site": "Mountain View Cemetery",
+ "note": "Fitted by hand from control points read by eye. See GEOREF.md. Render coordinates are plain render pixels.",
  "aerial": {
   "img": "aerial.jpg",
   "w": 1334,
   "h": 954,
   "m_per_px": 1.171875,
   "source": "USGS NAIP (public domain)",
+  "publishable": true,
   "nw": [
    -122.24226750200177,
    37.840313484798344
@@ -33,7 +35,7 @@
      860.0,
      140.0
     ],
-    "naip_px": [
+    "basemap_px": [
      861.0,
      759.0
     ],
@@ -48,7 +50,7 @@
      593.8,
      498.8
     ],
-    "naip_px": [
+    "basemap_px": [
      648.0,
      952.0
     ],
@@ -63,7 +65,7 @@
      650.0,
      537.0
     ],
-    "naip_px": [
+    "basemap_px": [
      688.8,
      990.4
     ],
@@ -82,8 +84,34 @@
  "check": {
   "mean_speed_ms": 14.601258415424391,
   "mean_speed_kmh": 52.56453029552781,
-  "launch_offset_m": 71.47322547868714
+  "launch_offset_m": 71.47322547833278
  },
+ "checks": [
+  {
+   "name": "mean_speed",
+   "value": 14.601258415424391,
+   "unit": "m/s",
+   "ok": true,
+   "expect": "15-30 m/s for an FPV quad, 5-40 tolerated",
+   "note": "53 km/h"
+  },
+  {
+   "name": "agl_median",
+   "value": 11.817654462406177,
+   "unit": "m",
+   "ok": true,
+   "expect": "tens of metres for low FPV flight",
+   "note": ""
+  },
+  {
+   "name": "holdout_offset (launch pad)",
+   "value": 71.47322547833278,
+   "unit": "m",
+   "ok": true,
+   "expect": "within ~150 m for a remembered coordinate",
+   "note": ""
+  }
+ ],
  "metric": {
   "path_m": 25157.968249776226,
   "envelope_x_m": 498.84137586502993,

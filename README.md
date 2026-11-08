@@ -99,7 +99,7 @@ python3 tools/splat/sweep.py    --project ~/Desktop/fpv-splat
 python3 tools/splat/flythrough.py --project ~/Desktop/fpv-splat
 python3 tools/splat/scale.py    --project ~/Desktop/fpv-splat --only stills
 python3 tools/splat/scale.py    --project ~/Desktop/fpv-splat --only pull --w 1280 --h 720 --procs 12
-python3 tools/splat/georef.py
+python3 ~/Desktop/fpv-splat/geo/georef.py --site mountain-view --out splat/media
 ```
 
 `scale.py` runs twice because the two halves want different frame sizes: the
@@ -144,13 +144,19 @@ orientation and no GPS, and where a reader needs something physical to hold
 onto, in multiples of the drone's own median height above the terrain under it,
 0.104 units over all 7,470 registered frames.
 
-`georef.py` recovers a metric scale after the fact by fitting the nadir render
-onto USGS NAIP aerial imagery from three hand-picked control points. One scene
-unit is 113.6 m. It writes `geo.json`, the cropped `aerial.jpg` the page draws,
-and a Google Earth `.kmz`. It needs `naip.jpg`, which `GEO_SRC` in that file
-points at; `demo-pack/geo/fetch_naip.py` pulls it again if it goes missing.
-Section 10 of the page explains the fit and why three automatic attempts at it
-failed.
+Georeferencing recovers a metric scale after the fact by fitting the nadir
+render onto USGS NAIP aerial imagery from three hand-picked control points. One
+scene unit is 113.6 m. It writes `geo.json`, the cropped `aerial.jpg` the page
+draws, and a Google Earth `.kmz`. Section 10 of the page explains the fit and
+why three automatic attempts at it failed.
+
+This now runs from `~/Desktop/fpv-splat/geo/`, which takes the site as a config
+file (`geo/sites/mountain-view.geo.json`) rather than module constants, so the
+same tool works for any site. `geo/fetch_basemap.py --site mountain-view` pulls
+`naip.jpg` again if it goes missing, and `geo/serve_align.py` is the control
+point picker. The old `tools/splat/georef.py` is superseded and now refuses to
+run; it is kept only for history, and `geo/test_georef.py` checks the new tool
+reproduces its output bit for bit.
 
 That fit is also what caught a determinant -1 bug in `look()`, which had been
 mirroring every figure rendered through it. It is fixed, and `look()` now

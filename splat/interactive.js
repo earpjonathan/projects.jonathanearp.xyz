@@ -214,8 +214,10 @@
      tracks drawn over them. The image ships as an alpha mask and is
      tinted from the live theme colours, so it follows the toggle.
      Screen x runs along the scene's z axis because the two sites are
-     strung out that way; a COLMAP frame has no north, so neither
-     orientation is more correct than the other.
+     strung out that way. A COLMAP frame carries no north of its own,
+     so that was an arbitrary choice when this was written; section 10
+     has since recovered one from aerial imagery, and it puts this
+     frame about 10 degrees off north-up.
      ============================================================ */
   (function () {
     var root = document.querySelector(".demo--map");
@@ -966,6 +968,206 @@
       var rd = root.querySelector(".demo__read");
       if (rd) rd.textContent = "The altitude ladder did not load. Figure 2 shows the same climb as video.";
     });
+  })();
+
+  /* ============================================================
+     10 — THE RECONSTRUCTION ON THE GROUND
+     The nadir render laid over USGS NAIP aerial imagery, which is
+     already georeferenced, so the scale factor that makes it fit
+     is the number of metres in one scene unit.
+
+     This is also the fit that caught the determinant -1 mirror in
+     tools/splat/scale.py. That is fixed, so the render and the
+     aerial now agree without anything being flipped here.
+
+     The transform comes from tools/splat/georef.py and arrives in
+     geo.json. Nothing is fitted in the browser.
+     ============================================================ */
+  (function () {
+    var root = document.querySelector(".demo--geo");
+    if (!root) return;
+    var canvas = root.querySelector("canvas");
+    var G = null, E = null, aerial = null, nadir = null, redraw = null;
+    var NW = 1600, NH = 874;
+    var mix = 0.55, tracks = true, pins = false, mode = "merged";
+
+    /* nadir pixel -> aerial-crop pixel, by the similarity in geo.json */
+    function toAerial(nx, ny) {
+      var f = G.fit, th = f.deg * Math.PI / 180;
+      return [f.scale * (Math.cos(th) * nx - Math.sin(th) * ny) + f.tx,
+              f.scale * (Math.sin(th) * nx + Math.cos(th) * ny) + f.ty];
+    }
+
+    function layout(W, H) {
+      var s = Math.min(W / G.aerial.w, H / G.aerial.h);
+      return { s: s, ox: (W - G.aerial.w * s) / 2, oy: (H - G.aerial.h * s) / 2 };
+    }
+
+    function plate(ctx, x, y, str, colour) {
+      ctx.font = "10px " + css("--font");
+      var w = ctx.measureText(str).width;
+      ctx.fillStyle = "rgba(16, 9, 4, 0.62)";
+      ctx.fillRect(x - 5, y - 11, w + 10, 15);
+      ctx.fillStyle = colour || css("--cream");
+      ctx.fillText(str, x, y);
+    }
+
+    function draw(ctx, W, H) {
+      if (!G || !E || !aerial || !nadir) return;
+      var acc = css("--accent"), cream = css("--cream");
+      ctx.clearRect(0, 0, W, H);
+      var L = layout(W, H);
+
+      ctx.drawImage(aerial, L.ox, L.oy, G.aerial.w * L.s, G.aerial.h * L.s);
+
+      /* the render, un-mirrored, in its fitted place */
+      if (mix > 0.002) {
+        var f = G.fit;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(L.ox, L.oy, G.aerial.w * L.s, G.aerial.h * L.s);
+        ctx.clip();
+        ctx.globalAlpha = mix;
+        /* The splat render is a stop or so darker than a NAIP frame, so at any
+           useful opacity it reads as a grey rectangle dropped on the aerial
+           rather than as the same ground twice. Lifting it is the difference
+           between the two layers looking comparable and looking pasted. */
+        if ("filter" in ctx) ctx.filter = "brightness(1.42) saturate(1.1)";
+        ctx.translate(L.ox, L.oy);
+        ctx.scale(L.s, L.s);
+        ctx.translate(f.tx, f.ty);
+        ctx.rotate(f.deg * Math.PI / 180);
+        ctx.scale(f.scale, f.scale);
+        ctx.drawImage(nadir, 0, 0, NW, NH);
+        ctx.restore();
+      }
+
+      if (tracks) {
+        E.nadir.tracks_px.forEach(function (tr) {
+          if (!(mode === "merged" || mode === tr.site)) return;
+          var px = tr.px, n = px.length / 2;
+          ctx.beginPath();
+          for (var k = 0; k < n; k++) {
+            var a = toAerial(px[k * 2], px[k * 2 + 1]);
+            var x = L.ox + a[0] * L.s, y = L.oy + a[1] * L.s;
+            if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.lineWidth = 1.3;
+          ctx.strokeStyle = tr.site === "hilltop" ? acc : cream;
+          ctx.globalAlpha = mode === "merged" ? 0.85 : 1;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        });
+      }
+
+      /* the three features the fit was pinned to, so the claim is checkable */
+      if (pins) {
+        G.fit.control.forEach(function (c, i) {
+          /* the measured aerial position, not the fitted one, so the pin sits
+             on the feature and the circle shows how far the fit missed it */
+          var x = L.ox + c.aerial_px[0] * L.s, y = L.oy + c.aerial_px[1] * L.s;
+          ctx.strokeStyle = acc; ctx.lineWidth = 1.4;
+          ctx.beginPath(); ctx.arc(x, y, 9, 0, 6.2832); ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x - 14, y); ctx.lineTo(x - 4, y);
+          ctx.moveTo(x + 4, y); ctx.lineTo(x + 14, y);
+          ctx.moveTo(x, y - 14); ctx.lineTo(x, y - 4);
+          ctx.moveTo(x, y + 4); ctx.lineTo(x, y + 14);
+          ctx.stroke();
+          /* points 2 and 3 are 68 px apart in the render, so their labels
+             collide at any sensible figure size. Stagger them. */
+          plate(ctx, x + 17, y + 4 + (i % 2 ? 13 : 0),
+                String(i + 1) + " · " + G.fit.residual_m[i].toFixed(1) + " M");
+        });
+      }
+
+      /* north. Worth drawing precisely because no other figure on this page
+         has one: the aerial is north-up, so the whole frame is. */
+      var nx = L.ox + G.aerial.w * L.s - 30, ny = L.oy + 34;
+      ctx.fillStyle = "rgba(16, 9, 4, 0.55)";
+      ctx.beginPath(); ctx.arc(nx, ny + 2, 23, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = cream; ctx.fillStyle = cream; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(nx, ny + 12); ctx.lineTo(nx, ny - 11); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(nx, ny - 15); ctx.lineTo(nx - 4, ny - 7);
+      ctx.lineTo(nx + 4, ny - 7); ctx.closePath(); ctx.fill();
+      ctx.font = "10px " + css("--font");
+      ctx.fillText("N", nx - 3, ny + 22);
+
+      /* 200 m, in real metres now */
+      var barW = (200 / G.aerial.m_per_px) * L.s;
+      var barY = L.oy + G.aerial.h * L.s - 18, barX = L.ox + 16;
+      ctx.strokeStyle = cream; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(barX, barY); ctx.lineTo(barX + barW, barY);
+      ctx.moveTo(barX, barY - 4); ctx.lineTo(barX, barY + 4);
+      ctx.moveTo(barX + barW, barY - 4); ctx.lineTo(barX + barW, barY + 4);
+      ctx.stroke();
+      plate(ctx, barX, barY - 9, "200 M · " +
+            (200 / G.scale.m_per_unit).toFixed(2) + " SCENE UNITS");
+    }
+
+    function loadImage(url) {
+      return new Promise(function (res, rej) {
+        var im = new Image();
+        im.onload = function () { res(im); };
+        im.onerror = rej;
+        im.src = url;
+      });
+    }
+
+    function group(sel, attr, set) {
+      root.querySelectorAll(sel).forEach(function (b) {
+        b.addEventListener("click", function () {
+          root.querySelectorAll(sel).forEach(function (o) { o.classList.remove("is-on"); });
+          b.classList.add("is-on");
+          set(b.getAttribute(attr));
+          redraw();
+        });
+      });
+    }
+
+    Promise.all([getJSON(MEDIA + "geo.json"), getJSON(MEDIA + "extent.json")])
+      .then(function (r) {
+        G = r[0]; E = r[1];
+        return Promise.all([loadImage(MEDIA + G.aerial.img), loadImage(MEDIA + "nadir.jpg")]);
+      }).then(function (im) {
+        aerial = im[0]; nadir = im[1];
+        redraw = mount(canvas, draw);
+
+        var slider = root.querySelector("[data-geo-mix]");
+        var out = root.querySelector("[data-geo-mix-v]");
+        if (slider) {
+          /* Read the control rather than overwrite it. A browser restores a
+             range input's position across a reload, and clobbering that would
+             put the thumb and the drawing out of step. */
+          mix = Number(slider.value) / 100;
+          if (out) out.textContent = slider.value + "%";
+          slider.addEventListener("input", function () {
+            mix = Number(slider.value) / 100;
+            if (out) out.textContent = slider.value + "%";
+            redraw();
+          });
+        }
+        group("[data-geo-mode]", "data-geo-mode", function (v) { mode = v; });
+        var m0 = root.querySelector('[data-geo-mode="merged"]');
+        if (m0) m0.classList.add("is-on");
+
+        root.querySelectorAll("[data-geo-layer]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var k = b.getAttribute("data-geo-layer");
+            if (k === "tracks") tracks = !tracks; else pins = !pins;
+            b.classList.toggle("is-on", k === "tracks" ? tracks : pins);
+            redraw();
+          });
+        });
+        var tb = root.querySelector('[data-geo-layer="tracks"]');
+        if (tb) tb.classList.add("is-on");
+        redraw();
+      }).catch(function () {
+        var rd = root.querySelector(".demo__read");
+        if (rd) rd.textContent = "The aerial overlay did not load.";
+      });
   })();
 
 })();

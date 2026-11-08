@@ -173,9 +173,11 @@
                     <strong>Figure 2.</strong> Five camera moves through the same file, cut together.
                     The first frame is a real registered pose at the height I flew. Nothing after it is
                     a position the drone ever occupied, which is most of the point of building one of
-                    these. There is no metric scale here, since the telemetry carries orientation and no
-                    GPS, so everything is in viewer units. The drone's median height above the ground
-                    was <b>0.104</b> of them.
+                    these. Nothing in the pipeline has a metric scale, since the telemetry carries
+                    orientation and no GPS, so everything here is in viewer units. The drone's median
+                    height above the ground was <b>0.104</b> of them. <a href="#map" class="tlink">Section
+                    10</a> gets a scale out of aerial photography afterwards: one unit is about 114 m,
+                    which puts that median height at 11.8 m and the top of this climb at 227 m.
                 </figcaption>
             </figure>
 
@@ -224,7 +226,8 @@
                 <a href="#blur"><span>07</span> Near-field blur</a>
                 <a href="#final"><span>08</span> The final run</a>
                 <a href="#negatives"><span>09</span> Negative results</a>
-                <a href="#limits"><span>10</span> Limitations</a>
+                <a href="#map"><span>10</span> On the ground</a>
+                <a href="#limits"><span>11</span> Limitations</a>
             </nav>
 
             <!-- ============ 01 ============ -->
@@ -1032,8 +1035,167 @@
             </section>
 
             <!-- ============ 10 ============ -->
-            <section class="block" id="limits" data-reveal>
+            <section class="block" id="map" data-reveal>
                 <div class="block__no">10</div>
+                <div class="block__body">
+                    <h2 class="block__h">Putting it on the ground</h2>
+                    <p class="lede">
+                        Everything above this point is in viewer units, because the telemetry carries
+                        orientation and no GPS. Laying the reconstruction over aerial photography that
+                        is already georeferenced fixes that, and fixes north at the same time. One
+                        scene unit turns out to be about <b>114 m</b>.
+                    </p>
+
+                    <p>
+                        The base layer is USGS NAIP, which is federal imagery and public domain. It
+                        comes back in EPSG:3857, the same projection it was requested in, so pixels map
+                        to ground linearly instead of through a reprojection I would have to undo. Web
+                        Mercator metres run 1/cos(lat) larger than real ones, about 1.266 at this
+                        latitude, and that factor is divided out before the box is cut, so the frame is
+                        2,400 m of real ground.
+                    </p>
+
+                    <h3 class="block__sub">Doing it by software, and why that didn't work</h3>
+                    <p>
+                        I wanted software to do this, and tried three times. SIFT with a ratio test
+                        and RANSAC found four inliers out of eighty candidates, and masking the
+                        vignette and sweeping six pre-scales didn't rescue it. Brute-force normalised
+                        cross-correlation on gradient magnitude, swept over rotation and scale,
+                        converged on a confident-looking peak that put the render over the wrong
+                        hillside entirely. Every number it implied was plausible, which is why I
+                        looked at the overlay instead of trusting the score. Narrowing the same
+                        correlation to a small neighbourhood around a hand-made seed peaked at
+                        <b>0.10</b>, which is noise, and ran to the edge of its own search range.
+                    </p>
+                    <p>
+                        The reason is the same in all three cases. The render is soft, low-contrast
+                        splat output; NAIP is a sharp summer capture from a different year. They share
+                        almost no gradient statistics. They do share a handful of structures that are
+                        obvious to a person and invisible to a descriptor.
+                    </p>
+
+                    <h3 class="block__sub">So I picked the control points by eye</h3>
+                    <p>
+                        A school sport court and two features inside the cemetery, a roundabout and a
+                        circular road loop. A similarity transform, four parameters, fitted to those
+                        three pairs by Umeyama. Turn on the control points in the figure below and you
+                        can see where they are and how far each one missed.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>Viewer units, converted</caption>
+                        <thead><tr><th>Quantity</th><th>In viewer units</th><th>In metres</th></tr></thead>
+                        <tbody>
+                            <tr><td>Total path flown</td><td>221.4</td><td>25.2 km</td></tr>
+                            <tr><td>Flight envelope</td><td>4.4 &times; 8.0</td><td>499 &times; 913 m</td></tr>
+                            <tr><td>Distance between the two session centres</td><td>2.5</td><td>284 m</td></tr>
+                            <tr><td>Median height above ground</td><td>0.104</td><td>11.8 m</td></tr>
+                            <tr><td>Height above ground, 10th to 90th percentile</td><td>0.024 &ndash; 0.441</td><td>2.7 &ndash; 50 m</td></tr>
+                            <tr><td>Radius holding 90% of the splats in plan</td><td>4.86</td><td>552 m</td></tr>
+                            <tr><td>The crop the live viewer loads</td><td>0.7</td><td>80 m radius</td></tr>
+                            <tr><td>Camera height for the straight-down render</td><td>6.0</td><td>682 m</td></tr>
+                            <tr><td>The top of the climb in Figure 2</td><td>2.0</td><td>227 m</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="block__sub">Why I think the fit is right</h3>
+                    <ul class="dlist">
+                        <li><strong>The residuals.</strong> 1.1 m, 7.2 m and 7.2 m on the three control points. Two of them sit 68 px apart in the render, so most of that is me misreading a pixel on a soft image, not the transform being wrong.</li>
+                        <li><strong>The physics.</strong> The project knows the total path length and the total flight time, so any proposed scale implies a mean speed. This one implies <b>14.6 m/s</b>, 53 km/h, which is what cinematic FPV over terrain looks like. A scale that implied 5 m/s or 90 m/s would be wrong whatever the picture looked like. It also puts the median height above ground at 11.8 m, which matches flying down in the trees.</li>
+                        <li><strong>A coordinate I kept out of the fit.</strong> I remembered roughly where I took off and wrote it down as 37.834408, &minus;122.230258. That point isn't one of the three control points and had no influence on the transform. The fit puts my launch pad <b>71 m</b> from it, which is about as close as "right around" deserves.</li>
+                    </ul>
+
+                    <h3 class="block__sub">It also caught a bug in every figure above</h3>
+                    <p>
+                        <code>look()</code> in <code>tools/splat/scale.py</code> built its camera basis
+                        from <code>cross(a, f)</code>, which is image-<em>left</em>, and paired it with
+                        an image-down second column. That is an improper rotation, determinant
+                        &minus;1, so every frame rendered through it came out flipped left to right.
+                        There was no way to notice it from inside: a scene with no north and no scale
+                        has nothing to be flipped relative to. Holding it against aerial imagery was
+                        the first external check this reconstruction had ever had, and it failed. Left
+                        unflipped, the
+                        same two control points demanded a 63&deg; rotation instead of 10&deg;.
+                    </p>
+                    <p>
+                        It had a second effect I hadn't thought about. The pull-back in Figure 2
+                        starts on a real recorded pose and interpolates towards a <code>look()</code>
+                        orientation, through a quaternion. A quaternion cannot represent a reflection,
+                        so <code>quat()</code> was quietly returning one for a different rotation
+                        entirely, and the shot was easing towards something that wasn't either pose.
+                        The same split ran through the altitude ladder, where rung 0 is a recorded
+                        pose and rungs 1 to 6 came from <code>look()</code>, so the figure was
+                        mirrored halfway up and I'd never spotted it.
+                    </p>
+                    <p>
+                        It is one line, and the fix is a pure horizontal mirror: the corrected basis
+                        differs from the old one only in the sign of camera-space <em>x</em>, and the
+                        projection puts the principal point at exactly half the frame width. Figure 2,
+                        the ladder, the straight-down render, the flight-track pixels and the three
+                        whole-site camera presets in the live viewer are all re-rendered from the
+                        fixed matrix. The parts of the pipeline that never went through
+                        <code>look()</code> were never wrong: the near-plane pair, the pose
+                        distribution, the whole near-plane sweep and the side-by-side in Figure 3 all
+                        render from real registered cameras. That last one is the proof. It puts drone
+                        footage next to a render of the same pose, and they still line up.
+                    </p>
+
+                    <div class="demo demo--geo">
+                        <div class="demo__head">
+                            <span class="demo__k">Figure 19 &middot; interactive</span>
+                            <span class="demo__t">The reconstruction, on the ground, north up</span>
+                            <span class="demo__hint">Drag the slider to fade between the splats and the aerial</span>
+                        </div>
+                        <div class="demo__ctl">
+                            <span class="srange srange--wide">
+                                <span class="srange__k">Reconstruction</span>
+                                <input type="range" min="0" max="100" step="1" value="55"
+                                       data-geo-mix aria-label="Opacity of the reconstruction over the aerial photograph">
+                                <span class="srange__v" data-geo-mix-v>55%</span>
+                            </span>
+                        </div>
+                        <div class="demo__ctl">
+                            <span class="sgroup">
+                                <button class="sbtn" data-geo-mode="merged" type="button">Both sessions</button>
+                                <button class="sbtn" data-geo-mode="hilltop" type="button">Session 1</button>
+                                <button class="sbtn" data-geo-mode="cemetery" type="button">Session 2</button>
+                            </span>
+                            <span class="sgroup">
+                                <button class="sbtn" data-geo-layer="tracks" type="button">Flight tracks</button>
+                                <button class="sbtn" data-geo-layer="pins" type="button">Control points</button>
+                            </span>
+                        </div>
+                        <canvas class="demo__canvas demo__canvas--map"
+                                aria-label="The straight-down reconstruction faded over USGS aerial photography of Mountain View Cemetery in Oakland, with the nine flight tracks drawn on"></canvas>
+                        <div class="demo__read">
+                            <span>One scene unit <b>113.6 m</b></span>
+                            <span>Rotation to north <b>10.0&deg;</b></span>
+                            <span>Worst residual <b>7.2 m</b></span>
+                            <span>Implied mean speed <b>14.6 m/s</b></span>
+                            <span class="demo__note">
+                                Sienna is <b>session 1</b>, cream is <b>session 2</b>, six days later.
+                                It's the only figure on the page that's north-up, and the fit that put it
+                                there is what caught the mirror in the others. Base imagery is
+                                <a href="https://naip-usdaonline.hub.arcgis.com/" target="_blank" rel="noopener" class="tlink">USGS NAIP</a>,
+                                public domain. You can also
+                                <a href="media/splooge-overlay.kmz" download>download the overlay as a KMZ</a>
+                                and open it in Google Earth.
+                            </span>
+                        </div>
+                    </div>
+
+                    <h3 class="block__sub">What this is not</h3>
+                    <ul class="dlist">
+                        <li><strong>It's a similarity, not a real camera model.</strong> The nadir render is a perspective camera at <code>fx</code> 1487 and height 6.0, not an orthographic projection, so ground scale varies across the frame with terrain height. Over 600 m of relief-light hillside that's a small error, but it isn't zero, and it's the main reason I quote 114 m instead of 113.6.</li>
+                        <li><strong>Three control points is the bare minimum.</strong> Four parameters, six equations. Two degrees of freedom of redundancy is enough to notice a bad point and not enough to average one out.</li>
+                        <li><strong>Everything else on the page is still in units.</strong> I haven't gone back and converted the rest. The units are what the pipeline actually works in, and rewriting them in metres would hide the fact that this number arrived late, and from outside.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ============ 11 ============ -->
+            <section class="block" id="limits" data-reveal>
+                <div class="block__no">11</div>
                 <div class="block__body">
                     <h2 class="block__h">Limitations</h2>
                     <ul class="dlist">

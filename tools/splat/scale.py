@@ -177,10 +177,18 @@ def look(C, T, ref=None):
     f = T - C
     f = f / np.linalg.norm(f)
     a = UP if abs(float(np.dot(UP, f))) < 0.985 else (ref if ref is not None else np.array([0.0, 0.0, 1.0]))
-    r = np.cross(a, f)
+    # cross(a, f) is image-LEFT, not image-right. Pairing it with an
+    # image-down second column made this an improper rotation, determinant -1,
+    # so every frame rendered through here came out mirrored left to right and
+    # quat() further down silently returned a quaternion for a different
+    # rotation entirely. Caught by georeferencing the nadir render against
+    # aerial imagery: see tools/splat/georef.py.
+    r = np.cross(f, a)
     r = r / np.linalg.norm(r)
-    u = np.cross(f, r)
-    return np.column_stack([r, -u, f])   # the camera's y axis is image-down
+    u = np.cross(r, f)
+    R = np.column_stack([r, -u, f])      # the camera's y axis is image-down
+    assert np.linalg.det(R) > 0.999, "look() must return a proper rotation"
+    return R
 
 
 def quat(R):

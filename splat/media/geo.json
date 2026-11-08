@@ -1,0 +1,100 @@
+{
+ "note": "Fitted by hand from three control points. See tools/splat/georef.py. Render coordinates are plain nadir.jpg pixels; the determinant -1 mirror in look() was fixed before this was generated.",
+ "aerial": {
+  "img": "aerial.jpg",
+  "w": 1334,
+  "h": 954,
+  "m_per_px": 1.171875,
+  "source": "USGS NAIP (public domain)",
+  "nw": [
+   -122.24226750200177,
+   37.840313484798344
+  ],
+  "se": [
+   -122.22448650791704,
+   37.830270721028654
+  ]
+ },
+ "fit": {
+  "scale": 0.6447165555049742,
+  "deg": 9.993703583672863,
+  "tx": 208.19293771760084,
+  "ty": 110.15422797660744,
+  "residual_m": [
+   1.0915201529879,
+   7.214105347093801,
+   7.176289986276455
+  ],
+  "residual_max_m": 7.214105347093801,
+  "control": [
+   {
+    "name": "School sport court, north-west corner",
+    "render_px": [
+     860.0,
+     140.0
+    ],
+    "naip_px": [
+     861.0,
+     759.0
+    ],
+    "aerial_px": [
+     738.0,
+     296.0
+    ]
+   },
+   {
+    "name": "Cemetery roundabout",
+    "render_px": [
+     593.8,
+     498.8
+    ],
+    "naip_px": [
+     648.0,
+     952.0
+    ],
+    "aerial_px": [
+     525.0,
+     489.0
+    ]
+   },
+   {
+    "name": "Cemetery circular road loop",
+    "render_px": [
+     650.0,
+     537.0
+    ],
+    "naip_px": [
+     688.8,
+     990.4
+    ],
+    "aerial_px": [
+     565.8,
+     527.4
+    ]
+   }
+  ]
+ },
+ "scale": {
+  "m_per_render_px": 0.7555272134823916,
+  "m_per_unit": 113.6312929077517,
+  "north_bearing_deg": 350.00629641632713
+ },
+ "check": {
+  "mean_speed_ms": 14.601258415424391,
+  "mean_speed_kmh": 52.56453029552781,
+  "launch_offset_m": 71.47322547868714
+ },
+ "metric": {
+  "path_m": 25157.968249776226,
+  "envelope_x_m": 498.84137586502993,
+  "envelope_z_m": 912.4592820492461,
+  "separation_m": 284.07823226937927,
+  "agl_median_m": 11.817654462406177,
+  "agl_p10_m": 2.727151029786041,
+  "agl_p90_m": 50.1114001723185,
+  "crop_radius_m": 79.54190503542618,
+  "nadir_camera_m": 681.7877574465102,
+  "top_view_m": 227.2625858155034,
+  "plan_r90_m": 552.2480835316733
+ }
+}

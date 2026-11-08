@@ -97,8 +97,14 @@ python3 tools/splat/assets.py   --project ~/Desktop/fpv-splat
 python3 tools/splat/figures.py  --project ~/Desktop/fpv-splat
 python3 tools/splat/sweep.py    --project ~/Desktop/fpv-splat
 python3 tools/splat/flythrough.py --project ~/Desktop/fpv-splat
-python3 tools/splat/scale.py    --project ~/Desktop/fpv-splat
+python3 tools/splat/scale.py    --project ~/Desktop/fpv-splat --only stills
+python3 tools/splat/scale.py    --project ~/Desktop/fpv-splat --only pull --w 1280 --h 720 --procs 12
+python3 tools/splat/georef.py
 ```
+
+`scale.py` runs twice because the two halves want different frame sizes: the
+ladder stills are 800x450 and the reel is rendered at 1280x720 and encoded down
+to 1024x576.
 
 `assets.py` reproduces `scene.splat`, `scene.json` and `gyro.json`
 byte-for-byte. The crop rule is worth knowing if you ever change it: keep every
@@ -114,8 +120,11 @@ just above the highest one.
 
 `scale.py` renders everything the scale chapter uses: the reel, the seven
 ladder stills, the nadir view, the whole-site splat asset and `extent.json`.
-The reel is the long job by a wide margin — 1,200 frames, about half an hour on
-ten processes — so `--only pull` re-renders just that at a different
+The reel is the long job by a wide margin: 1,650 frames, and about an hour on
+twelve processes. A single frame at 1280x720 takes 11 s on one core, but twelve
+of them contend for memory bandwidth and the throughput settles around 29
+frames a minute rather than the 64 that scaling would suggest. `--only pull`
+re-renders just that at a different
 `--w`/`--h`, `--resume` keeps whatever frames are already in the scratch
 directory, and `--only stills` does everything else. Each shot is a function of
 `t` in `[0, 1]` in the `SHOTS` table, and camera heights there are above the
@@ -130,11 +139,23 @@ splats above the highest camera, fine to fly under and opaque to fly over, so
 any view that climbs above it drops it. That is why there is no sky in the
 aerials, and the captions say so.
 
-There is no metric scale anywhere on the page, because the DJI telemetry carries
-orientation and no GPS. Distances are quoted in scene units and, where a reader
-needs something physical to hold onto, in multiples of the drone's own median
-height above the terrain under it — 0.104 units, measured over all 7,470
-registered frames.
+Distances are quoted in scene units, because the DJI telemetry carries
+orientation and no GPS, and where a reader needs something physical to hold
+onto, in multiples of the drone's own median height above the terrain under it,
+0.104 units over all 7,470 registered frames.
+
+`georef.py` recovers a metric scale after the fact by fitting the nadir render
+onto USGS NAIP aerial imagery from three hand-picked control points. One scene
+unit is 113.6 m. It writes `geo.json`, the cropped `aerial.jpg` the page draws,
+and a Google Earth `.kmz`. It needs `naip.jpg`, which `GEO_SRC` in that file
+points at; `demo-pack/geo/fetch_naip.py` pulls it again if it goes missing.
+Section 10 of the page explains the fit and why three automatic attempts at it
+failed.
+
+That fit is also what caught a determinant -1 bug in `look()`, which had been
+mirroring every figure rendered through it. It is fixed, and `look()` now
+asserts its own determinant, but anything rendered before 8 Nov 2026 is flipped
+left to right.
 
 `flythrough.py` writes numbered JPEG pairs into a scratch directory and expects
 the undistorted source frames to already be in `$SPLAT_SCRATCH/src`; the mp4 is

@@ -29,9 +29,17 @@ tools/geo/
 ## Requirements
 
 `numpy` and `Pillow`. Nothing else; the fetcher uses the standard library.
-The project venv at `~/Desktop/fpv-splat/.venv` has both — a bare `python3`
-on this machine does not, which is equally true of `tools/splat/`.
-Substitute it for `python3` below if you hit a `ModuleNotFoundError`.
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
+```
+
+A bare `python3` on this machine has neither, which is equally true of
+`tools/splat/`. The project venv at `~/Desktop/fpv-splat/.venv` has both —
+substitute it for `python3` below if you hit a `ModuleNotFoundError`.
+
+Unlike `tools/splat/`, nothing here needs an fpv-splat checkout: this package
+carries its own basemap and runs from a clone of this repo alone.
 
 ## Use it
 

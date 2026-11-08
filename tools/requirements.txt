@@ -1,0 +1,30 @@
+# Dependencies for the scripts in tools/.
+#
+#     python3 -m venv .venv
+#     .venv/bin/pip install -r tools/requirements.txt
+#     .venv/bin/python tools/geo/georef.py --site mountain-view
+#
+# No system python on this machine carries these; the fpv-splat project venv
+# (~/Desktop/fpv-splat/.venv) does, and is what these were verified against.
+
+numpy>=2.0                 # verified 2.5.2
+Pillow>=10.0               # verified 12.3.0
+
+# -- deliberately not listed -------------------------------------------------
+#
+# opencv-python. The only file that imports cv2 is tools/splat/georef.py,
+# which is superseded and refuses to run, so nothing that still executes needs
+# it. That is ~90 MB of wheel for a dead import. Install it (verified 5.0.0)
+# only if you revive that script.
+#
+# -- not installable with pip ------------------------------------------------
+#
+# tools/splat/{assets,figures,flythrough,scale,sweep}.py do
+# `from raster import ...`, which resolves because paths() inserts
+# <project>/scripts onto sys.path from the --project argument. They therefore
+# need an fpv-splat checkout and will not run from this repo alone:
+#
+#     python3 tools/splat/figures.py --project ~/Desktop/fpv-splat
+#
+# tools/geo/ has no such dependency. It is self-contained and runs from a
+# clone of this repo on its own.

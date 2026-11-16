@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S.H.R.E.D — Jonathan Earp</title>
-    <meta name="description" content="A tool that cuts debate evidence cards with a local language model: it finds sources, picks word indices instead of retyping text, and is scored against 970 human-cut cards. Including the point where the score and the readers disagreed.">
+    <meta name="description" content="A tool that finds sources for a debate claim and cuts them into evidence cards with a language model running on my laptop. It's scored against 970 cards cut by hand, and the write-up covers where that score and the people reading the cards disagreed.">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="canonical" href="https://projects.jonathanearp.xyz/cards/">
@@ -15,14 +15,14 @@
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="S.H.R.E.D — cutting debate evidence with a local model">
-    <meta property="og:description" content="Word indices instead of retyped text, an eval against 970 human-cut cards, and what happened when the metric and the readers wanted different things.">
+    <meta property="og:description" content="Cutting debate evidence cards with a local language model, scored against 970 cards cut by hand.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/cards/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="S.H.R.E.D — cutting debate evidence with a local model">
-    <meta name="twitter:description" content="How it works, how it scores, and where it still falls short.">
+    <meta name="twitter:description" content="Cutting debate evidence cards with a model running on my laptop.">
     <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta name="twitter:creator" content="@JonathanEarp_">
 
@@ -171,8 +171,9 @@
                         rest is shrunk down but kept, so anyone can check the context.
                     </p>
                     <p>
-                        Cutting one well takes judgment. The read-aloud words have to make sense
-                        as speech, prove the tag, and not say anything the author didn't mean.
+                        Cutting one well takes judgment. The words read aloud have to make sense
+                        as speech and prove the tag without saying anything the author didn't
+                        mean.
                     </p>
 
                     <div class="demo demo--card" id="card-demo">
@@ -214,12 +215,12 @@
                 <div class="block__body">
                     <h2 class="block__h">It can't change a word</h2>
                     <p class="lede">
-                        A card that misquotes its source is worse than no card. So the model never
-                        types the evidence.
+                        A card has to quote its source exactly, so the model never types the
+                        evidence.
                     </p>
                     <p>
                         The source gets split into numbered words, and every stage that marks up
-                        the card answers with <strong>word indices</strong>: underline words 40 to
+                        the card answers with word indices: underline words 40 to
                         71, highlight 44 to 49. The text itself only ever comes from the source.
                         A final check confirms the body is an exact, contiguous excerpt that
                         starts on a sentence boundary, and if anything fails, nothing is exported.
@@ -227,7 +228,7 @@
                     <p>
                         Hand edits get the same treatment. In the web UI you can change the
                         highlighting, underlining and boxes freely, and every export re-checks the
-                        body against the source. Formatting can change. Words can't.
+                        body against the source.
                     </p>
                 </div>
             </section>
@@ -246,12 +247,12 @@
                         layers live in styles, direct formatting, highlight colours and box
                         borders, sometimes all at once. The parser turns each card into its text
                         plus per-character spans for every layer. It read
-                        <strong>970 cards from four of my team's files</strong>.
+                        970 cards from four of my team's files.
                     </p>
                     <p>
-                        To trust the parser, it has to work both ways. The round-trip check parses
-                        every card, renders it back to Word, parses that again, and fails unless
-                        all of them come back identical. All 970 do, with zero mismatches.
+                        To check the parser, I run it both ways. The round-trip check parses
+                        every card, writes it back out as Word, parses that again, and fails if
+                        anything comes back different. All 970 come back identical.
                     </p>
 
                     <table class="dtable">
@@ -267,7 +268,7 @@
                     </table>
 
                     <p>
-                        One surprise: <strong>66% of cards highlight part of a word</strong>, like
+                        One surprise was that 66% of cards highlight part of a word, like
                         reading "biod" out of "biodiversity" or just the first letter of "impact".
                         2,386 words in all. A word-level tokenizer would have thrown that away, so
                         the format stores formatting per character.
@@ -333,30 +334,30 @@
                 <div class="block__body">
                     <h2 class="block__h">Finding sources</h2>
                     <p class="lede">
-                        In auto mode I only write the claim. It writes its own search queries,
-                        reads what comes back and decides what's worth cutting.
+                        In auto mode I only write the claim. It comes up with its own search
+                        queries and decides what's worth cutting.
                     </p>
                     <p>
                         It searches the web, news and open-access journals through free sources
-                        with no keys, ranks results by how closely their best passage matches the
-                        claim, and reads the most promising. Every source then gets two scores
+                        that don't need keys, then reads the results whose best passage matches
+                        the claim most closely. Every source then gets two scores
                         from 1 to 5: does it argue the claim, and how far would a judge trust it?
                         Reference pages, glossaries, Wikipedia and homework sites always get a 1.
-                        Tabloids are capped at 2. <strong>A source that doesn't argue the claim
-                        is never cut.</strong>
+                        Tabloids are capped at 2. A source that doesn't argue the claim
+                        never gets cut.
                     </p>
                     <p>
                         Claims that link two things get split into parts first. "Arms to Ukraine
                         drain US stockpiles" and "those stockpiles are needed to deter China" are
                         separate, and a card that only shows one gets held back while it looks for
                         one that shows both. If three cards fail that check, it searches again,
-                        aiming the new queries at whatever's still missing. It'll return fewer
-                        cards before it returns bad ones.
+                        aiming the new queries at whatever's still missing. If that doesn't work
+                        either, it just returns fewer cards.
                     </p>
                     <p>
-                        One test run gives a sense of the funnel: <strong>64 results searched, 15
-                        articles read, 5 set aside</strong> for not arguing the claim, and 2 cards
-                        cut, in 26 minutes.
+                        In one test run it went through 64 search results and read 15 articles.
+                        5 were set aside for not arguing the claim, and it cut 2 cards, in 26
+                        minutes.
                     </p>
                 </div>
             </section>
@@ -389,13 +390,13 @@
 
                     <p>
                         Underlining now marks about as much as my team does, a median of 50 words
-                        a card on the test set, same as the human cuts. Highlighting stayed the gap.
+                        a card on the test set, same as the human cuts. Highlighting is still off.
                         On the test set the model highlighted about 34 words a card in about 6 runs
                         of 6 words. My team highlights about 21 words in 9 runs of 2.4.
                     </p>
                     <p>
                         The one thing that moved highlighting was letting the model think before
-                        answering: highlight F1 went from 36.4 to <strong>42.2</strong> on 10 dev
+                        answering: highlight F1 went from 36.4 to 42.2 on 10 dev
                         cards. It also took about 5× as long, 6.7 minutes a card instead of 1.3, so
                         it's a separate setting instead of the default.
                     </p>
@@ -420,8 +421,8 @@
                     </p>
                     <p>
                         The feedback on the first batch was that a lot of the cards were "way too
-                        short", some were "badly cut", and they boxed far too much. All three were
-                        true, and all three came from chasing F1. My team's files read pieces of
+                        short", some were "badly cut", and they boxed far too much. They were
+                        right, and it came from chasing F1. My team's files read pieces of
                         about two words and box about half of what's read. To score well against
                         that, the cutter learned to do the same, and the result was choppy.
                     </p>
@@ -446,9 +447,8 @@
                     </table>
 
                     <p>
-                        These cards match the readers and not the files, so on the eval they'd
-                        score worse. The old style is still one setting away for anyone who wants
-                        it. A later batch of 14 cards for 9 new claims came out the same shape:
+                        The new cards are further from my team's files, so they'd score worse on
+                        the eval. The old style is still there as a setting. A later batch of 14 cards for 9 new claims came out the same shape:
                         375-word cards, 57 words read, 4 boxed words, about 7% of what's read.
                     </p>
                 </div>
@@ -463,12 +463,26 @@
                         Most of the work after cutting is the cutter checking itself, so a weak
                         card arrives with a warning on it.
                     </p>
-                    <ul class="dlist">
-                        <li><strong>Read-back.</strong> A judge reads the highlighted words aloud against the claim and scores them for grammar, coherence and whether they prove the tag. Low scores and possible power-tags, where the tag says more than the card, get flagged.</li>
-                        <li><strong>Author's view.</strong> It reads the card against the whole article and asks whether the author endorses, qualifies or disputes the point. That catches cards that read a view the author only set up to knock down. The model has to quote the author's conclusion, and the quote only appears if it's in the article word for word. Auto mode never uses a card the author disputes.</li>
-                        <li><strong>Claim check.</strong> A card that drifts off the claim is dropped. One that only shows part of it is held back with a note saying which part is missing.</li>
-                        <li><strong>Exact text.</strong> The last gate from section 02. Nothing leaves without it.</li>
-                    </ul>
+                    <p>
+                        A read-back judge reads the highlighted words against the claim and scores
+                        them on whether they make sense out loud and whether they prove the tag.
+                        Low scores get flagged, and so do possible power-tags, where the tag says
+                        more than the card does.
+                    </p>
+                    <p>
+                        A second check reads the card against the whole article and asks whether
+                        the author agrees with the point, only partly agrees, or disputes it. That
+                        catches cards that read a view the author only brought up to argue
+                        against. The model has to quote the author's conclusion, and the quote is
+                        only shown if it's in the article word for word. Auto mode never uses a
+                        card the author disputes.
+                    </p>
+                    <p>
+                        A card that drifts off the claim is dropped, and one that only shows part
+                        of it is held back with a note saying which part is missing. After all of
+                        that, the exact-text check from section 02 runs on every card before it's
+                        exported.
+                    </p>
                     <p>
                         When I tested it on a weak source, a Wikipedia article saved as a
                         PDF for a claim the article barely makes, it cut both cards and flagged

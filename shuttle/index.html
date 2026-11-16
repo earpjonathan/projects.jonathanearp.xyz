@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Y.A.N.K — Jonathan Earp</title>
-    <meta name="description" content="A macOS daemon that unmounts a dock's SSD the moment the lid closes, plus an rsync cache that keeps NAS folders on that SSD. With the measurements: lid close to phone alert in 0.2 s, SSH ciphers on a DS220j, and a dock stuck at USB 2.0.">
+    <meta name="description" content="A macOS daemon that unmounts a dock's SSD the moment the lid closes, plus an rsync cache that keeps NAS folders on that SSD. Written up with the timings and transfer speeds I measured.">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="canonical" href="https://projects.jonathanearp.xyz/shuttle/">
@@ -15,14 +15,14 @@
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="Y.A.N.K — lid-close unmount and a NAS cache for a dock SSD">
-    <meta property="og:description" content="Two IOKit signals for one lid, a warning that beats diskutil by 15 seconds, and the cipher AES lost to.">
+    <meta property="og:description" content="A lid-close unmount daemon and an rsync cache for a dock SSD, with the numbers from my own setup.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/shuttle/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Y.A.N.K — lid-close unmount and a NAS cache">
-    <meta name="twitter:description" content="How it works, and what it measured.">
+    <meta name="twitter:description" content="Unmounting a dock SSD when the lid closes, and caching NAS folders on it.">
     <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta name="twitter:creator" content="@JonathanEarp_">
 
@@ -170,9 +170,9 @@
                         scrubbing through footage.
                     </p>
                     <p>
-                        <code>shuttle-ejectd</code> is about <strong>800 lines of Swift</strong> that
+                        <code>shuttle-ejectd</code> is about 800 lines of Swift that
                         talks to IOKit directly and runs as a LaunchAgent. <code>shuttle</code> is
-                        about <strong>1,000 lines of Python</strong> wrapped around rsync over SSH.
+                        about 1,000 lines of Python wrapped around rsync over SSH.
                         The NAS side needs nothing installed, just SSH and DSM's rsync service.
                         On the command line it's still called <code>shuttle</code>, which is
                         what it was called before it got a worse name.
@@ -222,7 +222,7 @@
                     <p>
                         A single lid close fires both signals. The first version de-duplicated
                         them with a time window, and an unmount can take longer than any window
-                        that makes sense, so <strong>every alert went out twice</strong>. The
+                        that makes sense, so every alert went out twice. The
                         guard is an in-progress flag now, plus a short debounce that starts when
                         the unmount finishes instead of when it starts.
                     </p>
@@ -252,14 +252,14 @@
                         diskutil is the authority on that, but it waits out each process that
                         refuses. A well-behaved one refuses in about 2 seconds. QuickTime Player
                         ignores the request and took 12. All told, the alert landed
-                        <strong>15 seconds after the lid closed</strong>.
+                        15 seconds after the lid closed.
                     </p>
 
                     <figure class="fig">
                         <div class="hbars" data-hbars='{"title": "Lid close to phone alert, QuickTime holding a file", "unit": "s", "rows": [{"k": "Wait for diskutil", "v": 15, "label": "~15 s"}, {"k": "Ask lsof first", "v": 0.2, "hi": true, "label": "~0.2 s"}]}'></div>
                         <figcaption>
-                            <strong>Now it asks lsof first</strong>, which answers in about 0.2 s,
-                            warns straight away and lets diskutil confirm afterwards. The alert
+                            Now it asks lsof first. lsof answers in about 0.2 s, so the warning
+                            goes out straight away and diskutil confirms afterwards. The alert
                             takes about another second to leave the machine.
                         </figcaption>
                     </figure>
@@ -342,9 +342,9 @@
 
                     <h3 class="block__sub">Leaving from clamshell mode</h3>
                     <p>
-                        Staying mounted leaves one gap. I finish, and unplug the dock without the
-                        Mac ever sleeping. Sleeping it first from the Apple menu covers that, and
-                        so does <code>shuttle eject</code>, which is worth putting on a hotkey. There's also
+                        Staying mounted leaves one gap: when I'm done, I can unplug the dock
+                        without the Mac ever going to sleep. Sleeping it first from the Apple menu
+                        covers that, and so does running <code>shuttle eject</code>. There's also
                         an idle watchdog that unmounts after a set number of minutes with no
                         keyboard or mouse input and remounts when input comes back. It's off by
                         default, because watching a long video counts as idle too.
@@ -358,14 +358,14 @@
                 <div class="block__body">
                     <h2 class="block__h">Pinning NAS folders</h2>
                     <p class="lede">
-                        The cache is explicit. I pin a folder, it gets copied onto the SSD, and
-                        nothing moves until I say so.
+                        The cache is manual. A folder only gets copied onto the SSD when I pin
+                        it.
                     </p>
                     <p>
                         A transparent, on-demand cache on macOS needs either macFUSE, a kernel
                         extension that means lowering the Mac's security settings, or a File
                         Provider extension, which is a whole app with special entitlements. For
-                        video work, pinning by hand gets the same result with neither.
+                        video work, pinning folders by hand is enough.
                     </p>
 
                     <div class="log">
@@ -378,8 +378,8 @@
 
                     <p>
                         It's rsync over SSH, because SMB is chatty and the NAS is usually on the far
-                        end of Tailscale. rsync streams, picks up interrupted transfers with
-                        <code>--partial</code>, and only moves what changed. The manifest of what's
+                        end of Tailscale. rsync resumes interrupted transfers with
+                        <code>--partial</code> and only sends what changed. The manifest of what's
                         pinned lives on the drive itself and is mirrored to the Mac, so
                         <code>shuttle status</code> still works with the dock unplugged.
                     </p>
@@ -387,8 +387,7 @@
                     <h3 class="block__sub">The error that looked like a password problem</h3>
                     <p>
                         Every transfer failed at first with a bare <code>Permission denied, please
-                        try again.</code> from the NAS, after SSH had already logged in fine. That
-                        reads exactly like an auth problem, and it isn't one.
+                        try again.</code> from the NAS, even though SSH had already logged in.
                     </p>
                     <p>
                         Synology ships its own patched, setuid-root <code>/usr/bin/rsync</code>,
@@ -414,7 +413,7 @@
                     </p>
                     <p>
                         Every byte of a pull goes through SSH encryption on a small ARM box, so I
-                        timed 150 MB pulls from the NAS with each cipher instead of guessing.
+                        timed a 150 MB pull from the NAS with each cipher.
                     </p>
 
                     <figure class="fig">
@@ -449,8 +448,8 @@
                     </p>
                     <p>
                         The catch is rsync's quick check. It compares size and modification time,
-                        and its protocol carries mtime in whole seconds. <strong>A file rewritten to
-                        the same size within the same second looks unchanged.</strong>
+                        and its protocol carries mtime in whole seconds. A file rewritten to
+                        the same size within the same second looks unchanged.
                     </p>
                     <p>
                         Checksumming everything closes that, but it reads every byte on both ends,
@@ -476,8 +475,8 @@
                     <p>
                         They run real rsync instead of fixtures, because the whole risk is whether
                         my reading of <code>--itemize-changes</code> matches what rsync actually
-                        prints. The same-second case is in there to show the gap exists, so nobody
-                        can quietly assume it away later.
+                        prints. The same-second test first checks that the quick check really
+                        does miss the change, then checks that stage two catches it.
                     </p>
                 </div>
             </section>
@@ -509,7 +508,7 @@
                         connected on any of the three Thunderbolt buses.
                     </p>
                     <p>
-                        That's the giveaway. A USB 3 hub always shows up as two device trees, a
+                        A USB 3 hub always shows up as two device trees, a
                         USB 2.0 one and a separate SuperSpeed one. Only the 2.0 tree exists here,
                         so the fast link isn't coming up at all. Reformatting the SSD to APFS
                         changed nothing (38.1 to 38.2 MB/s), which rules out the filesystem and the
@@ -518,8 +517,8 @@
                     <p>
                         The likeliest cause is the cable. USB-C charging cables only carry the
                         USB 2.0 pairs and look identical to full ones. A cable rated for 10 Gb/s
-                        should take the SSD to somewhere around 800 to 1,000 MB/s. That's an
-                        estimate from the spec, not a measurement, so <code>shuttle doctor</code>
+                        should take the SSD to somewhere around 800 to 1,000 MB/s. I got that
+                        number from the spec and haven't measured it. <code>shuttle doctor</code>
                         checks the link speed every time it runs.
                     </p>
                 </div>
@@ -535,7 +534,7 @@
                         <li><strong>Unplugging from clamshell mode isn't covered by default.</strong> If I never sleep the Mac and never run <code>shuttle eject</code>, the drive is still mounted when I pull it. The idle watchdog fixes that, and it's off.</li>
                         <li><strong>The cache is manual.</strong> There's no fetching on demand. If a project references a file I didn't pin, it reads from the NAS at NAS speed.</li>
                         <li><strong>The strongest check is slow.</strong> <code>unpin --checksum</code> reads every byte on both ends, so on a large pin it takes hours.</li>
-                        <li><strong>One dock, one NAS, one Mac.</strong> Nothing here has been tried on other hardware.</li>
+                        <li><strong>It's only been run on my setup.</strong> I haven't tried it with any other dock, NAS or Mac.</li>
                     </ul>
                 </div>
             </section>

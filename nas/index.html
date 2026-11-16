@@ -15,14 +15,14 @@
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="S.U.D.O — a gated LLM agent for a Synology NAS">
-    <meta property="og:description" content="The guards came before the model: a path allowlist, a command classifier, two tools instead of one, and what the audit log says after 328 commands.">
+    <meta property="og:description" content="An LLM agent that runs commands on my Synology NAS over SSH. The safety checks were built before the model got any tools.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/nas/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="S.U.D.O — a gated LLM agent for a Synology NAS">
-    <meta name="twitter:description" content="How the guards work, and what they caught.">
+    <meta name="twitter:description" content="An LLM agent for a Synology NAS, and ten weeks of its audit log.">
     <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta name="twitter:creator" content="@JonathanEarp_">
 
@@ -157,23 +157,24 @@
                 <div class="block__body">
                     <h2 class="block__h">What it does</h2>
                     <p class="lede">
-                        Claude Code, scoped to one NAS. I ask for something, the agent works out
-                        the commands, and it runs them on my Synology over SSH.
+                        Claude Code, scoped to one NAS. I ask for something and the agent works
+                        out the commands and runs them on my Synology over SSH.
                     </p>
                     <p>
-                        It's named after the one command it will never run, whoever approves it.
+                        The name comes from <code>sudo</code>, which is on the list of commands it
+                        refuses even if I approve them.
                     </p>
                     <p>
-                        There are two ways in, and both sit on the same safety core: the same path
-                        check, the same command classifier, the same hard-deny list and the same
-                        audit log. The default is an MCP server that plugs into Claude Code, so it
+                        There are two ways in, and both go through the same path check,
+                        classifier, hard-deny list and audit log. The default is an MCP server
+                        that plugs into Claude Code, so it
                         runs on the Claude plan I already pay for and uses Claude Code's own
                         permission prompts. The other is a local web page with its own approval
                         cards, which needs an API key.
                     </p>
 
                     <table class="dtable">
-                        <caption>Two front ends, one safety core</caption>
+                        <caption>The two front ends</caption>
                         <thead><tr><th>Front end</th><th>Billing</th><th>Approvals</th></tr></thead>
                         <tbody>
                             <tr class="is-key"><td>MCP server <span class="tag">default</span></td><td>My existing Claude plan</td><td>Claude Code's permission prompts</td></tr>
@@ -202,7 +203,7 @@
                     </p>
                     <p>
                         It's an ARMv8 chip with a BusyBox userland, no Docker, and no guarantee
-                        Python is there. So <strong>nothing gets installed on the NAS</strong>. The
+                        Python is there. So nothing gets installed on the NAS. The
                         agent runs entirely on the Mac, and every action is either a command over
                         SSH or a file moved over SFTP.
                     </p>
@@ -210,11 +211,11 @@
                         The memory rules live in the transport, so the model can't forget them.
                         Any command with a timeout over 30 seconds gets rewritten into a
                         background job that writes to a log file, and the Mac tails that log over
-                        SFTP. No pipe stays open and no giant file list sits in the NAS's memory.
-                        Only one remote command runs at a time, and a lock enforces it.
+                        SFTP, so nothing holds a pipe open or keeps a huge file list in the NAS's
+                        memory. A lock makes sure only one remote command runs at a time.
                     </p>
                     <p>
-                        The system prompt is built from measurements. <code>nas-agent probe</code>
+                        The system prompt is built from what the NAS reports. <code>nas-agent probe</code>
                         connects once and checks what the NAS can actually do, most importantly
                         whether <code>python3</code> exists. That decides whether the scripts the
                         agent writes use a fast hashing path or fall back to plain POSIX
@@ -229,8 +230,8 @@
                 <div class="block__body">
                     <h2 class="block__h">Guards first</h2>
                     <p class="lede">
-                        The NAS can be broken. So the path check, the classifier and the approval
-                        gate were built and tested before any model got a single tool.
+                        A bad command can break the NAS, so the path check, the classifier and the
+                        approval gate were built and tested before any model got a tool.
                     </p>
                     <p>
                         DSM owns <code>/etc</code>, <code>/usr</code>, <code>/var/packages</code> and
@@ -242,9 +243,9 @@
                         checked again, so a symlink inside an allowed folder can't point out of it.
                     </p>
                     <p>
-                        Both checks run against one shared adversarial corpus:
-                        <strong>24 path cases and 46 command cases</strong>, each with a note saying
-                        why the expected answer is what it is.
+                        Both checks are tested against one shared set of hostile inputs, 24 path
+                        cases and 46 command cases, each with a note saying why the expected
+                        answer is what it is.
                     </p>
 
                     <h3 class="block__sub">Inputs that look like attacks and aren't</h3>
@@ -252,9 +253,8 @@
                         A few cases are marked allowed on purpose. <code>%2e%2e%2f</code>,
                         backslashes and fullwidth lookalike slashes are legal characters in a Linux
                         filename. They can't climb out of a folder, and <code>normpath</code> leaves
-                        them alone. Blocking them would make the test suite look stricter without
-                        making anything safer, and the note on each is there so nobody "fixes"
-                        the expectation later.
+                        them alone. Blocking them wouldn't make anything safer. The note on each
+                        one says so, so I don't "fix" the expected answer later.
                     </p>
                 </div>
             </section>
@@ -364,9 +364,8 @@
                         never ran. Between 4 August and 19 October it logged 328 commands.
                     </p>
                     <p>
-                        A lot of that was the agent auditing the NAS itself: hunting duplicates,
-                        building a manifest of what's on it, and checking old zip archives. Here's
-                        how the commands broke down.
+                        A lot of it was the agent cataloguing the NAS and looking for duplicate
+                        files and old zip archives. Here's how the commands broke down.
                     </p>
 
                     <figure class="fig">
@@ -382,9 +381,9 @@
                         Just over half ran with no prompt. Most of the dangerous verdicts weren't
                         scary at all. The top reasons were <code>python3</code> (46), which the
                         classifier doesn't know as read or write, output redirects (36), and
-                        <code>sleep</code> (21), which shows up in polling loops. That's
-                        escalate-on-doubt doing exactly what it says, and it's why
-                        <strong>98 commands went through an approval</strong> in ten weeks.
+                        <code>sleep</code> (21), which shows up in polling loops. Anything the
+                        classifier isn't sure about counts as dangerous, so 98 commands needed an
+                        approval in ten weeks.
                     </p>
                     <p>
                         Most of the 17 refusals were about paths: the agent reaching for one of
@@ -416,7 +415,7 @@
                     <p>
                         The app detects this when it connects and translates, so everything I
                         type and everything in the audit log stays in the
-                        <code>/volume1/…</code> form. One side effect shows through. With admin
+                        <code>/volume1/…</code> form. It still causes one problem. With admin
                         mode on, <code>run_command</code> can read and edit DSM config like
                         <code>/etc/nginx/…</code>, because commands aren't chrooted. The file tools
                         can't see those paths at all, because the chroot hides them. For DSM
@@ -438,9 +437,9 @@
                     <ul class="dlist">
                         <li><strong>Emptying a whole share is one approval away.</strong> <code>sh -c 'rm -rf /volume1/photos'</code> comes back dangerous, with a reason that says it would empty the share, but it can be approved. Only things like <code>rm -rf /</code>, <code>dd</code> to a device and <code>sudo</code> are refused outright. That's why the setup notes say to give it a non-admin DSM account, so DSM's own permissions are the outer guard.</li>
                         <li><strong>Admin mode edits can vanish.</strong> DSM rewrites its own config on updates, so anything changed under <code>/etc</code> can silently revert, or leave a service that won't start.</li>
-                        <li><strong>The classifier only knows what it knows.</strong> Anything unfamiliar is dangerous and asks. That's safe, and it's noisy: 98 approvals in ten weeks, mostly for harmless things.</li>
+                        <li><strong>Unfamiliar commands always ask.</strong> Anything the classifier doesn't recognise counts as dangerous. That's the safe default, but it meant 98 approvals in ten weeks, mostly for harmless things.</li>
                         <li><strong>The web UI costs money.</strong> The free route only works inside Claude Code.</li>
-                        <li><strong>One NAS.</strong> It's built and tested against a DS220j on DSM 7.2. Other models will have their own quirks.</li>
+                        <li><strong>It's only been run on one NAS.</strong> It's built and tested against a DS220j on DSM 7.2. Other models will have their own quirks.</li>
                     </ul>
                 </div>
             </section>

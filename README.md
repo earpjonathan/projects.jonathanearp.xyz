@@ -4,7 +4,7 @@ Side-projects section of [jonathanearp.xyz](https://jonathanearp.xyz). Static, n
 build step, no dependencies. Deployed with GitHub Pages exactly like the other
 three sites.
 
-Five projects so far, each named for what it actually does:
+Five projects so far, each with a backronym for a name:
 **P.E.T.E.R** (pipeline for edge tracing and expression rendering), which renders
 video clips as Desmos graphing-calculator animations, and **S.P.L.O.O.G.E**
 (structure-from-motion, poses, levelling, optimisation, orientation,

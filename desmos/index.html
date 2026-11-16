@@ -662,7 +662,7 @@
                         inside a workbook, then puts it in the same 9:16 layout as the Desmos reels,
                         real Excel on top and the clip underneath. The whole image pipeline is
                         decode, crop, shrink to the cell grid, cut down to a fixed palette, and
-                        write the workbook. About <strong>1,300 lines of Python</strong>, in
+                        write the workbook. It's about 1,300 lines of Python, in
                         <a href="https://github.com/earpjonathan/vid2excel" target="_blank" rel="noopener">its own repo</a>.
                     </p>
                     <p>
@@ -670,7 +670,7 @@
                         pixel, and each one holds a formula that looks up its own colour index.
                         <code>Data</code> has a row per cell and a column per distinct frame.
                         <code>Map</code> says which column draws each frame. Type a frame number into
-                        <code>A1</code> and <strong>8,160 formulas</strong> recalculate.
+                        <code>A1</code> and all 8,160 formulas recalculate.
                     </p>
                     <p>
                         A formula can't set a fill colour, so the colour comes from conditional
@@ -684,7 +684,7 @@
                         Excel measures column width in characters and row height in points. The
                         documented conversion between them (ECMA-376 18.3.1.13) is a Windows
                         96-dpi convention, and on my Mac it gave 9 by 12 pt cells, a picture
-                        <strong>stretched 33% tall</strong>. So I wrote known widths into a sheet
+                        stretched 33% tall. So I wrote known widths into a sheet
                         and measured what Excel drew.
                     </p>
 
@@ -727,9 +727,9 @@
                     <p>
                         I kept 32 colours anyway. The capture waits for every frame, so rule count
                         doesn't change the reel at all, and someone scrubbing the file by hand only
-                        loses the difference between 6.5 and 7.4 fps. What 32 buys is the
-                        picture. Mean error drops from 9.30 to 6.66 out of 255, and at 16 colours
-                        <strong>Peter loses his eyes and mouth</strong> to his skin tone.
+                        loses the difference between 6.5 and 7.4 fps. The extra colours make the
+                        picture better. Mean error drops from 9.30 to 6.66 out of 255, and at 16
+                        colours Peter loses his eyes and mouth to his skin tone.
                     </p>
 
                     <h3 class="block__sub">One palette for the whole clip</h3>
@@ -760,19 +760,19 @@
                     <h3 class="block__sub">The screenshot bug, again</h3>
                     <p>
                         Section 04's bug was screenshotting before the graph finished drawing.
-                        Excel has the same trap with a twist: a window that hasn't repainted yet is
-                        perfectly still, so "wait until it's stable" passes instantly. The capture
+                        Excel has the same problem, and it's harder to catch: a window that hasn't
+                        repainted yet is perfectly still, so "wait until it's stable" passes
+                        instantly. The capture
                         waits for the pixels to <em>change</em> from a snapshot taken before the
                         update, and only then waits for them to settle. The 11-second test reel came
-                        out at 166 frames, 655 ms a frame, <strong>zero missed</strong>.
+                        out at 166 frames, 655 ms a frame, with none missed.
                     </p>
                     <p>
-                        Two other things that cost real time. macOS's <code>screencapture</code>
+                        Two other things cost me a lot of time. macOS's <code>screencapture</code>
                         won't write a file whose name starts with a dot, and it exits 0 anyway,
-                        which looks exactly like a missing Screen Recording permission. And Excel's
-                        first scripted document command after launch takes about 108 seconds at 0%
-                        CPU with no dialog, which looks exactly like a hang. Every command after
-                        that takes about 0.1 s.
+                        which looks like a missing Screen Recording permission. And the first
+                        scripted document command after Excel launches takes about 108 seconds at
+                        0% CPU with no dialog. Every command after that takes about 0.1 s.
                     </p>
                 </div>
             </section>

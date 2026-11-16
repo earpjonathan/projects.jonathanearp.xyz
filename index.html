@@ -192,10 +192,10 @@
                         <h2 class="prow__title">S.H.R.E.D</h2>
                         <p class="prow__desc">
                             Cuts debate evidence cards with a language model running on my laptop.
-                            Give it a claim and it searches, keeps the sources that actually argue
-                            it, and marks up each card by picking word indices, so it can't misquote
-                            anything. Scored against 970 cards my team cut by hand, then re-tuned
-                            when the people reading the cards disagreed with the score.
+                            Give it a claim and it finds sources that argue it, then marks up each
+                            card by picking word indices, so it can't misquote anything. I scored
+                            it against 970 cards my team cut by hand, then re-tuned it when the
+                            people reading the cards disagreed with the score.
                         </p>
                         <div class="prow__tags">
                             <span>Python</span><span>Ollama</span><span>LLM eval</span>
@@ -215,11 +215,10 @@
                     <div>
                         <h2 class="prow__title">Y.A.N.K</h2>
                         <p class="prow__desc">
-                            A macOS daemon that unmounts my dock's SSD the moment the lid closes, and
+                            A macOS daemon that unmounts my dock's SSD the moment the lid closes and
                             warns my phone if something still has a file open, plus an rsync cache
-                            that keeps NAS folders on that SSD. It tells clamshell mode apart from
-                            leaving, won't delete anything the NAS hasn't verified, and found out
-                            the dock was running at USB 2.0.
+                            that keeps NAS folders on that SSD. Measuring it is how I found out the
+                            dock was running at USB 2.0.
                         </p>
                         <div class="prow__tags">
                             <span>Swift</span><span>IOKit</span><span>Python</span>
@@ -239,11 +238,10 @@
                     <div>
                         <h2 class="prow__title">S.U.D.O</h2>
                         <p class="prow__desc">
-                            An LLM agent for my Synology NAS. I ask in plain English, it runs
-                            commands over SSH, and anything that changes a file waits for approval.
-                            The path check, command classifier and approval gate were built and
-                            tested before the model got a single tool. You can try the classifier
-                            on the page.
+                            An LLM agent for my Synology NAS. I ask in plain English and it runs
+                            commands over SSH, but anything that changes a file waits for my
+                            approval. The safety checks were built and tested before the model got
+                            any tools, and you can try the command classifier on the page.
                         </p>
                         <div class="prow__tags">
                             <span>Python</span><span>MCP</span><span>Claude Code</span>

@@ -490,19 +490,17 @@
   var VERSIONS = [
     {
       tag: "v0", name: "First one that worked",
-      blurb: "Serial screenshots, settle threshold of 2, harvest that quietly threw away " +
-             "every Short, and two channel handles I had guessed at instead of checking.",
+      blurb: "Serial screenshots, a settle threshold of 2, and two channel handles I had " +
+             "guessed at instead of checking.",
       bars: [["Render, 13.8 s clip", 171.6, 171.6, "s"],
-             ["Frames matching converged output", 1, 40, "of 40"],
-             ["Candidates per harvest run", 81, 120, ""]]
+             ["Frames matching converged output", 1, 40, "of 40"]]
     },
     {
       tag: "v1", name: "Parallel capture",
       blurb: "Profiled it expecting the tracer to be the problem. The tracer was 4%. " +
              "Screenshotting was 94%, one frame at a time in a single browser page.",
       bars: [["Render, 13.8 s clip", 110.4, 171.6, "s"],
-             ["Frames matching converged output", 1, 40, "of 40"],
-             ["Candidates per harvest run", 81, 120, ""]]
+             ["Frames matching converged output", 1, 40, "of 40"]]
     },
     {
       tag: "v2", name: "Settle fix",
@@ -510,25 +508,22 @@
              "Serial was the broken one. It had been screenshotting half-finished frames " +
              "for months, perfectly consistently.",
       bars: [["Render, 13.8 s clip", 110.4, 171.6, "s"],
-             ["Frames matching converged output", 40, 40, "of 40"],
-             ["Candidates per harvest run", 81, 120, ""]]
+             ["Frames matching converged output", 40, 40, "of 40"]]
     },
     {
-      tag: "v3", name: "Shorts harvest",
-      blurb: "yt-dlp reports no duration for Shorts, and my length filter dropped anything " +
-             "without one. Shorts are under 60 s by definition, which is exactly what I was " +
-             "looking for.",
+      tag: "v3", name: "Shorts mistake",
+      blurb: "My length filter was dropping every Short, so I let them through and the " +
+             "candidate pool went from 81 to 120. But Shorts are portrait, and three reached " +
+             "the channel as unreadable slivers before I noticed. Clips now have to be landscape.",
       bars: [["Render, 13.8 s clip", 110.4, 171.6, "s"],
-             ["Frames matching converged output", 40, 40, "of 40"],
-             ["Candidates per harvest run", 120, 120, ""]]
+             ["Frames matching converged output", 40, 40, "of 40"]]
     },
     {
       tag: "v4", name: "Dialogue linking",
       blurb: "Performance data was keyed by Instagram's re-encoded copy, source data by render " +
              "tag, and nothing joined them. Matching on transcript overlap finally linked them up.",
       bars: [["Render, 13.8 s clip", 110.4, 171.6, "s"],
-             ["Frames matching converged output", 40, 40, "of 40"],
-             ["Candidates per harvest run", 120, 120, ""]],
+             ["Frames matching converged output", 40, 40, "of 40"]],
       extra: ["Posts linked to their source", "56 of 68", "was 26 of 68"]
     }
   ];
@@ -549,7 +544,7 @@
       barWrap.innerHTML = v.bars.map(function (b) {
         var label = b[0], val = b[1], max = b[2], unit = b[3];
         var pct = Math.max(2, (val / max) * 100);
-        /* lower is better for render time; higher is better for the other two */
+        /* lower is better for render time; higher is better for the frame match */
         var good = label.indexOf("Render") === 0 ? val <= max * 0.7 : val >= max;
         return '<div class="tl__bar">' +
                  '<span class="tl__bl">' + label + '</span>' +

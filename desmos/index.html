@@ -503,7 +503,7 @@
                             <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v0</span><span class="tl__vn">First one that worked</span></button>
                             <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v1</span><span class="tl__vn">Parallel capture</span></button>
                             <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v2</span><span class="tl__vn">Settle fix</span></button>
-                            <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v3</span><span class="tl__vn">Shorts harvest</span></button>
+                            <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v3</span><span class="tl__vn">Shorts mistake</span></button>
                             <button class="tl__step" data-v role="tab" type="button"><span class="tl__vt">v4</span><span class="tl__vn">Dialogue linking</span></button>
                         </div>
                         <div class="tl__name" data-read="vname"></div>
@@ -530,7 +530,7 @@
                         rendering, and that half had its own set of problems.
                     </p>
 
-                    <h3 class="block__sub">Shorts were invisible</h3>
+                    <h3 class="block__sub">The Shorts fix that backfired</h3>
                     <p>
                         <code>yt-dlp --flat-playlist</code> reports <code>duration: None</code> for
                         every single YouTube Short. My length filter read:
@@ -538,14 +538,23 @@
                     <p><code>if not vid or not dur: continue</code></p>
                     <p>
                         which threw away 100% of them. Shorts are under 60 seconds by definition and I
-                        was searching for 8 to 45, so my best source was being dropped entirely while the
-                        log printed <code>40 results, 0 in band</code>, which looks exactly like a source
-                        with nothing good in it.
+                        was searching for 8 to 45, so they looked like my best source, and they were
+                        being dropped while the log printed <code>40 results, 0 in band</code>, which
+                        looks exactly like a source with nothing good in it.
                     </p>
                     <p>
-                        Fixed by letting unknown-duration entries through to the full metadata fetch.
-                        The candidate pool went from 81 to 120 per run, and the first run
-                        after the fix pulled back 46 Shorts.
+                        I let unknown-duration entries through to the full metadata fetch, and the
+                        candidate pool went from 81 to 120 per run, with 46 Shorts on the first run.
+                        That looked like a clear win, but Shorts are portrait. A portrait clip renders
+                        as a tall sliver in the top half of the reel, with line art you can't read, and
+                        three of them reached the channel before I noticed. When I checked afterwards,
+                        20 of 20 Shorts from one channel were 608×1080.
+                    </p>
+                    <p>
+                        Now every clip has to be landscape, with an aspect ratio of at least 1.2,
+                        checked on the metadata and again on the downloaded file, so those Shorts all
+                        get rejected. The pool grew, but the usable pool didn't. There had been a
+                        minimum-width check the whole time, and a 608×1080 Short passes it easily.
                     </p>
 
                     <h3 class="block__sub">Nothing joined to anything</h3>
@@ -637,7 +646,7 @@
                     </p>
 
                     <div class="callout">
-                        So it doesn't forecast anything. It filters on length, on
+                        So it doesn't forecast anything. It filters on length, on shape, on
                         whether I can caption it, and on whether I've already seen it, which is where
                         the real work turned out to be. It records one guess, how many views the
                         original uploader got, labelled as an <em>untested hypothesis</em> with the test

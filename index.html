@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jonathan Earp — Projects</title>
-    <meta name="description" content="Side projects by Jonathan Earp, built end to end and written up with their measurements: a video-to-Desmos pipeline, a 3D drone reconstruction, two NAS tools and a debate-evidence cutter.">
+    <meta name="description" content="Side projects by Jonathan Earp, written up with the numbers I measured: a 3D reconstruction from drone footage, a video-to-Desmos pipeline, a debate-evidence cutter and two NAS tools.">
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="canonical" href="https://projects.jonathanearp.xyz/">
@@ -16,7 +16,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="Jonathan Earp — Projects">
-    <meta property="og:description" content="Small systems built end to end, starting with a pipeline that turns video into Desmos animation.">
+    <meta property="og:description" content="Side projects I've built and written up, with the numbers I measured.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
@@ -25,7 +25,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Jonathan Earp — Projects">
-    <meta name="twitter:description" content="Small systems built end to end, with the methods and results written up.">
+    <meta name="twitter:description" content="Side projects I've built, with how they work and what I measured.">
     <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta name="twitter:creator" content="@JonathanEarp_">
 
@@ -36,10 +36,22 @@
       "@id": "https://projects.jonathanearp.xyz/#page",
       "url": "https://projects.jonathanearp.xyz/",
       "name": "Jonathan Earp — Projects",
-      "description": "Side projects built end to end, with the methods and results written up.",
+      "description": "Side projects I've built and written up, with the numbers I measured.",
       "isPartOf": { "@type": "WebSite", "@id": "https://jonathanearp.xyz/#website" },
       "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
       "hasPart": [
+        {
+          "@type": "CreativeWork",
+          "name": "S.P.L.O.O.G.E",
+          "url": "https://projects.jonathanearp.xyz/splat/",
+          "description": "Two FPV drone flights over two sites, six days apart, rebuilt as one 3D Gaussian splatting scene and flown back through in the browser."
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "P.E.T.E.R",
+          "url": "https://projects.jonathanearp.xyz/desmos/",
+          "description": "An automated pipeline that turns TV clips into Desmos graphing-calculator animations and publishes them."
+        },
         {
           "@type": "CreativeWork",
           "name": "S.H.R.E.D",
@@ -57,18 +69,6 @@
           "name": "S.U.D.O",
           "url": "https://projects.jonathanearp.xyz/nas/",
           "description": "An LLM agent that operates a Synology NAS over SSH behind a path allowlist, a command classifier and an approval gate."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "S.P.L.O.O.G.E",
-          "url": "https://projects.jonathanearp.xyz/splat/",
-          "description": "Two FPV drone flights over two sites, six days apart, rebuilt as one 3D Gaussian splatting scene and flown back through in the browser."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "P.E.T.E.R",
-          "url": "https://projects.jonathanearp.xyz/desmos/",
-          "description": "An automated pipeline that turns TV clips into Desmos graphing-calculator animations and publishes them."
         }
       ]
     }
@@ -161,7 +161,7 @@
                 </div>
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Focus</span>
-                    <span class="metastrip__v">Pipelines · Tools · Measurement</span>
+                    <span class="metastrip__v">3D · Video · Debate · NAS</span>
                 </div>
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Written in</span>
@@ -181,13 +181,64 @@
             <div class="shead" data-reveal>
                 <span class="shead__no">01</span>
                 <span class="shead__title">Selected Projects</span>
-                <span class="shead__meta">Newest first</span>
+                <span class="shead__meta">Main projects first</span>
             </div>
 
             <div class="plist">
 
+                <a class="prow" href="splat/" data-reveal>
+                    <span class="prow__no">01</span>
+                    <div>
+                        <h2 class="prow__title">S.P.L.O.O.G.E</h2>
+                        <p class="prow__desc">
+                            Two drone flights over two spots, six days apart, rebuilt into one
+                            photorealistic 3D reconstruction you can then fly back through in a
+                            browser, next to the footage it came from. COLMAP for the camera solve,
+                            a Rust and WebGPU trainer for the Gaussians, WebGL for playback. The
+                            write-up is laid out like a paper. The ground going see-through turned
+                            out to be one line in the renderer, after I'd spent a week measuring it
+                            as a training problem.
+                        </p>
+                        <div class="prow__tags">
+                            <span>3DGS</span><span>COLMAP</span><span>Rust</span>
+                            <span>WebGPU</span><span>WebGL</span><span>Python</span>
+                        </div>
+                    </div>
+                    <div class="prow__stats">
+                        <div class="prow__stat"><b>7,470</b><span>Frames registered<br>of 7,471</span></div>
+                        <div class="prow__stat"><b>3.36M</b><span>Triangulated<br>3D points</span></div>
+                        <div class="prow__stat"><b>11.6×</b><span>Fewer ground holes<br>after one line</span></div>
+                    </div>
+                    <span class="prow__go" aria-hidden="true">↗</span>
+                </a>
+
+                <a class="prow" href="desmos/" data-reveal>
+                    <span class="prow__no">02</span>
+                    <div>
+                        <h2 class="prow__title">P.E.T.E.R</h2>
+                        <p class="prow__desc">
+                            One command goes and finds a TV clip, works out which episode it's
+                            from, traces it to line art, rebuilds it as parametric expressions
+                            inside a Desmos graphing calculator, screenshots it frame by frame and
+                            posts the finished video. About 4,100 lines of Python, no framework.
+                            In the write-up you can push the tracer and the expression trick around
+                            yourself. There's a colour version that runs inside Excel too.
+                        </p>
+                        <div class="prow__tags">
+                            <span>Python</span><span>OpenCV</span><span>Playwright</span>
+                            <span>Whisper</span><span>ffmpeg</span><span>Automation</span>
+                        </div>
+                    </div>
+                    <div class="prow__stats">
+                        <div class="prow__stat"><b data-dg="total_watch_hours">12,940</b><span>Hours watched<br>in <span data-dg="window_days">8</span> days</span></div>
+                        <div class="prow__stat"><b data-dg="plays_m">4.4M</b><span>Plays</span></div>
+                        <div class="prow__stat"><b>1.55×</b><span>Faster after<br>the render fix</span></div>
+                    </div>
+                    <span class="prow__go" aria-hidden="true">↗</span>
+                </a>
+
                 <a class="prow" href="cards/" data-reveal>
-                    <span class="prow__no">05</span>
+                    <span class="prow__no">03</span>
                     <div>
                         <h2 class="prow__title">S.H.R.E.D</h2>
                         <p class="prow__desc">
@@ -234,7 +285,7 @@
                 </a>
 
                 <a class="prow" href="nas/" data-reveal>
-                    <span class="prow__no">03</span>
+                    <span class="prow__no">05</span>
                     <div>
                         <h2 class="prow__title">S.U.D.O</h2>
                         <p class="prow__desc">
@@ -252,57 +303,6 @@
                         <div class="prow__stat"><b>328</b><span>Commands run<br>on the NAS</span></div>
                         <div class="prow__stat"><b>17</b><span>Refused<br>outright</span></div>
                         <div class="prow__stat"><b>293</b><span>Tests,<br>all offline</span></div>
-                    </div>
-                    <span class="prow__go" aria-hidden="true">↗</span>
-                </a>
-
-                <a class="prow" href="splat/" data-reveal>
-                    <span class="prow__no">02</span>
-                    <div>
-                        <h2 class="prow__title">S.P.L.O.O.G.E</h2>
-                        <p class="prow__desc">
-                            Two drone flights over two spots, six days apart, rebuilt into one
-                            photorealistic 3D reconstruction you can then fly back through in a
-                            browser, next to the footage it came from. COLMAP for the camera solve,
-                            a Rust and WebGPU trainer for the Gaussians, WebGL for playback. The
-                            write-up is laid out like a paper. The ground going see-through turned
-                            out to be one line in the renderer, after I'd spent a week measuring it
-                            as a training problem.
-                        </p>
-                        <div class="prow__tags">
-                            <span>3DGS</span><span>COLMAP</span><span>Rust</span>
-                            <span>WebGPU</span><span>WebGL</span><span>Python</span>
-                        </div>
-                    </div>
-                    <div class="prow__stats">
-                        <div class="prow__stat"><b>7,470</b><span>Frames registered<br>of 7,471</span></div>
-                        <div class="prow__stat"><b>3.36M</b><span>Triangulated<br>3D points</span></div>
-                        <div class="prow__stat"><b>11.6×</b><span>Fewer ground holes<br>after one line</span></div>
-                    </div>
-                    <span class="prow__go" aria-hidden="true">↗</span>
-                </a>
-
-                <a class="prow" href="desmos/" data-reveal>
-                    <span class="prow__no">01</span>
-                    <div>
-                        <h2 class="prow__title">P.E.T.E.R</h2>
-                        <p class="prow__desc">
-                            One command goes and finds a TV clip, works out which episode it's
-                            from, traces it to line art, rebuilds it as parametric expressions
-                            inside a Desmos graphing calculator, screenshots it frame by frame and
-                            posts the finished video. About 4,100 lines of Python, no framework.
-                            In the write-up you can push the tracer and the expression trick around
-                            yourself. There's a colour version that runs inside Excel too.
-                        </p>
-                        <div class="prow__tags">
-                            <span>Python</span><span>OpenCV</span><span>Playwright</span>
-                            <span>Whisper</span><span>ffmpeg</span><span>Automation</span>
-                        </div>
-                    </div>
-                    <div class="prow__stats">
-                        <div class="prow__stat"><b data-dg="total_watch_hours">12,940</b><span>Hours watched<br>in <span data-dg="window_days">8</span> days</span></div>
-                        <div class="prow__stat"><b data-dg="plays_m">4.4M</b><span>Plays</span></div>
-                        <div class="prow__stat"><b>1.55×</b><span>Faster after<br>the render fix</span></div>
                     </div>
                     <span class="prow__go" aria-hidden="true">↗</span>
                 </a>
@@ -341,7 +341,7 @@
             </div>
             <div class="foot__bar">
                 <span>© <span id="year">2026</span> Jonathan Earp</span>
-                <span>Projects · Pipelines · Measurement</span>
+                <span>5 projects so far</span>
             </div>
         </div>
     </footer>

@@ -461,7 +461,7 @@
         ? "Settled at <b>" + Math.round(capturedAt) + " ms</b>, after the update finished. " +
           "This frame is right."
         : "Settled at <b>" + Math.round(capturedAt) + " ms</b>, in the middle of the stall. " +
-          "Grid and axes are drawn, the character is not. <b>This is the frame that ships.</b>";
+          "Grid and axes are drawn, but the character isn't. This is the frame that ends up in the video.";
       host.classList.toggle("is-bad", !complete);
 
       if (reduce) { paint(lctx, TOTAL, live.width, live.height); return; }
@@ -525,7 +525,7 @@
     {
       tag: "v4", name: "Dialogue linking",
       blurb: "Performance data was keyed by Instagram's re-encoded copy, source data by render " +
-             "tag, and nothing joined them. Matching on transcript overlap finally closed the loop.",
+             "tag, and nothing joined them. Matching on transcript overlap finally linked them up.",
       bars: [["Render, 13.8 s clip", 110.4, 171.6, "s"],
              ["Frames matching converged output", 40, 40, "of 40"],
              ["Candidates per harvest run", 120, 120, ""]],

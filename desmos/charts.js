@@ -80,7 +80,7 @@
       s += rect(m.l + 58, y, gw, 20, g.cls);
       s += text(m.l + 58 + gw + 8, y + 15, g.v + " s", "c-t--fg c-t--n", "start");
     });
-    s += text(m.l, y2 + 78, "1.55× faster — 486 ms → 318 ms per frame", "c-t--acc", "start");
+    s += text(m.l, y2 + 78, "1.55× faster: 486 ms → 318 ms per frame", "c-t--acc", "start");
 
     return svg(w, h, s);
   }

@@ -225,7 +225,7 @@
             swapping = false;
           }).catch(function (e) {
             bar.hidden = true;
-            noteEl.textContent = "That asset did not load — " + e.message + ".";
+            noteEl.textContent = "That asset did not load: " + e.message + ".";
             assetBox.querySelectorAll(".sbtn").forEach(function (o) { o.disabled = false; });
             swapping = false;
           });
@@ -267,7 +267,7 @@
           flyBtn.classList.remove("is-on");
         });
       }).catch(function (e) {
-        fail("The live renderer could not start — " + e.message + ".");
+        fail("The live renderer could not start: " + e.message + ".");
       });
     });
 

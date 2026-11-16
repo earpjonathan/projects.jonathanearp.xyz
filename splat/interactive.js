@@ -561,7 +561,7 @@
       out.holes.textContent = d.holes[key(z)].toFixed(1) + "%";
       out.op.textContent = d.opacity[key(z)].toFixed(3);
       out.shotcap.textContent = d.name + " · znear " + z +
-        (z === 0.2 ? " — the value that shipped" : "");
+        (z === 0.2 ? ", the value that shipped" : "");
       var shipped = d.holes["0.2"], best = d.holes["0.01"];
       out.note.textContent = shipped < 1
         ? "This pose barely notices, even though the shipped near plane removes " +
@@ -850,8 +850,8 @@
       "A registered frame at the drone's own altitude, rendered from its own recorded pose. Every view above this one was built out of thousands of frames like it.",
       "Above the crest. The trail the drone was following reads as a line, and the first streets appear past it.",
       "The crest of the hill end to end, the neighbourhood along one side, and still a horizon at the top of the frame.",
-      "The hillside and the roads under it. What is left of the sky is a band across the top; two rungs up there is none.",
-      "Both flanks of the ridge at once, which no single frame in the capture contains. The near side was flown; the far side was seen across the valley.",
+      "The hillside and the roads under it. What is left of the sky is a band across the top, and two rungs up there is none.",
+      "Both flanks of the ridge at once, which no single frame in the capture contains. The near side was flown, and the far side was seen across the valley.",
       "Close to straight down. Individual houses, driveways and the whole trail network are still resolved.",
       "5.8 units across, from about nineteen times the height the drone was flying at. The flown area is 4.4 by 8.0, so this holds all of it one way and most of it the other."
     ];

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P.E.T.E.R — Jonathan Earp</title>
-    <meta name="description" content="How I built a pipeline that turns TV clips into Desmos graphing-calculator animations — tracing, chunk-gated expressions, the screenshot bug that shipped for months, and what the numbers say.">
+    <meta name="description" content="How I built a pipeline that turns TV clips into Desmos graphing-calculator animations, and the screenshot bug that went unnoticed for months.">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="canonical" href="https://projects.jonathanearp.xyz/desmos/">
@@ -15,14 +15,14 @@
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Jonathan Earp">
     <meta property="og:title" content="P.E.T.E.R — an automated video-to-Desmos pipeline">
-    <meta property="og:description" content="Tracing, chunk-gated expressions, a screenshot bug that shipped for months, and what it cost to fix.">
+    <meta property="og:description" content="A pipeline that turns TV clips into Desmos animations, and the screenshot bug that went unnoticed for months.">
     <meta property="og:url" content="https://projects.jonathanearp.xyz/desmos/">
     <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="P.E.T.E.R — an automated video-to-Desmos pipeline">
-    <meta name="twitter:description" content="How it works, and what broke.">
+    <meta name="twitter:description" content="Turning TV clips into Desmos animations.">
     <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
     <meta name="twitter:creator" content="@JonathanEarp_">
 
@@ -31,7 +31,7 @@
       "@context": "https://schema.org",
       "@type": "TechArticle",
       "headline": "P.E.T.E.R — an automated video-to-Desmos pipeline",
-      "description": "How a Python pipeline traces video frames, packs them into chunk-gated Desmos expressions, screenshots them, and posts the result — with the bugs found along the way.",
+      "description": "How a Python pipeline traces video frames, packs them into Desmos expressions, screenshots them and posts the result.",
       "url": "https://projects.jonathanearp.xyz/desmos/",
       "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
       "isPartOf": { "@id": "https://projects.jonathanearp.xyz/#page" },
@@ -83,11 +83,11 @@
 </head>
 <body>
 
-    <div class="vlabel" aria-hidden="true">P.E.T.E.R — 01</div>
+    <div class="vlabel" aria-hidden="true">P.E.T.E.R — 02</div>
 
     <header class="topbar">
         <div class="topbar__inner">
-            <a href="../" class="brand">Jonathan Earp <span class="brand__crumb">Projects / 01</span></a>
+            <a href="../" class="brand">Jonathan Earp <span class="brand__crumb">Projects / 02</span></a>
             <nav class="topnav" id="topnav">
                 <a href="../" class="topnav__link">All projects</a>
                 <a href="https://github.com/earpjonathan/P.E.T.E.R" class="topnav__link" target="_blank" rel="noopener">Code ↗</a>
@@ -109,7 +109,7 @@
         <section class="hero wrap">
             <canvas id="topo" data-topo data-interactive="true" aria-hidden="true"></canvas>
             <div class="hero__eyebrow mono" data-reveal>
-                <span><span class="dot">●</span> Project 01 / 2026</span>
+                <span><span class="dot">●</span> Project 02 / 2026</span>
                 <span>~4,100 lines of Python</span>
                 <span>Runs off one command</span>
             </div>
@@ -121,9 +121,9 @@
                 <span class="acro__r"><span class="acro__c">R</span><span class="acro__w">Rendering</span></span>
             </h1>
             <p class="hero__lead" data-reveal style="--i:2">
-                Desmos was never meant to animate anything. This renders video inside it
-                anyway, as <b>equations</b>. One command goes and finds a clip, traces it,
-                rebuilds it in the calculator and posts the result.
+                Desmos is a graphing calculator, and this renders video inside it as
+                <b>equations</b>. One command goes and finds a clip, traces it, rebuilds it
+                in the calculator and posts the result.
             </p>
             <div class="hero__actions" data-reveal style="--i:3">
                 <a class="btn-ghost" href="https://github.com/earpjonathan/P.E.T.E.R" target="_blank" rel="noopener">Code on GitHub <span aria-hidden="true">↗</span></a>
@@ -177,7 +177,7 @@
                         folder for me.
                     </p>
                     <p>
-                        About <strong>4,100 lines of Python across 10 modules</strong>. No framework,
+                        It's about 4,100 lines of Python across 10 modules. No framework,
                         mostly because I didn't realise I'd want one until it was too annoying to add.
                         It leans on <code>yt-dlp</code>, <code>faster-whisper</code>,
                         <code>playwright</code>, <code>opencv</code>, <code>numpy</code> and
@@ -195,8 +195,8 @@
                     </div>
 
                     <p class="callout">
-                        The next four sections are the render path, in order, with a demo each.
-                        <strong>Most of this was easier to understand once I could see it move.</strong>
+                        The next four sections go through the render path in order, each with a
+                        demo, because most of it was easier to understand once I could see it move.
                     </p>
                 </div>
             </section>
@@ -207,8 +207,8 @@
                 <div class="block__body">
                     <h2 class="block__h">Tracing a frame</h2>
                     <p class="lede">
-                        Before Desmos can draw anything, a frame has to stop being pixels and
-                        start being lines.
+                        Desmos can only draw lines, so each frame has to be turned from pixels
+                        into lines first.
                     </p>
                     <p>
                         Each frame gets decoded to grayscale, run through a Sobel filter, thresholded,
@@ -246,13 +246,13 @@
 
                     <p>
                         Those are the real algorithms running in your browser, on a cat I drew in code
-                        so there's nothing copyrighted in the repo. Same Sobel operator, same
-                        border-following, same Ramer–Douglas–Peucker simplification.
+                        so there's nothing copyrighted in the repo. It's the same Sobel operator,
+                        border-following and Ramer–Douglas–Peucker simplification the pipeline uses.
                     </p>
                     <p>
                         Push the tolerance slider around and you'll see the tradeoff I spent a while
-                        stuck on. <strong>Too tight and the expression lists get enormous and Desmos
-                        crawls. Too loose and the cat stops looking like a cat.</strong> I ended up
+                        stuck on. If it's too tight, the expression lists get huge and Desmos slows
+                        to a crawl. If it's too loose, the cat stops looking like a cat. I ended up
                         around 1.5&nbsp;px, which drops roughly 90% of the points and still keeps
                         the shape.
                     </p>
@@ -283,7 +283,8 @@
                         Gating fixed it. Each chunk gets an expression that is <code>1</code> inside its
                         own frame range and undefined everywhere else, and undefined doesn't error in
                         Desmos, it just makes the curve vanish. The index is clamped alongside it so it
-                        always lands somewhere legal. No boundary special-casing anywhere.
+                        always lands somewhere legal, so the chunk boundaries don't need any
+                        special cases.
                     </p>
 
                     <div class="eqs">
@@ -315,7 +316,7 @@
                         <div class="chunks">
                             <div class="chunks__grid">
                                 <div class="chunk">
-                                    <div class="chunk__k">Chunk <b>C₁</b> — frames 1–10</div>
+                                    <div class="chunk__k">Chunk <b>C₁</b>: frames 1–10</div>
                                     <div class="chunk__vals">
                                         <span>G₁ = <b data-f="gate">·</b></span>
                                         <span>J₁ = <b data-f="idx">·</b></span>
@@ -324,7 +325,7 @@
                                     <div class="chunk__state" data-f="state">·</div>
                                 </div>
                                 <div class="chunk">
-                                    <div class="chunk__k">Chunk <b>C₂</b> — frames 11–20</div>
+                                    <div class="chunk__k">Chunk <b>C₂</b>: frames 11–20</div>
                                     <div class="chunk__vals">
                                         <span>G₂ = <b data-f="gate">·</b></span>
                                         <span>J₂ = <b data-f="idx">·</b></span>
@@ -333,7 +334,7 @@
                                     <div class="chunk__state" data-f="state">·</div>
                                 </div>
                                 <div class="chunk">
-                                    <div class="chunk__k">Chunk <b>C₃</b> — frames 21–30</div>
+                                    <div class="chunk__k">Chunk <b>C₃</b>: frames 21–30</div>
                                     <div class="chunk__vals">
                                         <span>G₃ = <b data-f="gate">·</b></span>
                                         <span>J₃ = <b data-f="idx">·</b></span>
@@ -359,8 +360,8 @@
                     <h2 class="block__h">The screenshot problem</h2>
                     <p class="lede">
                         Once the graph exists, I screenshot it frame by frame in a headless Chromium
-                        and stack it over the source clip with ffmpeg. This is where all the time
-                        goes, and where the worst bug was hiding.
+                        and stack it over the source clip with ffmpeg. Almost all the time goes
+                        here, and it's also where the worst bug was.
                     </p>
                     <p>
                         I assumed the slow part was tracing. My tracer runs 8 worker processes on a
@@ -379,7 +380,7 @@
                     <p>
                         Screenshotting was 94% of it, one frame at a time, 486&nbsp;ms each, in a
                         single browser page. So I parallelised the capture instead of the tracing and
-                        the same clip went from <strong>171.6&nbsp;s to 110.4&nbsp;s</strong>.
+                        the same clip went from 171.6&nbsp;s to 110.4&nbsp;s.
                     </p>
                     <p>Then the frames came out different.</p>
 
@@ -397,7 +398,7 @@
                     <p>
                         The bug was in the settle logic. After moving the slider I wait for the canvas
                         to stop changing before I screenshot it, and "stopped changing" meant
-                        <strong>2 unchanged animation frames, about 33&nbsp;ms</strong>. Desmos pauses
+                        2 unchanged animation frames, about 33&nbsp;ms. Desmos pauses
                         for longer than that in the middle of an update. So I was catching the
                         background redrawn and the character not.
                     </p>
@@ -445,7 +446,7 @@
                             </tr>
                             <tr><td>stable = 4</td><td class="num">0 of 40</td><td>Correct</td></tr>
                             <tr><td>stable = 6</td><td class="num">0 of 40</td><td>Correct</td></tr>
-                            <tr><td>stable = 12</td><td class="num">0 of 40</td><td>Converged — same bytes as stable = 24</td></tr>
+                            <tr><td>stable = 12</td><td class="num">0 of 40</td><td>Converged, same bytes as stable = 24</td></tr>
                         </tbody>
                     </table>
 
@@ -459,7 +460,7 @@
                     <h3 class="block__sub">What a render costs</h3>
                     <p>
                         Render time scales with clip length at roughly 11–12×, but the spread is wide:
-                        <strong>7.3× to 15.5×</strong> in the first batch, depending on how much the
+                        7.3× to 15.5× in the first batch, depending on how much the
                         tracer reuses between frames. My first five measurements all landed between 10×
                         and 13×, which made me think the constant was far tighter than it is.
                     </p>
@@ -467,15 +468,15 @@
                     <figure class="fig">
                         <div id="fig-render-cost"></div>
                         <div class="c-legend">
-                            <span><i></i>Run 1 — before the capture fix</span>
-                            <span><i class="acc"></i>Run 2 — after</span>
+                            <span><i></i>Run 1, before the capture fix</span>
+                            <span><i class="acc"></i>Run 2, after</span>
                         </div>
                         <figcaption>
                             20 clips against a 12× reference line. The two batches are different
                             clips, so the gap between them isn't a clean measure of the speedup.
-                            The 1.55× comes from the same-clip test above. In practice:
-                            <strong>ten 15-second clips take about half an hour. Ten 45-second clips
-                            take an hour and a half.</strong> How long I'm sat waiting comes down almost
+                            The 1.55× comes from the same-clip test above. In practice, ten
+                            15-second clips take about half an hour and ten 45-second clips take an
+                            hour and a half. How long I'm sat waiting comes down almost
                             entirely to how long the clip is.
                         </figcaption>
                     </figure>
@@ -512,9 +513,9 @@
                     </div>
 
                     <p>
-                        <strong>Both of the big wins came from measuring something I was already sure
-                        I understood.</strong> Tracing was the bottleneck; serial capture was correct.
-                        Neither survived a number being put on it.
+                        Both of the big wins came from measuring things I thought I already knew.
+                        I was sure tracing was the bottleneck and that serial capture was correct,
+                        and I was wrong about both.
                     </p>
                 </div>
             </section>
@@ -543,7 +544,7 @@
                     </p>
                     <p>
                         Fixed by letting unknown-duration entries through to the full metadata fetch.
-                        <strong>Candidate pool went from 81 to 120 per run</strong>, and the first run
+                        The candidate pool went from 81 to 120 per run, and the first run
                         after the fix pulled back 46 Shorts.
                     </p>
 
@@ -556,15 +557,15 @@
                         anything?
                     </p>
                     <p>
-                        Duration looks like the obvious join key. It isn't:
-                        <strong>26 matches out of 68</strong>, and tightening the tolerance makes it
-                        <em>worse</em> (12 matches at ±0.05 s), because Instagram's re-encode shifts
+                        Duration looked like the obvious join key, but it only matched 26 of 68,
+                        and tightening the tolerance made it <em>worse</em> (12 matches at
+                        ±0.05 s), because Instagram's re-encode shifts
                         the duration by more than a frame.
                     </p>
                     <p>
                         What worked was dialogue. Transcribe both sides, match on n-gram overlap, and
                         require a margin over the runner-up so near-ties get recorded as ambiguous
-                        instead of guessed. <strong>56 of 68 linked</strong>, median overlap 0.95,
+                        instead of guessed. 56 of 68 linked, with median overlap 0.95,
                         median margin 0.94, zero ambiguous.
                     </p>
 
@@ -578,8 +579,8 @@
 
                     <h3 class="block__sub">How long a clip can safely be</h3>
                     <p>
-                        <strong>2 of 140 uploads got Content-ID blocked. Both were over 89 seconds.
-                        Nothing under 80 was ever touched.</strong> So I capped clips at 45 seconds,
+                        2 of 140 uploads got Content-ID blocked, and both were over 89 seconds.
+                        Nothing under 80 seconds was ever flagged. So I capped clips at 45 seconds,
                         which costs nothing: the entire top ten by plays is under 32 seconds anyway.
                     </p>
                 </div>
@@ -596,8 +597,8 @@
                         why.
                     </p>
                     <p>
-                        A retention model is real and holds up out of sample,
-                        <strong>cross-validated R² of 0.49</strong>. The problem is it's duration
+                        The retention model does hold up out of sample, with a
+                        cross-validated R² of 0.49. The problem is it's duration
                         wearing a hat, and duration doesn't separate winners from losers: the top ten
                         posts by plays run 8 to 32 seconds, the bottom ten 6 to 40.
                     </p>
@@ -628,15 +629,15 @@
                     </table>
 
                     <p>
-                        Predicting plays directly is worse than useless:
-                        <strong>cross-validated R² of −0.89</strong>, so I'd have done better guessing
+                        Predicting plays directly is worse than useless. That model's
+                        cross-validated R² is −0.89, so I'd have done better guessing
                         the average every time. And the part of retention that <em>does</em> predict
                         plays is only measurable once the post is live, which is too late to decide
                         what to render.
                     </p>
 
                     <div class="callout">
-                        <strong>So it doesn't forecast anything.</strong> It filters on length, on
+                        So it doesn't forecast anything. It filters on length, on
                         whether I can caption it, and on whether I've already seen it, which is where
                         the real work turned out to be. It records one guess, how many views the
                         original uploader got, labelled as an <em>untested hypothesis</em> with the test
@@ -783,7 +784,7 @@
                 <div class="block__body">
                     <h2 class="block__h">Still broken</h2>
                     <ul class="dlist">
-                        <li><strong>About a week of data, one account, one show.</strong> The correlations up there come from a tiny sample of one very specific kind of video, and none of it generalises.</li>
+                        <li><strong>There's only about a week of data, from one account and one show.</strong> The correlations up there come from a tiny sample of one very specific kind of video, and none of it generalises.</li>
                         <li><strong>The source-popularity signal is untested.</strong> The test is written and reports <code>n = 0</code>. I have not shown it works.</li>
                         <li><strong>Instagram posting is still manual.</strong> YouTube is fully automatic. The platform that produced all <span data-dg="total_watch_hours">12,837</span> hours is the one I still upload by hand.</li>
                         <li><strong><code>yt-dlp</code> is a single point of failure.</strong> Any time YouTube changes something, harvest breaks. At least it breaks loudly and skips the run instead of posting garbage.</li>
@@ -798,9 +799,9 @@
                     <span class="pnav__side">← Back</span>
                     <span class="pnav__t">All projects</span>
                 </a>
-                <a href="https://research.jonathanearp.xyz" style="text-align:right">
-                    <span class="pnav__side">Next ↗</span>
-                    <span class="pnav__t">Research</span>
+                <a href="../cards/" style="text-align:right">
+                    <span class="pnav__side">Project 03</span>
+                    <span class="pnav__t">S.H.R.E.D</span>
                 </a>
             </nav>
 

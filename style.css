@@ -1073,3 +1073,58 @@ input[type="range"]:focus-visible { outline: 1px solid var(--accent); outline-of
   .vsolo__l { font-size: 9px; padding: 3px 6px; }
   .sgroup + .sgroup { margin-left: 0; padding-left: 0; border-left: 0; }
 }
+
+/* ============================================================
+   SMALLER CASE STUDIES — S.H.U.T.T.L.E, N.A.N.N.Y, C.U.T.T.E.R
+   Same idiom as the two big ones; only what they add is here.
+   ============================================================ */
+.hbars { width: 100%; }
+.hbars svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+/* labelled rows of toggles (lid demo, card demo) */
+.demo__ctl > .srange__k { min-width: 10ch; }
+.demo .log { margin-top: 4px; }
+.demo .log__k { font-family: ui-monospace, "SF Mono", Menlo, monospace; text-transform: none; font-size: 12px; }
+.demo .log__v code {
+  font-family: var(--font); font-size: 0.92em; color: var(--accent);
+  border-bottom: 1px solid var(--line); padding: 0 1px;
+}
+
+/* --- classifier demo --- */
+.cmdlist { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.sbtn--mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px; text-transform: none; letter-spacing: 0; text-align: left;
+}
+.verdict { border-top: 1px dashed var(--line); padding-top: 16px; }
+.verdict__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-bottom: 10px; }
+.verdict__v { font-size: var(--t-h-sm); font-weight: 500; line-height: 1; text-transform: uppercase; color: var(--fg-soft); }
+.verdict__v[data-v="write"] { color: var(--fg); }
+.verdict__v[data-v="dangerous"], .verdict__v[data-v="denied"] { color: var(--accent); }
+.verdict__then { font-size: var(--t-caption); text-transform: uppercase; color: var(--fg-soft); }
+.block__body .verdict__cmd {
+  display: block; margin-bottom: 12px; overflow-wrap: anywhere; border: 0; padding: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; color: var(--fg);
+}
+.verdict__why { margin-bottom: 4px; }
+.verdict__why li { overflow-wrap: anywhere; }
+.verdict .demo__read b { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
+
+/* --- the card demo: unread text shrunk, underline, highlight, box --- */
+.ccard { border-top: 1px dashed var(--line); padding-top: 16px; }
+.ccard__tag { font-size: var(--t-sub); font-weight: 500; line-height: 1.3; }
+.ccard__cite { font-size: var(--t-caption); text-transform: uppercase; color: var(--fg-soft); margin: 6px 0 14px; }
+.block__body .ccard__body { font-size: 11px; line-height: 2; color: var(--fg-soft); max-width: 74ch; margin: 0; }
+.ccard__body .cc-u {
+  font-size: 15px; color: var(--fg);
+  text-decoration: underline; text-decoration-color: var(--fg-soft);
+  text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+.ccard__body .cc-h { background: rgba(220, 80, 0, 0.30); color: var(--fg); }
+:root[data-theme="light"] .ccard__body .cc-h { background: rgba(166, 58, 6, 0.20); }
+.ccard__body .cc-e { outline: 1px solid var(--fg); outline-offset: 1px; font-weight: 500; }
+/* a bar figure is followed straight by prose; give the caption room to end */
+.block__body .fig:has(.hbars) + p { margin-top: 24px; }
+/* an inline link in case-study prose has to look like one */
+.block__body p a { color: var(--accent); border-bottom: 1px solid var(--line); transition: border-color var(--t-fast); }
+.block__body p a:hover { border-bottom-color: var(--accent); }

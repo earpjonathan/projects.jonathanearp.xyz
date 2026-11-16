@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jonathan Earp — Projects</title>
-    <meta name="description" content="Side projects by Jonathan Earp. Small systems built end to end, starting with P.E.T.E.R, an automated pipeline that renders video as graphing-calculator animation.">
+    <meta name="description" content="Side projects by Jonathan Earp, built end to end and written up with their measurements: a video-to-Desmos pipeline, a 3D drone reconstruction, two NAS tools and a debate-evidence cutter.">
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="canonical" href="https://projects.jonathanearp.xyz/">
@@ -40,6 +40,24 @@
       "isPartOf": { "@type": "WebSite", "@id": "https://jonathanearp.xyz/#website" },
       "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
       "hasPart": [
+        {
+          "@type": "CreativeWork",
+          "name": "S.H.R.E.D",
+          "url": "https://projects.jonathanearp.xyz/cards/",
+          "description": "A local-model pipeline that finds sources for a debate claim and cuts them into evidence cards, scored against human cuts."
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Y.A.N.K",
+          "url": "https://projects.jonathanearp.xyz/shuttle/",
+          "description": "A macOS daemon that unmounts a dock SSD on lid close, plus an rsync cache that stages NAS folders onto it."
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "S.U.D.O",
+          "url": "https://projects.jonathanearp.xyz/nas/",
+          "description": "An LLM agent that operates a Synology NAS over SSH behind a path allowlist, a command classifier and an approval gate."
+        },
         {
           "@type": "CreativeWork",
           "name": "S.P.L.O.O.G.E",
@@ -132,22 +150,22 @@
             <h1 class="hero__title" data-reveal style="--i:1">Projects</h1>
             <p class="hero__lead" data-reveal style="--i:2">
                 Stuff I build outside of class, mostly to find out whether an idea actually
-                works. Two are up here so far, both <b>measured</b> and written up with the
+                works. Five are up here so far, all <b>measured</b> and written up with the
                 numbers they came out with.
             </p>
 
             <div class="metastrip" data-reveal style="--i:3">
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Live</span>
-                    <span class="metastrip__v">2 projects</span>
+                    <span class="metastrip__v">5 projects</span>
                 </div>
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Focus</span>
-                    <span class="metastrip__v">Pipelines · Vision · Measurement</span>
+                    <span class="metastrip__v">Pipelines · Tools · Measurement</span>
                 </div>
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Written in</span>
-                    <span class="metastrip__v">Python · Rust</span>
+                    <span class="metastrip__v">Python · Rust · Swift</span>
                 </div>
                 <div class="metastrip__cell">
                     <span class="metastrip__k">Data</span>
@@ -167,6 +185,78 @@
             </div>
 
             <div class="plist">
+
+                <a class="prow" href="cards/" data-reveal>
+                    <span class="prow__no">05</span>
+                    <div>
+                        <h2 class="prow__title">S.H.R.E.D</h2>
+                        <p class="prow__desc">
+                            Cuts debate evidence cards with a language model running on my laptop.
+                            Give it a claim and it searches, keeps the sources that actually argue
+                            it, and marks up each card by picking word indices, so it can't misquote
+                            anything. Scored against 970 cards my team cut by hand, then re-tuned
+                            when the people reading the cards disagreed with the score.
+                        </p>
+                        <div class="prow__tags">
+                            <span>Python</span><span>Ollama</span><span>LLM eval</span>
+                            <span>Word / OOXML</span><span>FastAPI</span><span>Search</span>
+                        </div>
+                    </div>
+                    <div class="prow__stats">
+                        <div class="prow__stat"><b>40/40</b><span>Card bodies exactly<br>the source text</span></div>
+                        <div class="prow__stat"><b>38.1</b><span>Highlight F1 vs a human,<br>held-out cards</span></div>
+                        <div class="prow__stat"><b>28 → 63</b><span>Words read aloud<br>after the re-cut</span></div>
+                    </div>
+                    <span class="prow__go" aria-hidden="true">↗</span>
+                </a>
+
+                <a class="prow" href="shuttle/" data-reveal>
+                    <span class="prow__no">04</span>
+                    <div>
+                        <h2 class="prow__title">Y.A.N.K</h2>
+                        <p class="prow__desc">
+                            A macOS daemon that unmounts my dock's SSD the moment the lid closes, and
+                            warns my phone if something still has a file open, plus an rsync cache
+                            that keeps NAS folders on that SSD. It tells clamshell mode apart from
+                            leaving, won't delete anything the NAS hasn't verified, and found out
+                            the dock was running at USB 2.0.
+                        </p>
+                        <div class="prow__tags">
+                            <span>Swift</span><span>IOKit</span><span>Python</span>
+                            <span>rsync</span><span>launchd</span><span>Tailscale</span>
+                        </div>
+                    </div>
+                    <div class="prow__stats">
+                        <div class="prow__stat"><b>0.2 s</b><span>Lid close to<br>phone alert</span></div>
+                        <div class="prow__stat"><b>1.22×</b><span>chacha20 over AES-GCM<br>on the NAS</span></div>
+                        <div class="prow__stat"><b>38 MB/s</b><span>Dock SSD, stuck<br>at USB 2.0</span></div>
+                    </div>
+                    <span class="prow__go" aria-hidden="true">↗</span>
+                </a>
+
+                <a class="prow" href="nas/" data-reveal>
+                    <span class="prow__no">03</span>
+                    <div>
+                        <h2 class="prow__title">S.U.D.O</h2>
+                        <p class="prow__desc">
+                            An LLM agent for my Synology NAS. I ask in plain English, it runs
+                            commands over SSH, and anything that changes a file waits for approval.
+                            The path check, command classifier and approval gate were built and
+                            tested before the model got a single tool. You can try the classifier
+                            on the page.
+                        </p>
+                        <div class="prow__tags">
+                            <span>Python</span><span>MCP</span><span>Claude Code</span>
+                            <span>SSH / SFTP</span><span>Paramiko</span><span>Security</span>
+                        </div>
+                    </div>
+                    <div class="prow__stats">
+                        <div class="prow__stat"><b>328</b><span>Commands run<br>on the NAS</span></div>
+                        <div class="prow__stat"><b>17</b><span>Refused<br>outright</span></div>
+                        <div class="prow__stat"><b>293</b><span>Tests,<br>all offline</span></div>
+                    </div>
+                    <span class="prow__go" aria-hidden="true">↗</span>
+                </a>
 
                 <a class="prow" href="splat/" data-reveal>
                     <span class="prow__no">02</span>
@@ -204,7 +294,7 @@
                             inside a Desmos graphing calculator, screenshots it frame by frame and
                             posts the finished video. About 4,100 lines of Python, no framework.
                             In the write-up you can push the tracer and the expression trick around
-                            yourself.
+                            yourself. There's a colour version that runs inside Excel too.
                         </p>
                         <div class="prow__tags">
                             <span>Python</span><span>OpenCV</span><span>Playwright</span>

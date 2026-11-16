@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.H.R.E.D — Jonathan Earp</title>
+    <meta name="description" content="A tool that cuts debate evidence cards with a local language model: it finds sources, picks word indices instead of retyping text, and is scored against 970 human-cut cards. Including the point where the score and the readers disagreed.">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="canonical" href="https://projects.jonathanearp.xyz/cards/">
+    <meta name="author" content="Jonathan Earp">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+    <meta name="theme-color" content="#100904">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Jonathan Earp">
+    <meta property="og:title" content="S.H.R.E.D — cutting debate evidence with a local model">
+    <meta property="og:description" content="Word indices instead of retyped text, an eval against 970 human-cut cards, and what happened when the metric and the readers wanted different things.">
+    <meta property="og:url" content="https://projects.jonathanearp.xyz/cards/">
+    <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="S.H.R.E.D — cutting debate evidence with a local model">
+    <meta name="twitter:description" content="How it works, how it scores, and where it still falls short.">
+    <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
+    <meta name="twitter:creator" content="@JonathanEarp_">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "S.H.R.E.D — cutting debate evidence with a local model",
+      "description": "A Python pipeline that finds sources for a debate claim and cuts them into Verbatim-formatted evidence cards, with an eval harness scored against human cuts.",
+      "url": "https://projects.jonathanearp.xyz/cards/",
+      "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
+      "isPartOf": { "@id": "https://projects.jonathanearp.xyz/#page" },
+      "datePublished": "2026-11-16",
+      "keywords": "debate, LLM, Ollama, evaluation, Word, OOXML, Python, information retrieval"
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../style.css">
+
+    <script>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add("js");
+
+        /* The five sites are separate origins, so localStorage cannot carry the
+           theme between them - toggling on the hub and clicking through used to
+           land you back in dark. A cookie on the parent domain does carry, so it
+           is read first; localStorage stays as the fallback for local dev, where
+           a .jonathanearp.xyz cookie is dropped. With neither set, follow the OS
+           instead of forcing dark on someone whose machine is in light mode. */
+        var t = "";
+        var m = document.cookie.match(/(?:^|;\s*)theme=(dark|light)/);
+        if (m) t = m[1];
+        if (!t) { try { t = localStorage.getItem("theme") || ""; } catch (e) {} }
+        if (!t && window.matchMedia &&
+            matchMedia("(prefers-color-scheme: light)").matches) t = "light";
+        d.dataset.theme = t === "light" ? "light" : "dark";
+
+        /* Written by the toggle in every site's script - one place that knows
+           about the cookie, so the five copies of the toggle stay trivial. */
+        window.__setTheme = function (next) {
+          d.dataset.theme = next;
+          try { localStorage.setItem("theme", next); } catch (e) {}
+          try {
+            var dom = /(^|\.)jonathanearp\.xyz$/i.test(location.hostname)
+              ? ";domain=.jonathanearp.xyz" : "";
+            document.cookie = "theme=" + next +
+              ";path=/;max-age=31536000;samesite=lax" + dom +
+              (location.protocol === "https:" ? ";secure" : "");
+          } catch (e) {}
+        };
+      })();
+    </script>
+</head>
+<body>
+
+    <div class="vlabel" aria-hidden="true">S.H.R.E.D — 05</div>
+
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a href="../" class="brand">Jonathan Earp <span class="brand__crumb">Projects / 05</span></a>
+            <nav class="topnav" id="topnav">
+                <a href="../" class="topnav__link">All projects</a>
+                <a href="https://github.com/earpjonathan/S.H.R.E.D" class="topnav__link" target="_blank" rel="noopener">Code ↗</a>
+                <a href="https://jonathanearp.xyz" class="topnav__link">Index ↗</a>
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle color theme">
+                    <span class="theme-toggle__dot"></span><span class="theme-toggle__label"></span>
+                </button>
+            </nav>
+            <button class="nav-toggle" id="nav-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="topnav">
+                <span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <main id="top">
+
+        <!-- ============ HERO ============ -->
+        <section class="hero wrap">
+            <canvas id="topo" data-topo data-interactive="true" aria-hidden="true"></canvas>
+            <div class="hero__eyebrow mono" data-reveal>
+                <span><span class="dot">●</span> Project 05 / 2026</span>
+                <span>~8,000 lines of Python</span>
+                <span>Runs on a local model, $0 a card</span>
+            </div>
+            <h1 class="hero__title acro" data-reveal style="--i:1" aria-label="SHRED">
+                <span class="acro__r"><span class="acro__c">S</span><span class="acro__w">Search,</span></span>
+                <span class="acro__r"><span class="acro__c">H</span><span class="acro__w">Highlight,</span></span>
+                <span class="acro__r"><span class="acro__c">R</span><span class="acro__w">Read-back,</span></span>
+                <span class="acro__r"><span class="acro__c">E</span><span class="acro__w">Emphasis,</span></span>
+                <span class="acro__r"><span class="acro__c">D</span><span class="acro__w">Docx</span></span>
+            </h1>
+            <p class="hero__lead" data-reveal style="--i:2">
+                Debaters read evidence out loud from "cards", cut by hand from articles. I give
+                this a claim. It finds articles that argue it and cuts them into
+                <b>finished cards</b>, without changing a word of the source.
+            </p>
+            <div class="hero__actions" data-reveal style="--i:3">
+                <a class="btn-ghost" href="https://github.com/earpjonathan/S.H.R.E.D" target="_blank" rel="noopener">Code on GitHub <span aria-hidden="true">↗</span></a>
+            </div>
+
+            <div class="scroll-prompt" aria-hidden="true"><span>Scroll</span><span class="chev"></span></div>
+        </section>
+
+        <div class="wrap">
+
+            <div class="stats" data-reveal>
+                <div class="stat"><div class="stat__n">970</div><div class="stat__l">Human-cut cards<br>parsed from my team</div></div>
+                <div class="stat"><div class="stat__n">40<small>/40</small></div><div class="stat__l">Card bodies exactly<br>matching the source</div></div>
+                <div class="stat"><div class="stat__n">38.1</div><div class="stat__l">Highlight F1 against<br>a human, held out</div></div>
+                <div class="stat"><div class="stat__n">$0</div><div class="stat__l">Per card, on<br>a local model</div></div>
+            </div>
+
+            <nav class="chapnav" id="chapnav" aria-label="Chapters">
+                <a href="#card"><span>01</span> What a card is</a>
+                <a href="#exact"><span>02</span> It can't change a word</a>
+                <a href="#files"><span>03</span> Reading my team's files</a>
+                <a href="#cut"><span>04</span> Cutting one card</a>
+                <a href="#search"><span>05</span> Finding sources</a>
+                <a href="#score"><span>06</span> Scoring against people</a>
+                <a href="#recut"><span>07</span> Chasing the wrong score</a>
+                <a href="#checks"><span>08</span> Catching bad cards</a>
+                <a href="#broken"><span>09</span> Still broken</a>
+            </nav>
+
+            <!-- ============ 01 ============ -->
+            <section class="block" id="card" data-reveal>
+                <div class="block__no">01</div>
+                <div class="block__body">
+                    <h2 class="block__h">What a card is</h2>
+                    <p class="lede">
+                        A card is a quote from a source with three layers of formatting on top,
+                        plus a one-line summary and a citation.
+                    </p>
+                    <p>
+                        The <strong>tag</strong> is the claim in a few words. The <strong>cite</strong>
+                        says who wrote it and why they'd know. The body is a long excerpt, usually
+                        hundreds of words, where the <strong>underlined</strong> parts carry the
+                        argument, the <strong>highlighted</strong> parts are what actually gets read
+                        out in the round, and a few <strong>boxed</strong> words get stressed. The
+                        rest is shrunk down but kept, so anyone can check the context.
+                    </p>
+                    <p>
+                        Cutting one well takes judgment. The read-aloud words have to make sense
+                        as speech, prove the tag, and not say anything the author didn't mean.
+                    </p>
+
+                    <div class="demo demo--card" id="card-demo">
+                        <div class="demo__head">
+                            <span class="demo__k">Try it</span>
+                            <span class="demo__t">Two ways to cut the same paragraph</span>
+                            <span class="demo__hint">Switch cuts, read the bottom line</span>
+                        </div>
+                        <div class="demo__ctl">
+                            <span class="sgroup" data-group="style">
+                                <button class="sbtn is-on" data-v="files" type="button"><span class="sbtn__n">A</span>Like my team's files</button>
+                                <button class="sbtn" data-v="reader" type="button"><span class="sbtn__n">B</span>Readable</button>
+                            </span>
+                        </div>
+                        <div class="ccard">
+                            <div class="ccard__tag">Trees cut urban heat illness, cheaply and for decades</div>
+                            <div class="ccard__cite">Example 26, a paragraph I wrote for this demo, not a real source</div>
+                            <p class="ccard__body" data-read="body"></p>
+                        </div>
+                        <div class="demo__read">
+                            <span>Words read aloud <b data-read="nread">·</b></span>
+                            <span>Read words boxed <b data-read="nbox">·</b></span>
+                            <span class="demo__note" data-read="spoken"></span>
+                        </div>
+                    </div>
+
+                    <p>
+                        Cut A is closer to how my team's files look: tiny pieces and heavy boxing.
+                        Cut B keeps a subject and a verb in every piece, so it sounds like
+                        sentences. Section 07 is about why the difference mattered more than
+                        I expected.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 02 ============ -->
+            <section class="block" id="exact" data-reveal>
+                <div class="block__no">02</div>
+                <div class="block__body">
+                    <h2 class="block__h">It can't change a word</h2>
+                    <p class="lede">
+                        A card that misquotes its source is worse than no card. So the model never
+                        types the evidence.
+                    </p>
+                    <p>
+                        The source gets split into numbered words, and every stage that marks up
+                        the card answers with <strong>word indices</strong>: underline words 40 to
+                        71, highlight 44 to 49. The text itself only ever comes from the source.
+                        A final check confirms the body is an exact, contiguous excerpt that
+                        starts on a sentence boundary, and if anything fails, nothing is exported.
+                    </p>
+                    <p>
+                        Hand edits get the same treatment. In the web UI you can change the
+                        highlighting, underlining and boxes freely, and every export re-checks the
+                        body against the source. Formatting can change. Words can't.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 03 ============ -->
+            <section class="block" id="files" data-reveal>
+                <div class="block__no">03</div>
+                <div class="block__body">
+                    <h2 class="block__h">Reading my team's files</h2>
+                    <p class="lede">
+                        Before it could cut anything, it had to read how my team cuts. That meant
+                        parsing Word's formatting at the character level.
+                    </p>
+                    <p>
+                        Debate files are Word documents built on a shared template, and the
+                        layers live in styles, direct formatting, highlight colours and box
+                        borders, sometimes all at once. The parser turns each card into its text
+                        plus per-character spans for every layer. It read
+                        <strong>970 cards from four of my team's files</strong>.
+                    </p>
+                    <p>
+                        To trust the parser, it has to work both ways. The round-trip check parses
+                        every card, renders it back to Word, parses that again, and fails unless
+                        all of them come back identical. All 970 do, with zero mismatches.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>What the 970 cards look like, medians</caption>
+                        <thead><tr><th>Measure</th><th class="num">Median</th></tr></thead>
+                        <tbody>
+                            <tr><td>Body length</td><td class="num">257 words</td></tr>
+                            <tr><td>Share of the card underlined</td><td class="num">35.0%</td></tr>
+                            <tr class="is-key"><td>Share of the card highlighted</td><td class="num"><strong>12.3%</strong></td></tr>
+                            <tr><td>Share of the underline that's boxed</td><td class="num">29.8%</td></tr>
+                            <tr><td>Tag length</td><td class="num">6 words</td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        One surprise: <strong>66% of cards highlight part of a word</strong>, like
+                        reading "biod" out of "biodiversity" or just the first letter of "impact".
+                        2,386 words in all. A word-level tokenizer would have thrown that away, so
+                        the format stores formatting per character.
+                    </p>
+                    <p>
+                        The parsed cards do two jobs. A few of the most similar ones go into each
+                        prompt as examples, and 100 of them are held back as the test set in
+                        section 06. None of them ever goes on this page or into the public repo.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 04 ============ -->
+            <section class="block" id="cut" data-reveal>
+                <div class="block__no">04</div>
+                <div class="block__body">
+                    <h2 class="block__h">Cutting one card</h2>
+                    <p class="lede">
+                        Each layer is its own stage with its own prompt, and code checks every
+                        answer before the next stage sees it.
+                    </p>
+
+                    <div class="pipe">
+                        <div class="pipe__s"><div class="pipe__n">01</div><div class="pipe__h">Locate</div><p class="pipe__p">Pick the best run of paragraphs, 350 to 900 words.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">02</div><div class="pipe__h">Underline</div><p class="pipe__p">Whole clauses that carry the argument.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">03</div><div class="pipe__h">Highlight</div><p class="pipe__p">What gets read aloud, inside the underline.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">04</div><div class="pipe__h">Box</div><p class="pipe__p">A few stressed words, capped by code.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">05</div><div class="pipe__h">Tag</div><p class="pipe__p">Written from the read words, never stronger.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">06</div><div class="pipe__h">Cite</div><p class="pipe__p">Author, quals, date, from the page and Crossref.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">07</div><div class="pipe__h">Check</div><p class="pipe__p">Read-back, author's view, exact-text verify.</p></div>
+                    </div>
+
+                    <p>
+                        Everything runs on a 27B-parameter Qwen model in Ollama on my laptop, so a
+                        card costs nothing. Each stage can be pointed at a hosted model instead,
+                        and paid calls are never made quietly: it prints an estimated cost and
+                        asks first, and stops at a spending cap.
+                    </p>
+                    <p>
+                        Some of the most useful rules are plain code. A highlight that's more than
+                        1.5 times its target gets cut back by whole sentences. A one- or two-word
+                        gap of underlined words between highlighted words in the same sentence gets
+                        filled in. A highlighted "not" whose word isn't read gets fixed or dropped,
+                        because "the goal isn't … Russia at a disadvantage" says the opposite of
+                        the article it came from.
+                    </p>
+
+                    <h3 class="block__sub">Cites without made-up quals</h3>
+                    <p>
+                        Quals, the part of a cite that says why the author is credible, are the
+                        easiest thing for a model to invent. So the model can only copy names and
+                        quals from text it was shown: the journal's affiliation tags, OpenAlex,
+                        author boxes on the page, or the author's profile page. Anything not found
+                        there word for word gets dropped, and an unknown field shows up as a
+                        visible <code>[quals?]</code>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 05 ============ -->
+            <section class="block" id="search" data-reveal>
+                <div class="block__no">05</div>
+                <div class="block__body">
+                    <h2 class="block__h">Finding sources</h2>
+                    <p class="lede">
+                        In auto mode I only write the claim. It writes its own search queries,
+                        reads what comes back and decides what's worth cutting.
+                    </p>
+                    <p>
+                        It searches the web, news and open-access journals through free sources
+                        with no keys, ranks results by how closely their best passage matches the
+                        claim, and reads the most promising. Every source then gets two scores
+                        from 1 to 5: does it argue the claim, and how far would a judge trust it?
+                        Reference pages, glossaries, Wikipedia and homework sites always get a 1.
+                        Tabloids are capped at 2. <strong>A source that doesn't argue the claim
+                        is never cut.</strong>
+                    </p>
+                    <p>
+                        Claims that link two things get split into parts first. "Arms to Ukraine
+                        drain US stockpiles" and "those stockpiles are needed to deter China" are
+                        separate, and a card that only shows one gets held back while it looks for
+                        one that shows both. If three cards fail that check, it searches again,
+                        aiming the new queries at whatever's still missing. It'll return fewer
+                        cards before it returns bad ones.
+                    </p>
+                    <p>
+                        One test run gives a sense of the funnel: <strong>64 results searched, 15
+                        articles read, 5 set aside</strong> for not arguing the claim, and 2 cards
+                        cut, in 26 minutes.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 06 ============ -->
+            <section class="block" id="score" data-reveal>
+                <div class="block__no">06</div>
+                <div class="block__body">
+                    <h2 class="block__h">Scoring against people</h2>
+                    <p class="lede">
+                        The eval gives the cutter a held-out card's plain text and tag, then
+                        compares its cut with the human one, character by character.
+                    </p>
+                    <p>
+                        The 100 held-out cards are split three ways: a test set (30), a dev set I
+                        tuned prompts on (30), and 40 that no run had touched until the end. The
+                        score is F1 per layer, the balance of how much of the cutter's marking the
+                        human also marked and how much of the human's it found.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>F1 against the human cut, per layer. Each row is different cards, so rows don't compare cleanly</caption>
+                        <thead><tr><th>Run</th><th class="num">Underline</th><th class="num">Highlight</th><th class="num">Boxes</th></tr></thead>
+                        <tbody>
+                            <tr><td>Test set, first night (30 cards)</td><td class="num">35.4</td><td class="num">36.9</td><td class="num">29.1</td></tr>
+                            <tr><td>Test set, second night (30 cards)</td><td class="num">42.0</td><td class="num">35.6</td><td class="num">29.7</td></tr>
+                            <tr class="is-key"><td>Untouched set, final (40 cards)</td><td class="num"><strong>52.6</strong></td><td class="num"><strong>38.1</strong></td><td class="num"><strong>31.6</strong></td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        Underlining now marks about as much as my team does, a median of 50 words
+                        a card on the test set, same as the human cuts. Highlighting stayed the gap.
+                        On the test set the model highlighted about 34 words a card in about 6 runs
+                        of 6 words. My team highlights about 21 words in 9 runs of 2.4.
+                    </p>
+                    <p>
+                        The one thing that moved highlighting was letting the model think before
+                        answering: highlight F1 went from 36.4 to <strong>42.2</strong> on 10 dev
+                        cards. It also took about 5× as long, 6.7 minutes a card instead of 1.3, so
+                        it's a separate setting instead of the default.
+                    </p>
+                    <p>
+                        On the final 40, every card body matched its source exactly (40 of 40).
+                        Each card took about 4.5 minutes and cost $0. The read-back judge, which
+                        scores whether the read-aloud words make sense, passed 30% of the
+                        cutter's cards. As a sanity check on the judge, it passes about 60% of my
+                        team's own cuts (18 of 30 on the dev set).
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 07 ============ -->
+            <section class="block" id="recut" data-reveal>
+                <div class="block__no">07</div>
+                <div class="block__body">
+                    <h2 class="block__h">Chasing the wrong score</h2>
+                    <p class="lede">
+                        The best-scoring version was tuned to match my team's files. The people
+                        reading its cards didn't like them.
+                    </p>
+                    <p>
+                        The feedback on the first batch was that a lot of the cards were "way too
+                        short", some were "badly cut", and they boxed far too much. All three were
+                        true, and all three came from chasing F1. My team's files read pieces of
+                        about two words and box about half of what's read. To score well against
+                        that, the cutter learned to do the same, and the result was choppy.
+                    </p>
+                    <p>
+                        So I changed what it aims for. Cards got longer. The highlight prompt asks
+                        for phrases that keep each sentence's subject and verb. The trim that
+                        squeezed highlights down to two-word pieces got switched off, and boxes
+                        were capped at about one read word in ten. Then I re-cut the same ten
+                        sources for the same claims.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>Same 10 sources and claims, before and after. Medians</caption>
+                        <thead><tr><th>Measure</th><th class="num">Before</th><th class="num">After</th></tr></thead>
+                        <tbody>
+                            <tr><td>Words in the card</td><td class="num">207</td><td class="num">378</td></tr>
+                            <tr class="is-key"><td>Words read aloud</td><td class="num">28</td><td class="num"><strong>63</strong></td></tr>
+                            <tr><td>Boxes per card</td><td class="num">7</td><td class="num">3–4</td></tr>
+                            <tr class="is-key"><td>Read words that are boxed</td><td class="num">74%</td><td class="num"><strong>8%</strong></td></tr>
+                            <tr><td>Read pieces that are a single word</td><td class="num">10%</td><td class="num">0%</td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        These cards match the readers and not the files, so on the eval they'd
+                        score worse. The old style is still one setting away for anyone who wants
+                        it. A later batch of 14 cards for 9 new claims came out the same shape:
+                        375-word cards, 57 words read, 4 boxed words, about 7% of what's read.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 08 ============ -->
+            <section class="block" id="checks" data-reveal>
+                <div class="block__no">08</div>
+                <div class="block__body">
+                    <h2 class="block__h">Catching bad cards</h2>
+                    <p class="lede">
+                        Most of the work after cutting is the cutter checking itself, so a weak
+                        card arrives with a warning on it.
+                    </p>
+                    <ul class="dlist">
+                        <li><strong>Read-back.</strong> A judge reads the highlighted words aloud against the claim and scores them for grammar, coherence and whether they prove the tag. Low scores and possible power-tags, where the tag says more than the card, get flagged.</li>
+                        <li><strong>Author's view.</strong> It reads the card against the whole article and asks whether the author endorses, qualifies or disputes the point. That catches cards that read a view the author only set up to knock down. The model has to quote the author's conclusion, and the quote only appears if it's in the article word for word. Auto mode never uses a card the author disputes.</li>
+                        <li><strong>Claim check.</strong> A card that drifts off the claim is dropped. One that only shows part of it is held back with a note saying which part is missing.</li>
+                        <li><strong>Exact text.</strong> The last gate from section 02. Nothing leaves without it.</li>
+                    </ul>
+                    <p>
+                        When I tested it on a weak source, a Wikipedia article saved as a
+                        PDF for a claim the article barely makes, it cut both cards and flagged
+                        both: read-back 1 to 2 out of 5, plus a power-tag warning.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 09 ============ -->
+            <section class="block" id="broken" data-reveal>
+                <div class="block__no">09</div>
+                <div class="block__body">
+                    <h2 class="block__h">Still broken</h2>
+                    <ul class="dlist">
+                        <li><strong>Most cards still need a human pass.</strong> It finds good sources and the right argument, but highlighting usually needs a word or two added by hand, and tags sometimes overclaim ("inevitable" where the card says "could").</li>
+                        <li><strong>The judge got easy.</strong> On the newer, longer cards the read-back judge gave 5/5/5 to 9 of 14, so on its own its score isn't much help anymore. My notes on each card were the better guide.</li>
+                        <li><strong>Quals are often missing.</strong> News authors frequently have no stated credentials on the page, so their cites say <code>[quals?]</code>. That beats a made-up qual, and it still has to be filled in.</li>
+                        <li><strong>Search results change between runs.</strong> The same claim can come back with different sources on different days. The free scholarly search also shares one daily budget per IP address, and it ran out on 12 November.</li>
+                        <li><strong>It's slow on a laptop.</strong> 3 to 5 minutes a card, and an auto run for 2 cards takes 15 to 30 minutes.</li>
+                        <li><strong>F1 measures agreement with one person's cut.</strong> Two good debaters would disagree too, and I don't have a human-versus-human number for these files.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <nav class="pnav" aria-label="Project navigation">
+                <a href="../">
+                    <span class="pnav__side">← Back</span>
+                    <span class="pnav__t">All projects</span>
+                </a>
+                <a href="../shuttle/" style="text-align:right">
+                    <span class="pnav__side">Project 04</span>
+                    <span class="pnav__t">Y.A.N.K</span>
+                </a>
+            </nav>
+
+        </div>
+    </main>
+
+    <footer class="foot">
+        <div class="wrap">
+            <div class="foot__grid">
+                <div class="foot__col"><div class="foot__big">Side projects,<br>written up.</div></div>
+                <div class="foot__col">
+                    <h4>Index</h4>
+                    <ul>
+                        <li><a href="../">Projects ↗</a></li>
+                        <li><a href="https://jonathanearp.xyz">Home ↗</a></li>
+                        <li><a href="https://fpv.jonathanearp.xyz">FPV ↗</a></li>
+                        <li><a href="https://research.jonathanearp.xyz">Research ↗</a></li>
+                        <li><a href="https://resume.jonathanearp.xyz">Résumé ↗</a></li>
+                    </ul>
+                </div>
+                <div class="foot__col">
+                    <h4>Elsewhere</h4>
+                    <ul>
+                        <li><a href="https://www.linkedin.com/in/earpjonathan/" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+                        <li><a href="https://github.com/earpjonathan" target="_blank" rel="noopener">GitHub ↗</a></li>
+                        <li><a href="mailto:jonathan.earp55@gmail.com">Email ↗</a></li>
+                    </ul>
+                </div>
+                <a href="#top" class="to-top">↑ Top</a>
+            </div>
+            <div class="foot__bar">
+                <span>© <span id="year">2026</span> Jonathan Earp</span>
+                <span>All figures measured 9–16 Nov 2026</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../topo.js"></script>
+    <script src="../script.js"></script>
+    <script src="page.js"></script>
+</body>
+</html>

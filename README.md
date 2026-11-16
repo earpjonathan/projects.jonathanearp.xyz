@@ -4,13 +4,15 @@ Side-projects section of [jonathanearp.xyz](https://jonathanearp.xyz). Static, n
 build step, no dependencies. Deployed with GitHub Pages exactly like the other
 three sites.
 
-Two projects so far, each named for what its pipeline actually does:
+Five projects so far, each named for what it actually does:
 **P.E.T.E.R** (pipeline for edge tracing and expression rendering), which renders
 video clips as Desmos graphing-calculator animations, and **S.P.L.O.O.G.E**
 (structure-from-motion, poses, levelling, optimisation, orientation,
 Gaussians, export), two drone flights rebuilt as one 3D reconstruction and written up
-as a paper. Both pages carry the backronym down the left of the hero with each
-letter's source word beside it; the index lists the names alone.
+as a paper. Then three shorter case studies: **S.U.D.O** (Synology under
+distrustful oversight), **Y.A.N.K** (yank-safe auto-unmount, NAS kept local) and
+**S.H.R.E.D** (search, highlight, read-back, emphasis, docx). Every page carries the backronym down the left
+of the hero with each letter's source word beside it; the index lists the names alone.
 
 ```
 index.html          Project index
@@ -27,6 +29,10 @@ splat/
   viewer.js         The live WebGL splat renderer
   page.js           Negative-results table, A/B wipe, viewer controls
   media/            Video, stills, the cropped splat asset — see below
+nas/                S.U.D.O case study; page.js is the classifier demo
+shuttle/            Y.A.N.K case study; page.js is the lid-close demo
+cards/              S.H.R.E.D case study; page.js is the two-cuts demo
+bars.js             Horizontal bar figures for the three shorter pages
 style.css           ORYZO shared base + projects-specific styles
 script.js           Theme toggle, scroll reveal, chapter nav
 topo.js             Topographic canvas background (copied verbatim from Research)
@@ -56,6 +62,24 @@ numbers move, move the stall too.
 The trace demo's subject is drawn in code in `drawSubject()`. It is a cat, in
 colour, so that the grayscale step is visibly a step. **Do not swap in a real
 frame** — that would put copyrighted footage in the repo.
+
+## The three shorter pages
+
+`nas/`, `shuttle/` and `cards/` write up repos of the same names under
+github.com/earpjonathan (S.U.D.O, Y.A.N.K, S.H.R.E.D). They have no
+data files: every number on them is quoted from that repo's README, reports,
+tests or logs, and the few bar charts take their numbers inline through
+`data-hbars` (see `bars.js`).
+
+- **nas/page.js** holds the classifier's real verdicts for 14 commands, copied
+  from `CommandClassifier.classify()` run against `config.example.toml` (admin
+  mode off). If the classifier changes, re-run it and paste the answers in; the
+  demo does not re-implement it.
+- **shuttle/page.js** follows the daemon's decision path in
+  `src/ejectd/main.swift`, with the measured timings.
+- **cards/page.js** cuts a paragraph written for the page. **Do not swap in a
+  real card**: the team's files and the articles they quote stay out of every
+  public repo.
 
 ## The splat page
 

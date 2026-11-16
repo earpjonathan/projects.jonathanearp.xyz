@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.U.D.O — Jonathan Earp</title>
+    <meta name="description" content="An LLM agent that runs plain-English requests on a Synology NAS over SSH, with a path allowlist, a command classifier and an approval gate built before the model got any tools. Plus ten weeks of its audit log.">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="canonical" href="https://projects.jonathanearp.xyz/nas/">
+    <meta name="author" content="Jonathan Earp">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+    <meta name="theme-color" content="#100904">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Jonathan Earp">
+    <meta property="og:title" content="S.U.D.O — a gated LLM agent for a Synology NAS">
+    <meta property="og:description" content="The guards came before the model: a path allowlist, a command classifier, two tools instead of one, and what the audit log says after 328 commands.">
+    <meta property="og:url" content="https://projects.jonathanearp.xyz/nas/">
+    <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="S.U.D.O — a gated LLM agent for a Synology NAS">
+    <meta name="twitter:description" content="How the guards work, and what they caught.">
+    <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
+    <meta name="twitter:creator" content="@JonathanEarp_">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "S.U.D.O — a gated LLM agent for a Synology NAS",
+      "description": "A Mac-side LLM agent that operates a Synology DS220j over SSH and SFTP, with a path validator, command classifier, hard-deny list, approval gate and audit log.",
+      "url": "https://projects.jonathanearp.xyz/nas/",
+      "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
+      "isPartOf": { "@id": "https://projects.jonathanearp.xyz/#page" },
+      "datePublished": "2026-11-16",
+      "keywords": "LLM agent, MCP, Claude Code, Synology, SSH, command classification, Python"
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../style.css">
+
+    <script>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add("js");
+
+        /* The five sites are separate origins, so localStorage cannot carry the
+           theme between them - toggling on the hub and clicking through used to
+           land you back in dark. A cookie on the parent domain does carry, so it
+           is read first; localStorage stays as the fallback for local dev, where
+           a .jonathanearp.xyz cookie is dropped. With neither set, follow the OS
+           instead of forcing dark on someone whose machine is in light mode. */
+        var t = "";
+        var m = document.cookie.match(/(?:^|;\s*)theme=(dark|light)/);
+        if (m) t = m[1];
+        if (!t) { try { t = localStorage.getItem("theme") || ""; } catch (e) {} }
+        if (!t && window.matchMedia &&
+            matchMedia("(prefers-color-scheme: light)").matches) t = "light";
+        d.dataset.theme = t === "light" ? "light" : "dark";
+
+        /* Written by the toggle in every site's script - one place that knows
+           about the cookie, so the five copies of the toggle stay trivial. */
+        window.__setTheme = function (next) {
+          d.dataset.theme = next;
+          try { localStorage.setItem("theme", next); } catch (e) {}
+          try {
+            var dom = /(^|\.)jonathanearp\.xyz$/i.test(location.hostname)
+              ? ";domain=.jonathanearp.xyz" : "";
+            document.cookie = "theme=" + next +
+              ";path=/;max-age=31536000;samesite=lax" + dom +
+              (location.protocol === "https:" ? ";secure" : "");
+          } catch (e) {}
+        };
+      })();
+    </script>
+</head>
+<body>
+
+    <div class="vlabel" aria-hidden="true">S.U.D.O — 03</div>
+
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a href="../" class="brand">Jonathan Earp <span class="brand__crumb">Projects / 03</span></a>
+            <nav class="topnav" id="topnav">
+                <a href="../" class="topnav__link">All projects</a>
+                <a href="https://github.com/earpjonathan/S.U.D.O" class="topnav__link" target="_blank" rel="noopener">Code ↗</a>
+                <a href="https://jonathanearp.xyz" class="topnav__link">Index ↗</a>
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle color theme">
+                    <span class="theme-toggle__dot"></span><span class="theme-toggle__label"></span>
+                </button>
+            </nav>
+            <button class="nav-toggle" id="nav-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="topnav">
+                <span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <main id="top">
+
+        <!-- ============ HERO ============ -->
+        <section class="hero wrap">
+            <canvas id="topo" data-topo data-interactive="true" aria-hidden="true"></canvas>
+            <div class="hero__eyebrow mono" data-reveal>
+                <span><span class="dot">●</span> Project 03 / 2026</span>
+                <span>~4,300 lines of Python</span>
+                <span>293 tests, all offline</span>
+            </div>
+            <h1 class="hero__title acro" data-reveal style="--i:1" aria-label="SUDO">
+                <span class="acro__r"><span class="acro__c">S</span><span class="acro__w">Synology</span></span>
+                <span class="acro__r"><span class="acro__c">U</span><span class="acro__w">Under</span></span>
+                <span class="acro__r"><span class="acro__c">D</span><span class="acro__w">Distrustful</span></span>
+                <span class="acro__r"><span class="acro__c">O</span><span class="acro__w">Oversight</span></span>
+            </h1>
+            <p class="hero__lead" data-reveal style="--i:2">
+                I type what I want done on my NAS in plain English and an LLM agent does it
+                over SSH. Anything that changes a file waits for a <b>yes</b>, and some
+                things it won't do no matter who says yes.
+            </p>
+            <div class="hero__actions" data-reveal style="--i:3">
+                <a class="btn-ghost" href="https://github.com/earpjonathan/S.U.D.O" target="_blank" rel="noopener">Code on GitHub <span aria-hidden="true">↗</span></a>
+            </div>
+
+            <div class="scroll-prompt" aria-hidden="true"><span>Scroll</span><span class="chev"></span></div>
+        </section>
+
+        <div class="wrap">
+
+            <div class="stats" data-reveal>
+                <div class="stat"><div class="stat__n">328</div><div class="stat__l">Commands run<br>on the NAS</div></div>
+                <div class="stat"><div class="stat__n">173</div><div class="stat__l">Ran with<br>no prompt</div></div>
+                <div class="stat"><div class="stat__n">17</div><div class="stat__l">Refused<br>outright</div></div>
+                <div class="stat"><div class="stat__n">0</div><div class="stat__l">Things installed<br>on the NAS</div></div>
+            </div>
+
+            <nav class="chapnav" id="chapnav" aria-label="Chapters">
+                <a href="#what"><span>01</span> What it does</a>
+                <a href="#box"><span>02</span> The box it runs on</a>
+                <a href="#guards"><span>03</span> Guards first</a>
+                <a href="#judge"><span>04</span> Judging a command</a>
+                <a href="#doors"><span>05</span> Two doors</a>
+                <a href="#log"><span>06</span> Ten weeks of the log</a>
+                <a href="#chroot"><span>07</span> Two names, one folder</a>
+                <a href="#broken"><span>08</span> Still broken</a>
+            </nav>
+
+            <!-- ============ 01 ============ -->
+            <section class="block" id="what" data-reveal>
+                <div class="block__no">01</div>
+                <div class="block__body">
+                    <h2 class="block__h">What it does</h2>
+                    <p class="lede">
+                        Claude Code, scoped to one NAS. I ask for something, the agent works out
+                        the commands, and it runs them on my Synology over SSH.
+                    </p>
+                    <p>
+                        It's named after the one command it will never run, whoever approves it.
+                    </p>
+                    <p>
+                        There are two ways in, and both sit on the same safety core: the same path
+                        check, the same command classifier, the same hard-deny list and the same
+                        audit log. The default is an MCP server that plugs into Claude Code, so it
+                        runs on the Claude plan I already pay for and uses Claude Code's own
+                        permission prompts. The other is a local web page with its own approval
+                        cards, which needs an API key.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>Two front ends, one safety core</caption>
+                        <thead><tr><th>Front end</th><th>Billing</th><th>Approvals</th></tr></thead>
+                        <tbody>
+                            <tr class="is-key"><td>MCP server <span class="tag">default</span></td><td>My existing Claude plan</td><td>Claude Code's permission prompts</td></tr>
+                            <tr><td>Web UI on 127.0.0.1</td><td>Anthropic API key, per use</td><td>Its own three-button cards</td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        The approval gate has to stop a turn halfway through while I decide, and
+                        the same loop has to drive a terminal prompt and a browser card, so I
+                        wrote the agent loop myself instead of using the SDK's tool runner.
+                        The server binds to 127.0.0.1 on a random port, since it's shell access to
+                        my NAS and has no business listening on the network.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 02 ============ -->
+            <section class="block" id="box" data-reveal>
+                <div class="block__no">02</div>
+                <div class="block__body">
+                    <h2 class="block__h">The box it runs on</h2>
+                    <p class="lede">
+                        A DS220j has 512 MB of RAM, shared with DSM itself. Most of the design
+                        follows from that.
+                    </p>
+                    <p>
+                        It's an ARMv8 chip with a BusyBox userland, no Docker, and no guarantee
+                        Python is there. So <strong>nothing gets installed on the NAS</strong>. The
+                        agent runs entirely on the Mac, and every action is either a command over
+                        SSH or a file moved over SFTP.
+                    </p>
+                    <p>
+                        The memory rules live in the transport, so the model can't forget them.
+                        Any command with a timeout over 30 seconds gets rewritten into a
+                        background job that writes to a log file, and the Mac tails that log over
+                        SFTP. No pipe stays open and no giant file list sits in the NAS's memory.
+                        Only one remote command runs at a time, and a lock enforces it.
+                    </p>
+                    <p>
+                        The system prompt is built from measurements. <code>nas-agent probe</code>
+                        connects once and checks what the NAS can actually do, most importantly
+                        whether <code>python3</code> exists. That decides whether the scripts the
+                        agent writes use a fast hashing path or fall back to plain POSIX
+                        <code>find</code>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 03 ============ -->
+            <section class="block" id="guards" data-reveal>
+                <div class="block__no">03</div>
+                <div class="block__body">
+                    <h2 class="block__h">Guards first</h2>
+                    <p class="lede">
+                        The NAS can be broken. So the path check, the classifier and the approval
+                        gate were built and tested before any model got a single tool.
+                    </p>
+                    <p>
+                        DSM owns <code>/etc</code>, <code>/usr</code>, <code>/var/packages</code> and
+                        everything under <code>/volume1/@*</code>. Every path the agent touches has
+                        to sit inside an allowed folder. The check normalises the path, then
+                        compares it component by component, so <code>/volume1/photos-old</code>
+                        doesn't count as inside <code>/volume1/photos</code>. Anything that touches
+                        the filesystem then gets resolved on the NAS with <code>realpath</code> and
+                        checked again, so a symlink inside an allowed folder can't point out of it.
+                    </p>
+                    <p>
+                        Both checks run against one shared adversarial corpus:
+                        <strong>24 path cases and 46 command cases</strong>, each with a note saying
+                        why the expected answer is what it is.
+                    </p>
+
+                    <h3 class="block__sub">Inputs that look like attacks and aren't</h3>
+                    <p>
+                        A few cases are marked allowed on purpose. <code>%2e%2e%2f</code>,
+                        backslashes and fullwidth lookalike slashes are legal characters in a Linux
+                        filename. They can't climb out of a folder, and <code>normpath</code> leaves
+                        them alone. Blocking them would make the test suite look stricter without
+                        making anything safer, and the note on each is there so nobody "fixes"
+                        the expectation later.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 04 ============ -->
+            <section class="block" id="judge" data-reveal>
+                <div class="block__no">04</div>
+                <div class="block__body">
+                    <h2 class="block__h">Judging a command</h2>
+                    <p class="lede">
+                        Every command gets one of three verdicts, or gets refused with no way to
+                        approve it.
+                    </p>
+                    <p>
+                        Commands are split on <code>;</code>, <code>&amp;&amp;</code>,
+                        <code>||</code>, <code>|</code> and <code>&amp;</code>. Each piece is judged,
+                        and the worst verdict wins. Wrappers like <code>nice</code>,
+                        <code>nohup</code>, <code>env</code>, <code>timeout</code> and
+                        <code>xargs</code> are peeled off so the program that actually runs is the
+                        one being judged. <code>sh -c "…"</code> gets its script parsed again, so a
+                        refused command can't earn an approval prompt by hiding inside quotes.
+                    </p>
+                    <p>
+                        Anything it can't check without running it, a variable, a
+                        <code>$(…)</code>, an unbalanced quote, goes up to dangerous and gets shown
+                        with the exact command text.
+                    </p>
+
+                    <div class="demo demo--judge" id="judge-demo">
+                        <div class="demo__head">
+                            <span class="demo__k">Try it</span>
+                            <span class="demo__t">What the classifier says</span>
+                            <span class="demo__hint">Pick a command</span>
+                        </div>
+                        <div class="cmdlist" role="group" aria-label="Example commands"></div>
+                        <div class="verdict" aria-live="polite">
+                            <div class="verdict__head">
+                                <span class="verdict__v" data-read="v">·</span>
+                                <span class="verdict__then" data-read="then"></span>
+                            </div>
+                            <code class="verdict__cmd" data-read="cmd"></code>
+                            <ul class="dlist verdict__why" data-read="why"></ul>
+                            <div class="demo__read">
+                                <span>Paths <b data-read="paths">·</b></span>
+                                <span>Approval signature <b data-read="kind">·</b></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p>
+                        Those are the classifier's real answers, from running it on each command
+                        with the example config that ships with the code: admin mode off, and two
+                        allowed folders, <code>/volume1/photos</code> and
+                        <code>/volume1/documents</code>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 05 ============ -->
+            <section class="block" id="doors" data-reveal>
+                <div class="block__no">05</div>
+                <div class="block__body">
+                    <h2 class="block__h">Two doors</h2>
+                    <p class="lede">
+                        Claude Code gets two tools for commands. One only runs read-only
+                        commands. The other can change things, and always asks.
+                    </p>
+                    <p>
+                        One run-anything tool would fall apart the first time I clicked "don't ask
+                        again", which would quietly turn every future write into an unattended one.
+                        With two, I can allow-list <code>run_command</code> forever and lose nothing,
+                        since it refuses anything that isn't read-only. Hard-denied commands are
+                        refused through both doors, whatever the permission settings say.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>The six MCP tools</caption>
+                        <thead><tr><th>Tool</th><th>Safe to allow-list?</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>run_command</code></td><td>Yes. Refuses anything that isn't read-only</td></tr>
+                            <tr><td><code>read_file</code>, <code>list_dir</code>, <code>fetch_to_mac</code></td><td>Yes. They only look</td></tr>
+                            <tr class="is-key"><td><code>run_write_command</code></td><td><strong>No.</strong> This is the gate</td></tr>
+                            <tr class="is-key"><td><code>write_file</code></td><td><strong>No.</strong> This is the gate</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="block__sub">Approving a kind of command</h3>
+                    <p>
+                        In the web UI, "approve this kind for the session" keys on a signature:
+                        the program, the shape of its arguments, and each path collapsed to the
+                        allowed folder it's in. That's the signature line in the demo above.
+                        Approving <code>mkdir /volume1/photos/a</code> covers <code>mkdir</code>
+                        anywhere under photos. It doesn't cover documents, and it doesn't cover
+                        <code>rm</code>. Refused and unresolvable commands get no signature at all,
+                        so a session approval can never match one.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 06 ============ -->
+            <section class="block" id="log" data-reveal>
+                <div class="block__no">06</div>
+                <div class="block__body">
+                    <h2 class="block__h">Ten weeks of the log</h2>
+                    <p class="lede">
+                        Every attempt goes into an append-only audit log, including the ones that
+                        never ran. Between 4 August and 19 October it logged 328 commands.
+                    </p>
+                    <p>
+                        A lot of that was the agent auditing the NAS itself: hunting duplicates,
+                        building a manifest of what's on it, and checking old zip archives. Here's
+                        how the commands broke down.
+                    </p>
+
+                    <figure class="fig">
+                        <div class="hbars" data-hbars='{"title": "328 commands, by verdict and outcome", "dec": 0, "rows": [{"k": "Read, ran without asking", "v": 173, "label": "173"}, {"k": "Dangerous, approved", "v": 89, "label": "89"}, {"k": "Dangerous, sent to the write tool", "v": 36, "label": "36"}, {"k": "Dangerous, refused outright", "v": 17, "hi": true, "label": "17"}, {"k": "Write, approved", "v": 9, "label": "9"}, {"k": "Write, sent to the write tool", "v": 4, "label": "4"}]}'></div>
+                        <figcaption>
+                            <strong>Sent to the write tool</strong> means the agent tried it through
+                            the read-only door and got told to use the gated one. On top of these,
+                            46 files were written to the NAS and 11 fetched back to the Mac.
+                        </figcaption>
+                    </figure>
+
+                    <p>
+                        Just over half ran with no prompt. Most of the dangerous verdicts weren't
+                        scary at all. The top reasons were <code>python3</code> (46), which the
+                        classifier doesn't know as read or write, output redirects (36), and
+                        <code>sleep</code> (21), which shows up in polling loops. That's
+                        escalate-on-doubt doing exactly what it says, and it's why
+                        <strong>98 commands went through an approval</strong> in ten weeks.
+                    </p>
+                    <p>
+                        Most of the 17 refusals were about paths: the agent reaching for one of
+                        Synology's internal datasets, or for somewhere outside the allowed folders.
+                        144 of the 328 ran as background jobs because they were expected to take
+                        over 30 seconds. The longest ran for 2,052 seconds, about 34 minutes.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 07 ============ -->
+            <section class="block" id="chroot" data-reveal>
+                <div class="block__no">07</div>
+                <div class="block__body">
+                    <h2 class="block__h">Two names, one folder</h2>
+                    <p class="lede">
+                        DSM runs SFTP chrooted to the shares root, so every folder has a
+                        different name depending on how you ask for it.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>The same share, seen two ways</caption>
+                        <thead><tr><th></th><th>SSH command</th><th>SFTP</th></tr></thead>
+                        <tbody>
+                            <tr><td>The <code>web</code> share</td><td><code>/volume1/web</code></td><td><code>/web</code></td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        The app detects this when it connects and translates, so everything I
+                        type and everything in the audit log stays in the
+                        <code>/volume1/…</code> form. One side effect shows through. With admin
+                        mode on, <code>run_command</code> can read and edit DSM config like
+                        <code>/etc/nginx/…</code>, because commands aren't chrooted. The file tools
+                        can't see those paths at all, because the chroot hides them. For DSM
+                        config, it has to use commands.
+                    </p>
+                    <p>
+                        Getting this far needs three separate switches in DSM: SSH, SFTP (which is
+                        under FTP, and easy to miss) and the user home service, without which key
+                        login fails with no error at all.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 08 ============ -->
+            <section class="block" id="broken" data-reveal>
+                <div class="block__no">08</div>
+                <div class="block__body">
+                    <h2 class="block__h">Still broken</h2>
+                    <ul class="dlist">
+                        <li><strong>Emptying a whole share is one approval away.</strong> <code>sh -c 'rm -rf /volume1/photos'</code> comes back dangerous, with a reason that says it would empty the share, but it can be approved. Only things like <code>rm -rf /</code>, <code>dd</code> to a device and <code>sudo</code> are refused outright. That's why the setup notes say to give it a non-admin DSM account, so DSM's own permissions are the outer guard.</li>
+                        <li><strong>Admin mode edits can vanish.</strong> DSM rewrites its own config on updates, so anything changed under <code>/etc</code> can silently revert, or leave a service that won't start.</li>
+                        <li><strong>The classifier only knows what it knows.</strong> Anything unfamiliar is dangerous and asks. That's safe, and it's noisy: 98 approvals in ten weeks, mostly for harmless things.</li>
+                        <li><strong>The web UI costs money.</strong> The free route only works inside Claude Code.</li>
+                        <li><strong>One NAS.</strong> It's built and tested against a DS220j on DSM 7.2. Other models will have their own quirks.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <nav class="pnav" aria-label="Project navigation">
+                <a href="../">
+                    <span class="pnav__side">← Back</span>
+                    <span class="pnav__t">All projects</span>
+                </a>
+                <a href="../splat/" style="text-align:right">
+                    <span class="pnav__side">Project 02</span>
+                    <span class="pnav__t">S.P.L.O.O.G.E</span>
+                </a>
+            </nav>
+
+        </div>
+    </main>
+
+    <footer class="foot">
+        <div class="wrap">
+            <div class="foot__grid">
+                <div class="foot__col"><div class="foot__big">Side projects,<br>written up.</div></div>
+                <div class="foot__col">
+                    <h4>Index</h4>
+                    <ul>
+                        <li><a href="../">Projects ↗</a></li>
+                        <li><a href="https://jonathanearp.xyz">Home ↗</a></li>
+                        <li><a href="https://fpv.jonathanearp.xyz">FPV ↗</a></li>
+                        <li><a href="https://research.jonathanearp.xyz">Research ↗</a></li>
+                        <li><a href="https://resume.jonathanearp.xyz">Résumé ↗</a></li>
+                    </ul>
+                </div>
+                <div class="foot__col">
+                    <h4>Elsewhere</h4>
+                    <ul>
+                        <li><a href="https://www.linkedin.com/in/earpjonathan/" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+                        <li><a href="https://github.com/earpjonathan" target="_blank" rel="noopener">GitHub ↗</a></li>
+                        <li><a href="mailto:jonathan.earp55@gmail.com">Email ↗</a></li>
+                    </ul>
+                </div>
+                <a href="#top" class="to-top">↑ Top</a>
+            </div>
+            <div class="foot__bar">
+                <span>© <span id="year">2026</span> Jonathan Earp</span>
+                <span>Audit log 4 Aug – 19 Oct 2026</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../topo.js"></script>
+    <script src="../script.js"></script>
+    <script src="../bars.js"></script>
+    <script src="page.js"></script>
+</body>
+</html>

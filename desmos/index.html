@@ -156,7 +156,8 @@
                 <a href="#versions"><span>05</span> Version by version</a>
                 <a href="#finding"><span>06</span> Finding clips</a>
                 <a href="#picker"><span>07</span> The picker that didn't work</a>
-                <a href="#broken"><span>08</span> Still broken</a>
+                <a href="#excel"><span>08</span> The same idea in Excel</a>
+                <a href="#broken"><span>09</span> Still broken</a>
             </nav>
 
             <!-- ============ 01 ============ -->
@@ -647,8 +648,138 @@
             </section>
 
             <!-- ============ 08 ============ -->
-            <section class="block" id="broken" data-reveal>
+            <section class="block" id="excel" data-reveal>
                 <div class="block__no">08</div>
+                <div class="block__body">
+                    <h2 class="block__h">The same idea in Excel</h2>
+                    <p class="lede">
+                        Desmos can only draw lines, which is why most of this page is about
+                        tracing. Excel will fill a cell with any colour, so I tried the same thing
+                        there, and the tracing went away.
+                    </p>
+                    <p>
+                        vid2excel turns a short clip into a colour animation that really runs
+                        inside a workbook, then puts it in the same 9:16 layout as the Desmos reels,
+                        real Excel on top and the clip underneath. The whole image pipeline is
+                        decode, crop, shrink to the cell grid, cut down to a fixed palette, and
+                        write the workbook. About <strong>1,300 lines of Python</strong>, in
+                        <a href="https://github.com/earpjonathan/vid2excel" target="_blank" rel="noopener">its own repo</a>.
+                    </p>
+                    <p>
+                        The workbook has three sheets. <code>Grid</code> is 120 by 68 cells, one per
+                        pixel, and each one holds a formula that looks up its own colour index.
+                        <code>Data</code> has a row per cell and a column per distinct frame.
+                        <code>Map</code> says which column draws each frame. Type a frame number into
+                        <code>A1</code> and <strong>8,160 formulas</strong> recalculate.
+                    </p>
+                    <p>
+                        A formula can't set a fill colour, so the colour comes from conditional
+                        formatting: one rule per palette colour across the whole grid, each set to
+                        stop once it matches. The numbers in the cells are hidden with the
+                        <code>;;;</code> number format.
+                    </p>
+
+                    <h3 class="block__sub">Square cells aren't what the spec says</h3>
+                    <p>
+                        Excel measures column width in characters and row height in points. The
+                        documented conversion between them (ECMA-376 18.3.1.13) is a Windows
+                        96-dpi convention, and on my Mac it gave 9 by 12 pt cells, a picture
+                        <strong>stretched 33% tall</strong>. So I wrote known widths into a sheet
+                        and measured what Excel drew.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>Column width attribute vs rendered width, Excel 16.112.1 on macOS 26</caption>
+                        <thead><tr><th>Width attribute</th><th class="num">Rendered</th></tr></thead>
+                        <tbody>
+                            <tr><td>1.0</td><td class="num">6 pt</td></tr>
+                            <tr><td>2.0</td><td class="num">12 pt</td></tr>
+                            <tr><td>4.0</td><td class="num">24 pt</td></tr>
+                            <tr class="is-key"><td>12.0</td><td class="num"><strong>72 pt</strong></td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        All eight widths I tried land exactly on 6 × width, straight through zero,
+                        while row height renders 1:1. Asking Excel doesn't settle it either: its
+                        own <code>Range.Width</code> says the cell is exactly as wide as it is tall,
+                        while it's drawing 10.4 by 12.0 device pixels. Since that constant only holds
+                        for one build, font and display, the pipeline captures one frame, measures
+                        the picture Excel actually drew, and rewrites the workbook if the cells are
+                        more than 2% off square. On my machine it measures 0.2% and leaves it alone.
+                    </p>
+
+                    <h3 class="block__sub">Conditional formatting is the slow part</h3>
+                    <table class="dtable">
+                        <caption>Time to change the frame and finish redrawing, 8,160 cells, worst case</caption>
+                        <thead><tr><th>Colour rules</th><th class="num">Recalc + formatting</th><th class="num">Live fps in Excel</th></tr></thead>
+                        <tbody>
+                            <tr><td>0 (formulas only)</td><td class="num">35 ms</td><td class="num">28.9</td></tr>
+                            <tr><td>16</td><td class="num">136 ms</td><td class="num">7.4</td></tr>
+                            <tr class="is-key"><td>32 <span class="tag">default</span></td><td class="num">211 ms</td><td class="num"><strong>4.7</strong></td></tr>
+                        </tbody>
+                    </table>
+                    <p>
+                        That's about 5.5 ms per rule, five times what the formulas cost. Real
+                        footage beats the worst case (153 ms with 32 rules), because neighbouring
+                        cells share colours and most of them stop at an early rule.
+                    </p>
+                    <p>
+                        I kept 32 colours anyway. The capture waits for every frame, so rule count
+                        doesn't change the reel at all, and someone scrubbing the file by hand only
+                        loses the difference between 6.5 and 7.4 fps. What 32 buys is the
+                        picture. Mean error drops from 9.30 to 6.66 out of 255, and at 16 colours
+                        <strong>Peter loses his eyes and mouth</strong> to his skin tone.
+                    </p>
+
+                    <h3 class="block__sub">One palette for the whole clip</h3>
+                    <p>
+                        A new palette per frame strobes. The colour clusters drift a little every
+                        frame, so flat areas shimmer even where nothing moved. So the palette is
+                        fitted once, with k-means in Lab colour space, over pixels sampled from
+                        every frame. On top of that, a pixel keeps last frame's colour unless
+                        another one beats it by more than a threshold τ. That separates changes
+                        that stick into the next frame (motion) from ones that flip back (flicker).
+                    </p>
+                    <table class="dtable">
+                        <caption>How much of each kind of change survives, by threshold (Lab units)</caption>
+                        <thead><tr><th>τ</th><th class="num">Motion kept</th><th class="num">Flicker kept</th></tr></thead>
+                        <tbody>
+                            <tr><td>0</td><td class="num">100%</td><td class="num">100%</td></tr>
+                            <tr class="is-key"><td>1 <span class="tag">default</span></td><td class="num"><strong>96.8%</strong></td><td class="num"><strong>81%</strong></td></tr>
+                            <tr><td>2</td><td class="num">94.4%</td><td class="num">71.5%</td></tr>
+                            <tr><td>4</td><td class="num">90.8%</td><td class="num">59.4%</td></tr>
+                        </tbody>
+                    </table>
+                    <p>
+                        The default sits under the smallest colour difference people can see
+                        (about 2.3 in Lab), because losing real motion is a worse mistake than
+                        leaving a little sparkle in.
+                    </p>
+
+                    <h3 class="block__sub">The screenshot bug, again</h3>
+                    <p>
+                        Section 04's bug was screenshotting before the graph finished drawing.
+                        Excel has the same trap with a twist: a window that hasn't repainted yet is
+                        perfectly still, so "wait until it's stable" passes instantly. The capture
+                        waits for the pixels to <em>change</em> from a snapshot taken before the
+                        update, and only then waits for them to settle. The 11-second test reel came
+                        out at 166 frames, 655 ms a frame, <strong>zero missed</strong>.
+                    </p>
+                    <p>
+                        Two other things that cost real time. macOS's <code>screencapture</code>
+                        won't write a file whose name starts with a dot, and it exits 0 anyway,
+                        which looks exactly like a missing Screen Recording permission. And Excel's
+                        first scripted document command after launch takes about 108 seconds at 0%
+                        CPU with no dialog, which looks exactly like a hang. Every command after
+                        that takes about 0.1 s.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 09 ============ -->
+            <section class="block" id="broken" data-reveal>
+                <div class="block__no">09</div>
                 <div class="block__body">
                     <h2 class="block__h">Still broken</h2>
                     <ul class="dlist">

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y.A.N.K — Jonathan Earp</title>
+    <meta name="description" content="A macOS daemon that unmounts a dock's SSD the moment the lid closes, plus an rsync cache that keeps NAS folders on that SSD. With the measurements: lid close to phone alert in 0.2 s, SSH ciphers on a DS220j, and a dock stuck at USB 2.0.">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="canonical" href="https://projects.jonathanearp.xyz/shuttle/">
+    <meta name="author" content="Jonathan Earp">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+    <meta name="theme-color" content="#100904">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Jonathan Earp">
+    <meta property="og:title" content="Y.A.N.K — lid-close unmount and a NAS cache for a dock SSD">
+    <meta property="og:description" content="Two IOKit signals for one lid, a warning that beats diskutil by 15 seconds, and the cipher AES lost to.">
+    <meta property="og:url" content="https://projects.jonathanearp.xyz/shuttle/">
+    <meta property="og:image" content="https://jonathanearp.xyz/assets/og.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Y.A.N.K — lid-close unmount and a NAS cache">
+    <meta name="twitter:description" content="How it works, and what it measured.">
+    <meta name="twitter:image" content="https://jonathanearp.xyz/assets/og.jpg">
+    <meta name="twitter:creator" content="@JonathanEarp_">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "Y.A.N.K — lid-close unmount and a NAS cache for a dock SSD",
+      "description": "A Swift LaunchAgent that unmounts a dock's SSD before the Mac sleeps, and a Python rsync cache that stages Synology NAS folders onto it.",
+      "url": "https://projects.jonathanearp.xyz/shuttle/",
+      "author": { "@type": "Person", "name": "Jonathan Earp", "@id": "https://jonathanearp.xyz/#jonathan" },
+      "isPartOf": { "@id": "https://projects.jonathanearp.xyz/#page" },
+      "datePublished": "2026-11-16",
+      "keywords": "macOS, IOKit, Swift, rsync, Synology, Tailscale, LaunchAgent"
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../style.css">
+
+    <script>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add("js");
+
+        /* The five sites are separate origins, so localStorage cannot carry the
+           theme between them - toggling on the hub and clicking through used to
+           land you back in dark. A cookie on the parent domain does carry, so it
+           is read first; localStorage stays as the fallback for local dev, where
+           a .jonathanearp.xyz cookie is dropped. With neither set, follow the OS
+           instead of forcing dark on someone whose machine is in light mode. */
+        var t = "";
+        var m = document.cookie.match(/(?:^|;\s*)theme=(dark|light)/);
+        if (m) t = m[1];
+        if (!t) { try { t = localStorage.getItem("theme") || ""; } catch (e) {} }
+        if (!t && window.matchMedia &&
+            matchMedia("(prefers-color-scheme: light)").matches) t = "light";
+        d.dataset.theme = t === "light" ? "light" : "dark";
+
+        /* Written by the toggle in every site's script - one place that knows
+           about the cookie, so the five copies of the toggle stay trivial. */
+        window.__setTheme = function (next) {
+          d.dataset.theme = next;
+          try { localStorage.setItem("theme", next); } catch (e) {}
+          try {
+            var dom = /(^|\.)jonathanearp\.xyz$/i.test(location.hostname)
+              ? ";domain=.jonathanearp.xyz" : "";
+            document.cookie = "theme=" + next +
+              ";path=/;max-age=31536000;samesite=lax" + dom +
+              (location.protocol === "https:" ? ";secure" : "");
+          } catch (e) {}
+        };
+      })();
+    </script>
+</head>
+<body>
+
+    <div class="vlabel" aria-hidden="true">Y.A.N.K — 04</div>
+
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a href="../" class="brand">Jonathan Earp <span class="brand__crumb">Projects / 04</span></a>
+            <nav class="topnav" id="topnav">
+                <a href="../" class="topnav__link">All projects</a>
+                <a href="https://github.com/earpjonathan/Y.A.N.K" class="topnav__link" target="_blank" rel="noopener">Code ↗</a>
+                <a href="https://jonathanearp.xyz" class="topnav__link">Index ↗</a>
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle color theme">
+                    <span class="theme-toggle__dot"></span><span class="theme-toggle__label"></span>
+                </button>
+            </nav>
+            <button class="nav-toggle" id="nav-toggle" type="button"
+                    aria-label="Menu" aria-expanded="false" aria-controls="topnav">
+                <span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <main id="top">
+
+        <!-- ============ HERO ============ -->
+        <section class="hero wrap">
+            <canvas id="topo" data-topo data-interactive="true" aria-hidden="true"></canvas>
+            <div class="hero__eyebrow mono" data-reveal>
+                <span><span class="dot">●</span> Project 04 / 2026</span>
+                <span>Swift daemon, Python CLI</span>
+                <span>Nothing installed on the NAS</span>
+            </div>
+            <h1 class="hero__title acro" data-reveal style="--i:1" aria-label="YANK">
+                <span class="acro__r"><span class="acro__c">Y</span><span class="acro__w">Yank-safe</span></span>
+                <span class="acro__r"><span class="acro__c">A</span><span class="acro__w">Auto-unmount,</span></span>
+                <span class="acro__r"><span class="acro__c">N</span><span class="acro__w">NAS</span></span>
+                <span class="acro__r"><span class="acro__c">K</span><span class="acro__w">Kept local</span></span>
+            </h1>
+            <p class="hero__lead" data-reveal style="--i:2">
+                My dock has an SSD built in, and my video lives on a NAS. This unmounts the
+                SSD the moment the lid closes, so I can unplug and leave, and copies NAS
+                folders onto it so editing runs at <b>local speed</b>.
+            </p>
+            <div class="hero__actions" data-reveal style="--i:3">
+                <a class="btn-ghost" href="https://github.com/earpjonathan/Y.A.N.K" target="_blank" rel="noopener">Code on GitHub <span aria-hidden="true">↗</span></a>
+            </div>
+
+            <div class="scroll-prompt" aria-hidden="true"><span>Scroll</span><span class="chev"></span></div>
+        </section>
+
+        <div class="wrap">
+
+            <div class="stats" data-reveal>
+                <div class="stat"><div class="stat__n">0.2 <small>s</small></div><div class="stat__l">Lid close to<br>phone alert</div></div>
+                <div class="stat"><div class="stat__n">12 <small>s</small></div><div class="stat__l">What QuickTime cost<br>the old version</div></div>
+                <div class="stat"><div class="stat__n">8.4 <small>MB/s</small></div><div class="stat__l">Best NAS pull<br>over Tailscale</div></div>
+                <div class="stat"><div class="stat__n">38 <small>MB/s</small></div><div class="stat__l">Dock SSD,<br>stuck at USB 2.0</div></div>
+            </div>
+
+            <nav class="chapnav" id="chapnav" aria-label="Chapters">
+                <a href="#what"><span>01</span> What it does</a>
+                <a href="#signals"><span>02</span> One lid, two signals</a>
+                <a href="#busy"><span>03</span> When a file is open</a>
+                <a href="#clamshell"><span>04</span> Clamshell mode</a>
+                <a href="#cache"><span>05</span> Pinning NAS folders</a>
+                <a href="#cipher"><span>06</span> Picking a cipher</a>
+                <a href="#gap"><span>07</span> The one-second gap</a>
+                <a href="#usb"><span>08</span> Stuck at USB 2.0</a>
+                <a href="#broken"><span>09</span> Still broken</a>
+            </nav>
+
+            <!-- ============ 01 ============ -->
+            <section class="block" id="what" data-reveal>
+                <div class="block__no">01</div>
+                <div class="block__body">
+                    <h2 class="block__h">What it does</h2>
+                    <p class="lede">
+                        Two tools for one dock. A daemon that gets the SSD unmounted before the
+                        Mac sleeps, and a cache that copies folders from the NAS onto that SSD
+                        and back.
+                    </p>
+                    <p>
+                        The dock is a UGreen one with an NVMe SSD inside. Unplug it with the drive
+                        still mounted and you get macOS's "Disk Not Ejected Properly" warning, and
+                        anything that was mid-write can come out corrupted. The NAS is a Synology
+                        DS220j that I reach over Tailscale, which is fine for browsing and slow for
+                        scrubbing through footage.
+                    </p>
+                    <p>
+                        <code>shuttle-ejectd</code> is about <strong>800 lines of Swift</strong> that
+                        talks to IOKit directly and runs as a LaunchAgent. <code>shuttle</code> is
+                        about <strong>1,000 lines of Python</strong> wrapped around rsync over SSH.
+                        The NAS side needs nothing installed, just SSH and DSM's rsync service.
+                        On the command line it's still called <code>shuttle</code>, which is
+                        what it was called before it got a worse name.
+                    </p>
+
+                    <div class="pipe pipe--6">
+                        <div class="pipe__s"><div class="pipe__n">01</div><div class="pipe__h">Lid closes</div><p class="pipe__p">Clamshell state flips, sleep is requested.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">02</div><div class="pipe__h">Hold sleep</div><p class="pipe__p">The daemon delays the power change.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">03</div><div class="pipe__h">Check</div><p class="pipe__p">Ask lsof whether anything has a file open.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">04</div><div class="pipe__h">Warn</div><p class="pipe__p">If so, name the process on my phone.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">05</div><div class="pipe__h">Unmount</div><p class="pipe__p">diskutil flushes and unmounts, never forced.</p></div>
+                        <div class="pipe__s"><div class="pipe__n">06</div><div class="pipe__h">Release</div><p class="pipe__p">Let the Mac sleep. Remount when the lid opens.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ 02 ============ -->
+            <section class="block" id="signals" data-reveal>
+                <div class="block__no">02</div>
+                <div class="block__body">
+                    <h2 class="block__h">One lid, two signals</h2>
+                    <p class="lede">
+                        Closing the lid doesn't always mean the Mac is about to sleep, and
+                        neither IOKit signal covers both cases on its own.
+                    </p>
+                    <p>
+                        <code>AppleClamshellState</code> on <code>IOPMrootDomain</code> changes
+                        every time the lid closes, including in clamshell mode, where an external
+                        display and AC power keep the Mac awake and no sleep notification ever
+                        arrives. What it can't do is hold off sleep.
+                    </p>
+                    <p>
+                        The sleep notifications can. Between receiving
+                        <code>kIOMessageCanSystemSleep</code> or <code>kIOMessageSystemWillSleep</code>
+                        and calling <code>IOAllowPowerChange</code>, the system waits for you. That
+                        window is the only time I get to finish the unmount and send a phone
+                        notification before Wi-Fi goes away. So the daemon registers for both.
+                    </p>
+                    <p>
+                        It runs <code>diskutil unmountDisk</code> instead of <code>eject</code>.
+                        Both flush pending writes and both make the drive safe to pull. Unmount
+                        leaves the device node attached, so the volume can come back in software
+                        when the lid opens again. An eject would need a physical replug.
+                    </p>
+
+                    <h3 class="block__sub">The alert that came twice</h3>
+                    <p>
+                        A single lid close fires both signals. The first version de-duplicated
+                        them with a time window, and an unmount can take longer than any window
+                        that makes sense, so <strong>every alert went out twice</strong>. The
+                        guard is an in-progress flag now, plus a short debounce that starts when
+                        the unmount finishes instead of when it starts.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 03 ============ -->
+            <section class="block" id="busy" data-reveal>
+                <div class="block__no">03</div>
+                <div class="block__body">
+                    <h2 class="block__h">When a file is open</h2>
+                    <p class="lede">
+                        If something on the SSD is open, the unmount fails. The daemon never
+                        forces it, since forcing is the data loss this whole thing is meant to
+                        prevent.
+                    </p>
+                    <p>
+                        It leaves the volume mounted and says what's holding it, by name:
+                        <code>Shuttle in use. Python has files open. Don't unplug.</code> That goes
+                        to my phone as well as the Mac, because a notification behind a closed lid
+                        isn't much use. It's sent from inside the sleep-delay window, before the
+                        radio goes. Phone alerts go through ntfy by default (free, no account),
+                        or Pushover, or any webhook.
+                    </p>
+                    <p>
+                        The first version waited for diskutil to say what was blocking it.
+                        diskutil is the authority on that, but it waits out each process that
+                        refuses. A well-behaved one refuses in about 2 seconds. QuickTime Player
+                        ignores the request and took 12. All told, the alert landed
+                        <strong>15 seconds after the lid closed</strong>.
+                    </p>
+
+                    <figure class="fig">
+                        <div class="hbars" data-hbars='{"title": "Lid close to phone alert, QuickTime holding a file", "unit": "s", "rows": [{"k": "Wait for diskutil", "v": 15, "label": "~15 s"}, {"k": "Ask lsof first", "v": 0.2, "hi": true, "label": "~0.2 s"}]}'></div>
+                        <figcaption>
+                            <strong>Now it asks lsof first</strong>, which answers in about 0.2 s,
+                            warns straight away and lets diskutil confirm afterwards. The alert
+                            takes about another second to leave the machine.
+                        </figcaption>
+                    </figure>
+
+                    <p>
+                        lsof's answer is fast but it isn't final. If the volume ends up releasing
+                        cleanly after all, a short "safe to unplug" follow-up corrects the
+                        warning.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 04 ============ -->
+            <section class="block" id="clamshell" data-reveal>
+                <div class="block__no">04</div>
+                <div class="block__body">
+                    <h2 class="block__h">Clamshell mode</h2>
+                    <p class="lede">
+                        With an external display plugged in, closing the lid is when I start
+                        working. Unmounting then would pull the drive out from under me.
+                    </p>
+                    <p>
+                        The daemon tells the two apart with <code>AppleClamshellCausesSleep</code>,
+                        also on <code>IOPMrootDomain</code>. macOS sets it to <code>No</code> when an
+                        external display is attached on AC power, because the Mac will stay awake
+                        with the lid shut. It comes from the display and power state, so it's
+                        already right at the instant the lid closes.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>What the daemon reads, and what it does</caption>
+                        <thead><tr><th>AppleClamshellCausesSleep</th><th>Meaning</th><th>Action</th></tr></thead>
+                        <tbody>
+                            <tr><td>Yes</td><td>Lid close will sleep the Mac, so I'm leaving</td><td>Unmount</td></tr>
+                            <tr class="is-key"><td>No</td><td>Clamshell mode, the Mac stays awake</td><td><strong>Stay mounted</strong>, run <code>sync()</code></td></tr>
+                        </tbody>
+                    </table>
+
+                    <div class="demo demo--lid" id="lid-demo">
+                        <div class="demo__head">
+                            <span class="demo__k">Try it</span>
+                            <span class="demo__t">Close the lid</span>
+                            <span class="demo__hint">Set the scene, then read the log</span>
+                        </div>
+                        <div class="demo__ctl">
+                            <span class="srange__k">Power</span>
+                            <span class="sgroup" data-group="power">
+                                <button class="sbtn is-on" data-v="battery" type="button">Battery</button>
+                                <button class="sbtn" data-v="ac" type="button">AC</button>
+                            </span>
+                        </div>
+                        <div class="demo__ctl">
+                            <span class="srange__k">Display</span>
+                            <span class="sgroup" data-group="display">
+                                <button class="sbtn is-on" data-v="none" type="button">Built-in only</button>
+                                <button class="sbtn" data-v="external" type="button">External</button>
+                            </span>
+                        </div>
+                        <div class="demo__ctl">
+                            <span class="srange__k">On the SSD</span>
+                            <span class="sgroup" data-group="open">
+                                <button class="sbtn is-on" data-v="none" type="button">Nothing open</button>
+                                <button class="sbtn" data-v="script" type="button">A script</button>
+                                <button class="sbtn" data-v="quicktime" type="button">QuickTime</button>
+                            </span>
+                        </div>
+                        <div class="log" data-read="log" aria-live="polite"></div>
+                        <div class="demo__read">
+                            <span>Causes sleep <b data-read="causes">Yes</b></span>
+                            <span>Volume <b data-read="volume">Unmounted</b></span>
+                            <span>Phone <b data-read="phone">Nothing sent</b></span>
+                        </div>
+                    </div>
+
+                    <p>
+                        The timings in there are the measured ones. The one I can't put a number
+                        on is how long a clean unmount takes, since that depends on how much is
+                        waiting to be written.
+                    </p>
+
+                    <h3 class="block__sub">Leaving from clamshell mode</h3>
+                    <p>
+                        Staying mounted leaves one gap. I finish, and unplug the dock without the
+                        Mac ever sleeping. Sleeping it first from the Apple menu covers that, and
+                        so does <code>shuttle eject</code>, which is worth putting on a hotkey. There's also
+                        an idle watchdog that unmounts after a set number of minutes with no
+                        keyboard or mouse input and remounts when input comes back. It's off by
+                        default, because watching a long video counts as idle too.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 05 ============ -->
+            <section class="block" id="cache" data-reveal>
+                <div class="block__no">05</div>
+                <div class="block__body">
+                    <h2 class="block__h">Pinning NAS folders</h2>
+                    <p class="lede">
+                        The cache is explicit. I pin a folder, it gets copied onto the SSD, and
+                        nothing moves until I say so.
+                    </p>
+                    <p>
+                        A transparent, on-demand cache on macOS needs either macFUSE, a kernel
+                        extension that means lowering the Mac's security settings, or a File
+                        Provider extension, which is a whole app with special entitlements. For
+                        video work, pinning by hand gets the same result with neither.
+                    </p>
+
+                    <div class="log">
+                        <div class="log__row"><span class="log__k">shuttle pin</span><span class="log__v">Copy a NAS folder onto the SSD. It shows up at <strong>~/Shuttle/&lt;name&gt;</strong>, a symlink, so editing projects keep resolving.</span></div>
+                        <div class="log__row"><span class="log__k">shuttle push</span><span class="log__v">Send changes back to the NAS and keep the local copy.</span></div>
+                        <div class="log__row"><span class="log__k">shuttle pull</span><span class="log__v">Refresh the local copy from the NAS.</span></div>
+                        <div class="log__row"><span class="log__k">shuttle unpin</span><span class="log__v">Push, <strong>verify</strong>, then free the space. Section 07 is about the verify.</span></div>
+                        <div class="log__row"><span class="log__k">shuttle doctor</span><span class="log__v">Checks the drive, the USB link speed, and whether the NAS and its rsync service answer.</span></div>
+                    </div>
+
+                    <p>
+                        It's rsync over SSH, because SMB is chatty and the NAS is usually on the far
+                        end of Tailscale. rsync streams, picks up interrupted transfers with
+                        <code>--partial</code>, and only moves what changed. The manifest of what's
+                        pinned lives on the drive itself and is mirrored to the Mac, so
+                        <code>shuttle status</code> still works with the dock unplugged.
+                    </p>
+
+                    <h3 class="block__sub">The error that looked like a password problem</h3>
+                    <p>
+                        Every transfer failed at first with a bare <code>Permission denied, please
+                        try again.</code> from the NAS, after SSH had already logged in fine. That
+                        reads exactly like an auth problem, and it isn't one.
+                    </p>
+                    <p>
+                        Synology ships its own patched, setuid-root <code>/usr/bin/rsync</code>,
+                        and it refuses server mode unless the rsync service is switched on in
+                        Control Panel. The real error underneath is
+                        <code>rsync service is no running (code 43)</code>, typo included. Once it's
+                        on, paths have to start at a shared folder, and the bare
+                        <code>/volume1/</code> answers <code>module is write only</code>, which is also
+                        normal. <code>shuttle doctor</code> checks for the service specifically now,
+                        and every transfer command fails fast with the fix.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 06 ============ -->
+            <section class="block" id="cipher" data-reveal>
+                <div class="block__no">06</div>
+                <div class="block__body">
+                    <h2 class="block__h">Picking a cipher</h2>
+                    <p class="lede">
+                        I expected AES to win, since the DS220j's ARM cores have crypto
+                        extensions. The AES-GCM modes came last.
+                    </p>
+                    <p>
+                        Every byte of a pull goes through SSH encryption on a small ARM box, so I
+                        timed 150 MB pulls from the NAS with each cipher instead of guessing.
+                    </p>
+
+                    <figure class="fig">
+                        <div class="hbars" data-hbars='{"title": "NAS to Mac, 150 MB pulls", "unit": "MB/s", "max": 9, "rows": [{"k": "chacha20-poly1305", "v": 8.4, "hi": true}, {"k": "aes128-ctr", "v": 8.4}, {"k": "Negotiated default", "v": 7.3}, {"k": "aes128-gcm", "v": 6.9}, {"k": "aes256-gcm", "v": 6.9}]}'></div>
+                        <figcaption>
+                            <strong>chacha20-poly1305 is the default.</strong> It ties aes128-ctr and
+                            beats whatever SSH picks on its own by about 15%.
+                        </figcaption>
+                    </figure>
+
+                    <p>
+                        The two GCM modes are 18% slower than chacha20, which is the opposite of
+                        what the hardware suggests. There's a note in the README telling whoever
+                        touches it next (me) not to switch it back to AES without measuring again.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 07 ============ -->
+            <section class="block" id="gap" data-reveal>
+                <div class="block__no">07</div>
+                <div class="block__body">
+                    <h2 class="block__h">The one-second gap</h2>
+                    <p class="lede">
+                        <code>unpin</code> deletes the local copy, so it has to be sure the NAS has
+                        everything first.
+                    </p>
+                    <p>
+                        The check is a dry-run rsync from the SSD to the NAS. Any file rsync still
+                        wants to send isn't safely on the NAS yet, and if there's even one,
+                        <code>unpin</code> refuses and leaves everything where it is.
+                    </p>
+                    <p>
+                        The catch is rsync's quick check. It compares size and modification time,
+                        and its protocol carries mtime in whole seconds. <strong>A file rewritten to
+                        the same size within the same second looks unchanged.</strong>
+                    </p>
+                    <p>
+                        Checksumming everything closes that, but it reads every byte on both ends,
+                        which at NAS speeds is hours for a big pin. So there's a second stage: a
+                        checksum pass over only the files modified since the push started. That's
+                        exactly the window where the quick check can be fooled, and it's usually a
+                        handful of files. <code>unpin --checksum</code> still forces the full pass.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>The safety-gate tests, run against real rsync on real files</caption>
+                        <thead><tr><th>Case</th><th>What has to happen</th><th class="num">Result</th></tr></thead>
+                        <tbody>
+                            <tr><td>Nothing copied yet</td><td>Everything reported as pending</td><td class="num">Pass</td></tr>
+                            <tr><td>After a real copy</td><td>Verifies clean, no false alarms</td><td class="num">Pass</td></tr>
+                            <tr><td>File changed, different size</td><td>Quick check catches it</td><td class="num">Pass</td></tr>
+                            <tr><td>New local file</td><td>Caught</td><td class="num">Pass</td></tr>
+                            <tr class="is-key"><td>Same size, same second</td><td>Quick check misses it, <strong>stage two catches it</strong></td><td class="num">Pass</td></tr>
+                            <tr><td>Synology clutter (<code>@eaDir</code>, <code>.DS_Store</code>)</td><td>Ignored, doesn't block the verify</td><td class="num">Pass</td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        They run real rsync instead of fixtures, because the whole risk is whether
+                        my reading of <code>--itemize-changes</code> matches what rsync actually
+                        prints. The same-second case is in there to show the gap exists, so nobody
+                        can quietly assume it away later.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 08 ============ -->
+            <section class="block" id="usb" data-reveal>
+                <div class="block__no">08</div>
+                <div class="block__body">
+                    <h2 class="block__h">Stuck at USB 2.0</h2>
+                    <p class="lede">
+                        The SSD writes at 38 MB/s. That's about where USB 2.0 tops out, on a
+                        Thunderbolt 5 laptop.
+                    </p>
+
+                    <table class="dtable">
+                        <caption>Measured on this machine</caption>
+                        <thead><tr><th>Path</th><th class="num">Speed</th></tr></thead>
+                        <tbody>
+                            <tr class="is-key"><td>Dock SSD, sequential write</td><td class="num"><strong>38 MB/s</strong></td></tr>
+                            <tr><td>USB 2.0, theoretical ceiling</td><td class="num">~40 MB/s</td></tr>
+                            <tr><td>NAS to Mac over Tailscale (SFTP, same LAN)</td><td class="num">7.6 MB/s</td></tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        Every USB device in the dock, both internal hubs, the Realtek network chip
+                        and the storage bridge, reports <code>Device Speed = 2</code>, which is USB 2.0
+                        High Speed. There were zero SuperSpeed devices on the machine, and nothing
+                        connected on any of the three Thunderbolt buses.
+                    </p>
+                    <p>
+                        That's the giveaway. A USB 3 hub always shows up as two device trees, a
+                        USB 2.0 one and a separate SuperSpeed one. Only the 2.0 tree exists here,
+                        so the fast link isn't coming up at all. Reformatting the SSD to APFS
+                        changed nothing (38.1 to 38.2 MB/s), which rules out the filesystem and the
+                        driver.
+                    </p>
+                    <p>
+                        The likeliest cause is the cable. USB-C charging cables only carry the
+                        USB 2.0 pairs and look identical to full ones. A cable rated for 10 Gb/s
+                        should take the SSD to somewhere around 800 to 1,000 MB/s. That's an
+                        estimate from the spec, not a measurement, so <code>shuttle doctor</code>
+                        checks the link speed every time it runs.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 09 ============ -->
+            <section class="block" id="broken" data-reveal>
+                <div class="block__no">09</div>
+                <div class="block__body">
+                    <h2 class="block__h">Still broken</h2>
+                    <ul class="dlist">
+                        <li><strong>The dock is still on USB 2.0.</strong> Until the cable is swapped, the SSD is only about 5× faster than pulling from the NAS, and the cache is a nice-to-have.</li>
+                        <li><strong>Unplugging from clamshell mode isn't covered by default.</strong> If I never sleep the Mac and never run <code>shuttle eject</code>, the drive is still mounted when I pull it. The idle watchdog fixes that, and it's off.</li>
+                        <li><strong>The cache is manual.</strong> There's no fetching on demand. If a project references a file I didn't pin, it reads from the NAS at NAS speed.</li>
+                        <li><strong>The strongest check is slow.</strong> <code>unpin --checksum</code> reads every byte on both ends, so on a large pin it takes hours.</li>
+                        <li><strong>One dock, one NAS, one Mac.</strong> Nothing here has been tried on other hardware.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <nav class="pnav" aria-label="Project navigation">
+                <a href="../">
+                    <span class="pnav__side">← Back</span>
+                    <span class="pnav__t">All projects</span>
+                </a>
+                <a href="../nas/" style="text-align:right">
+                    <span class="pnav__side">Project 03</span>
+                    <span class="pnav__t">S.U.D.O</span>
+                </a>
+            </nav>
+
+        </div>
+    </main>
+
+    <footer class="foot">
+        <div class="wrap">
+            <div class="foot__grid">
+                <div class="foot__col"><div class="foot__big">Side projects,<br>written up.</div></div>
+                <div class="foot__col">
+                    <h4>Index</h4>
+                    <ul>
+                        <li><a href="../">Projects ↗</a></li>
+                        <li><a href="https://jonathanearp.xyz">Home ↗</a></li>
+                        <li><a href="https://fpv.jonathanearp.xyz">FPV ↗</a></li>
+                        <li><a href="https://research.jonathanearp.xyz">Research ↗</a></li>
+                        <li><a href="https://resume.jonathanearp.xyz">Résumé ↗</a></li>
+                    </ul>
+                </div>
+                <div class="foot__col">
+                    <h4>Elsewhere</h4>
+                    <ul>
+                        <li><a href="https://www.linkedin.com/in/earpjonathan/" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+                        <li><a href="https://github.com/earpjonathan" target="_blank" rel="noopener">GitHub ↗</a></li>
+                        <li><a href="mailto:jonathan.earp55@gmail.com">Email ↗</a></li>
+                    </ul>
+                </div>
+                <a href="#top" class="to-top">↑ Top</a>
+            </div>
+            <div class="foot__bar">
+                <span>© <span id="year">2026</span> Jonathan Earp</span>
+                <span>All figures measured Sep 2026</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../topo.js"></script>
+    <script src="../script.js"></script>
+    <script src="../bars.js"></script>
+    <script src="page.js"></script>
+</body>
+</html>

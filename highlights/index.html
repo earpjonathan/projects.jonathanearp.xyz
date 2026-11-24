@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Walkthrough for Bracket Bot — Jonathan Earp</title>
+    <title>Highlights — Jonathan Earp</title>
     <!-- Unlisted: not in the sitemap, not linked from any page, and kept out
          of search. Deliberately not in robots.txt either, since a Disallow
          line there would publish the path. No Open Graph or Twitter tags. -->
@@ -57,11 +57,11 @@
 </head>
 <body class="walk">
 
-    <div class="vlabel" aria-hidden="true">Walkthrough — Bracket Bot</div>
+    <div class="vlabel" aria-hidden="true">Highlights — MMXXVI</div>
 
     <header class="topbar">
         <div class="topbar__inner">
-            <a href="../" class="brand">Jonathan Earp <span class="brand__crumb">Walkthrough</span></a>
+            <a href="../" class="brand">Jonathan Earp <span class="brand__crumb">Highlights</span></a>
             <nav class="topnav" id="topnav">
                 <a href="../" class="topnav__link">All projects</a>
                 <a href="https://resume.jonathanearp.xyz" class="topnav__link" target="_blank" rel="noopener">Résumé ↗</a>
@@ -83,37 +83,33 @@
         <section class="hero wrap" id="intro">
             <canvas id="topo" data-topo data-interactive="true" aria-hidden="true"></canvas>
             <div class="hero__eyebrow mono" data-reveal>
-                <span><span class="dot">●</span> Portfolio review / Nov 2026</span>
-                <span>Five sections</span>
-                <span>About 17 minutes</span>
+                <span><span class="dot">●</span> Highlights / 2026</span>
+                <span>Research, drones, side projects</span>
+                <span>Full write-ups linked</span>
             </div>
-            <h1 class="hero__title" data-reveal style="--i:1">Walkthrough for Bracket Bot</h1>
-            <p class="hero__sub" data-reveal style="--i:1">Robotics Engineering Intern · Jonathan Earp</p>
+            <h1 class="hero__title" data-reveal style="--i:1">Highlights</h1>
             <p class="hero__lead" data-reveal style="--i:2">
-                I'll show you a <b>Raspberry Pi</b> camera rig that's run in real kitchens, 3D maps
-                I made from drone footage, and the drones I build, tune and fix after crashes.
+                The stuff I'd show someone first: a <b>Raspberry Pi</b> camera rig that's been running
+                in real kitchens, the drones I build and fix after crashes, and 3D maps I made from
+                drone footage. Plus a few shorter ones at the end.
             </p>
 
-            <nav class="metastrip runsheet" data-reveal style="--i:3" aria-label="Run sheet">
+            <nav class="metastrip toc" data-reveal style="--i:3" aria-label="Contents">
                 <a class="metastrip__cell" href="#stovecam">
-                    <span class="metastrip__k"><b>01</b> · 5 min</span>
+                    <span class="metastrip__k"><b>01</b> · Research</span>
                     <span class="metastrip__v">StoveCam</span>
                 </a>
                 <a class="metastrip__cell" href="#fpv">
-                    <span class="metastrip__k"><b>02</b> · 4 min</span>
+                    <span class="metastrip__k"><b>02</b> · Personal</span>
                     <span class="metastrip__v">FPV drones</span>
                 </a>
                 <a class="metastrip__cell" href="#splat">
-                    <span class="metastrip__k"><b>03</b> · 4 min</span>
+                    <span class="metastrip__k"><b>03</b> · Side project</span>
                     <span class="metastrip__v">S.P.L.O.O.G.E</span>
                 </a>
-                <a class="metastrip__cell" href="#quick">
-                    <span class="metastrip__k"><b>04</b> · 3 min</span>
-                    <span class="metastrip__v">Quick hits</span>
-                </a>
-                <a class="metastrip__cell" href="#close">
-                    <span class="metastrip__k"><b>05</b> · 1 min</span>
-                    <span class="metastrip__v">Close</span>
+                <a class="metastrip__cell" href="#more">
+                    <span class="metastrip__k"><b>04</b> · Shorter ones</span>
+                    <span class="metastrip__v">Other stuff</span>
                 </a>
             </nav>
 
@@ -123,11 +119,10 @@
         <div class="wrap">
 
             <nav class="chapnav" id="chapnav" aria-label="Sections">
-                <a href="#stovecam"><span>01</span> StoveCam <i>5 min</i></a>
-                <a href="#fpv"><span>02</span> FPV drones <i>4 min</i></a>
-                <a href="#splat"><span>03</span> S.P.L.O.O.G.E <i>4 min</i></a>
-                <a href="#quick"><span>04</span> Quick hits <i>3 min</i></a>
-                <a href="#close"><span>05</span> Close <i>1 min</i></a>
+                <a href="#stovecam"><span>01</span> StoveCam</a>
+                <a href="#fpv"><span>02</span> FPV drones</a>
+                <a href="#splat"><span>03</span> S.P.L.O.O.G.E</a>
+                <a href="#more"><span>04</span> Other stuff</a>
                 <span class="chapnav__keys" aria-hidden="true">← → or J K</span>
             </nav>
 
@@ -144,7 +139,7 @@
                             </div>
                         </div>
                         <div class="wsec__aside">
-                            <span class="wsec__meta">Lawrence Berkeley National Lab<br><b>~5 min</b></span>
+                            <span class="wsec__meta">Lawrence Berkeley National Lab</span>
                             <a class="btn-ghost" href="https://research.jonathanearp.xyz/#stovecam" target="_blank" rel="noopener">Full write-up <span aria-hidden="true">↗</span></a>
                         </div>
                     </header>
@@ -152,18 +147,17 @@
                     <div class="wsec__grid">
                         <div>
                             <div class="status">
-                                <div class="status__row"><span class="status__k">What I built</span><span class="status__v">A Raspberry Pi 5 over the stove with an RGB camera and an Adafruit thermal camera. It takes a paired photo every 60&nbsp;s, and it's run in three homes where people actually live.</span></div>
-                                <div class="status__row"><span class="status__k">My role</span><span class="status__v">I kept reworking the mounts and wiring until it ran reliably in every kitchen. I also co-wrote the Python pipeline that went through 40,000+ image pairs. A brightness check on the Pi throws out dark frames, a small vision model checks if anyone's cooking, and a bigger model labels the food, method, cookware and burner.</span></div>
-                                <div class="status__row"><span class="status__k">Hardest part</span><span class="status__v">False positives. An empty burner that's still hot from earlier looks like cooking to the thermal camera, and that caused most of the errors.</span></div>
-                                <div class="status__row"><span class="status__k">How I solved it</span><span class="status__v">The model also looks at the RGB photo, so if the burner's empty there, the heat gets ignored. We hand-graded 506 samples to check how it did.</span></div>
+                                <div class="status__row"><span class="status__k">What it is</span><span class="status__v">A Raspberry Pi 5 over the stove with a normal camera and an Adafruit thermal camera. It grabs a pair of photos every 60&nbsp;s, and it's been running in three people's actual kitchens.</span></div>
+                                <div class="status__row"><span class="status__k">What I did</span><span class="status__v">Most of the hardware. I kept redoing the mounts and wiring until it worked reliably in every kitchen. I also co-wrote the Python pipeline that went through 40,000+ photo pairs: the Pi throws out dark frames, a small vision model checks if anyone's cooking, and a bigger one labels the food, method, cookware and burner.</span></div>
+                                <div class="status__row"><span class="status__k">Hardest part</span><span class="status__v">False positives. A burner that's empty but still hot from earlier looks just like cooking to the thermal camera, and that was most of our errors.</span></div>
+                                <div class="status__row"><span class="status__k">How I fixed it</span><span class="status__v">Make the model check the normal photo too, so if the burner's empty there it ignores the heat. Then we hand&#8209;graded 506 of them to see how it did.</span></div>
                             </div>
-                            <p class="callout"><strong>Why it's relevant to Bracket Bot.</strong> Same Pi 5, and the same thing where it works fine on my desk and then doesn't in someone's kitchen.</p>
                         </div>
 
                         <div data-tabs>
                             <div class="demo__ctl" role="group" aria-label="StoveCam figures">
                                 <button class="sbtn is-on" type="button" data-tab="toast" aria-pressed="true"><span class="sbtn__n">1</span>French toast</button>
-                                <button class="sbtn" type="button" data-tab="residual" aria-pressed="false"><span class="sbtn__n">2</span>Residual heat</button>
+                                <button class="sbtn" type="button" data-tab="chicken" aria-pressed="false"><span class="sbtn__n">2</span>Chicken</button>
                                 <button class="sbtn" type="button" data-tab="grades" aria-pressed="false"><span class="sbtn__n">3</span>506 grades</button>
                             </div>
 
@@ -172,21 +166,42 @@
                                     <figure><img src="media/stovecam-2309-rgb.jpg" alt="RGB capture: French toast cooking in a skillet"><figcaption><span class="ptag">RGB</span></figcaption></figure>
                                     <figure><img src="media/stovecam-2309-ir.jpg" alt="Thermal capture of the same instant: hot pan, cooler toast"><figcaption><span class="ptag ptag--ir">Thermal</span></figcaption></figure>
                                 </div>
-                                <figcaption class="wcap"><strong>Same instant</strong>French toast on the front-right burner. The pan reads 113.9&deg;C, and the toast is cooler where it's soaking up the heat.</figcaption>
+                                <dl class="rcard__out">
+                                    <div><dt>Food</dt><dd>French toast</dd></div>
+                                    <div><dt>Method</dt><dd>Pan-fry</dd></div>
+                                    <div><dt>Cookware</dt><dd>Skillet</dd></div>
+                                    <div><dt>Burner</dt><dd>Front right</dd></div>
+                                    <div><dt>Confidence</dt><dd>1.00</dd></div>
+                                </dl>
+                                <figcaption class="wcap"><strong>Easy one</strong>The pan reads 113.9&deg;C, and the toast is cooler where it's soaking up the heat.</figcaption>
                             </figure>
 
-                            <figure class="wpanel" data-panel="residual" hidden>
+                            <figure class="wpanel" data-panel="chicken" hidden>
                                 <div class="rcard__imgs">
-                                    <figure><img src="media/stovecam-2385-rgb.jpg" alt="A lid being lifted off a pot of chicken on the right burner" loading="lazy"><figcaption><span class="ptag">RGB</span></figcaption></figure>
-                                    <figure><img src="media/stovecam-2385-ir.jpg" alt="Thermal showing active heat under the pot and residual heat on the empty left burner" loading="lazy"><figcaption><span class="ptag ptag--ir">Thermal</span></figcaption></figure>
+                                    <figure>
+                                        <img src="media/stovecam-2385-rgb.jpg" alt="A lid being lifted off a pot on the right burner, with a hand and motion blur in the shot" loading="lazy">
+                                        <figcaption><span class="ptag">RGB</span></figcaption>
+                                        <span class="wring" aria-hidden="true"></span>
+                                    </figure>
+                                    <figure>
+                                        <img src="media/stovecam-2385-leg.jpg" alt="Zoomed in on the circled spot: the end of a chicken leg poking out from under the lid" loading="lazy">
+                                        <figcaption><span class="ptag ptag--ir">Zoomed in</span></figcaption>
+                                    </figure>
                                 </div>
-                                <figcaption class="wcap"><strong>Ruled out</strong>Someone lifting the lid off a pot of chicken. The empty left burner is still warm in IR, and the RGB photo is how the model knows to ignore it.</figcaption>
+                                <dl class="rcard__out">
+                                    <div><dt>Food</dt><dd>Chicken</dd></div>
+                                    <div><dt>Method</dt><dd>Boil</dd></div>
+                                    <div><dt>Cookware</dt><dd>Pot</dd></div>
+                                    <div><dt>Burner</dt><dd>Right</dd></div>
+                                    <div><dt>Confidence</dt><dd>0.95</dd></div>
+                                </dl>
+                                <figcaption class="wcap"><strong>Hard one</strong>Lid half off, a hand in the way, motion blur, and the only chicken in frame is the end of a leg. It still got all of it right, and we graded it 10/10.</figcaption>
                             </figure>
 
                             <figure class="wpanel" data-panel="grades" hidden>
                                 <img class="fig--dark" src="media/fig-rating-dark.svg" alt="Bar chart of 506 human grades: most captures score 9 or 10, mean 8.1, with a secondary cluster at 5" loading="lazy">
                                 <img class="fig--light" src="media/fig-rating-light.svg" alt="" aria-hidden="true" loading="lazy">
-                                <figcaption class="wcap"><strong>506 graded</strong>The bump at 5 is almost all false positives: 122 of those 125 are residual heat.</figcaption>
+                                <figcaption class="wcap"><strong>506 graded</strong>That bump at 5 is the leftover-heat problem: 122 of those 125 are an empty burner that was still warm.</figcaption>
                             </figure>
 
                             <div class="stats stats--3">
@@ -212,7 +227,7 @@
                             </div>
                         </div>
                         <div class="wsec__aside">
-                            <span class="wsec__meta">Personal builds<br><b>~4 min</b></span>
+                            <span class="wsec__meta">Personal builds</span>
                             <a class="btn-ghost" href="https://fpv.jonathanearp.xyz" target="_blank" rel="noopener">Reel and gallery <span aria-hidden="true">↗</span></a>
                         </div>
                     </header>
@@ -220,12 +235,11 @@
                     <div class="wsec__grid">
                         <div>
                             <div class="status">
-                                <div class="status__row"><span class="status__k">What I built</span><span class="status__v">8 drones so far, from 45&nbsp;mm up to 5&nbsp;in, and 400+ hours flying them. I've got my FAA Part 107. I also worked on a 2&#8209;axis brushless gimbal on a Storm32 controller that the flight controller talks to over UART/MAVLink.</span></div>
-                                <div class="status__row"><span class="status__k">My role</span><span class="status__v">I pick the motors, ESCs and props, solder in the flight controller, receiver, GPS and video, calibrate the GPS, compass, barometer and IMU, and tune the PIDs from blackbox logs. When one crashes, I'm the one fixing it.</span></div>
-                                <div class="status__row"><span class="status__k">Hardest part</span><span class="status__v">Tracking down an ESC problem.</span></div>
-                                <div class="status__row"><span class="status__k">How I solved it</span><span class="status__v">I went over everything with a multimeter, found the tiny connections that had broken, and re-soldered them.</span></div>
+                                <div class="status__row"><span class="status__k">What it is</span><span class="status__v">8 drones so far, from 45&nbsp;mm up to 5&nbsp;in, and 400+ hours flying them. I have my FAA Part 107. I also worked on a 2&#8209;axis brushless gimbal on a Storm32 controller that the flight controller talks to over UART/MAVLink.</span></div>
+                                <div class="status__row"><span class="status__k">What I did</span><span class="status__v">I pick the motors, ESCs and props, solder in the flight controller, receiver, GPS and video, calibrate the GPS, compass, barometer and IMU, and tune the PIDs from blackbox logs. And when one crashes, I fix it.</span></div>
+                                <div class="status__row"><span class="status__k">Hardest part</span><span class="status__v">An ESC problem I had to track down.</span></div>
+                                <div class="status__row"><span class="status__k">How I fixed it</span><span class="status__v">Went over everything with a multimeter, found the tiny connections that had broken, and re-soldered them.</span></div>
                             </div>
-                            <p class="callout"><strong>Why it's relevant to Bracket Bot.</strong> It's the same loop as a mobile robot: build it, wire it, test it, and figure out what broke, from the logs or with a multimeter.</p>
                         </div>
 
                         <div>
@@ -269,7 +283,7 @@
                             </div>
                         </div>
                         <div class="wsec__aside">
-                            <span class="wsec__meta">3D reconstruction from drone footage<br><b>~4 min</b></span>
+                            <span class="wsec__meta">3D reconstruction from drone footage</span>
                             <a class="btn-ghost" href="../splat/" target="_blank" rel="noopener">Full write-up <span aria-hidden="true">↗</span></a>
                         </div>
                     </header>
@@ -277,15 +291,14 @@
                     <div class="wsec__grid">
                         <div>
                             <div class="status">
-                                <div class="status__row"><span class="status__k">What I built</span><span class="status__v">I flew a drone over two spots six days apart and turned both flights into one photorealistic 3D reconstruction. You can fly through it in the browser next to the real footage, and I wrote it up like a paper.</span></div>
+                                <div class="status__row"><span class="status__k">What it is</span><span class="status__v">I flew a drone over two spots six days apart and turned both flights into one photorealistic 3D scene. You can fly around it in the browser next to the real footage. I also wrote it up like a paper.</span></div>
                                 <!-- The trainer is Brush (github.com/ArthurBrussee/brush), not mine; the
                                      splat write-up's Tools section says so. My part of it is the
                                      depth-distortion loss. -->
-                                <div class="status__row"><span class="status__k">My role</span><span class="status__v">I built the whole pipeline. COLMAP works out where the camera was, Brush (a Rust/WebGPU splat trainer I added a depth-distortion loss to) builds the scene, WebGL plays it back, and Python ties it together.</span></div>
-                                <div class="status__row"><span class="status__k">Hardest part</span><span class="status__v">The ground had see-through holes in it when you flew low. I spent a week measuring it like it was a training problem.</span></div>
-                                <div class="status__row"><span class="status__k">How I solved it</span><span class="status__v">It was one change in the renderer, and the holes dropped 11.6&times;. The viewer's near plane was set to 0.2, so it was clipping off the ground right under the camera, and no amount of retraining could fix pixels the renderer was throwing away.</span></div>
+                                <div class="status__row"><span class="status__k">What I did</span><span class="status__v">The whole pipeline. COLMAP figures out where the camera was, Brush (a Rust/WebGPU splat trainer I added a depth-distortion loss to) builds the scene, WebGL plays it back, and Python glues it together.</span></div>
+                                <div class="status__row"><span class="status__k">Hardest part</span><span class="status__v">The ground had see-through holes in it when you flew low. I spent a week treating it like a training problem and measuring everything.</span></div>
+                                <div class="status__row"><span class="status__k">How I fixed it</span><span class="status__v">Turns out it was one setting in the renderer. The near plane was 0.2, so it clipped off the ground right under the camera, and no amount of retraining could fix pixels the renderer was throwing away. Changing it cut the holes 11.6&times;.</span></div>
                             </div>
-                            <p class="callout"><strong>Why it's relevant to Bracket Bot.</strong> Your SDK does mapping and navigation, and this is the same problem: camera footage in, 3D map out.</p>
                         </div>
 
                         <div data-tabs>
@@ -366,16 +379,16 @@
                 </div>
             </section>
 
-            <!-- ============ 04 QUICK HITS ============ -->
-            <section class="wsec" id="quick" data-reveal>
+            <!-- ============ 04 OTHER STUFF ============ -->
+            <section class="wsec" id="more" data-reveal>
                 <div class="wsec__no">04</div>
                 <div>
                     <header class="wsec__head">
                         <div>
-                            <h2 class="wsec__title">Quick hits</h2>
+                            <h2 class="wsec__title">Other stuff</h2>
                         </div>
                         <div class="wsec__aside">
-                            <span class="wsec__meta">Three shorter ones<br><b>~3 min</b></span>
+                            <span class="wsec__meta">Shorter ones</span>
                         </div>
                     </header>
 
@@ -411,26 +424,9 @@
                                 <div class="prow__stat"><b>17</b><span>Refused</span></div>
                                 <div class="prow__stat"><b>293</b><span>Offline tests</span></div>
                             </div>
-                            <p class="callout"><strong>Why it's relevant.</strong> Same idea as your MCP server, pointed at a NAS instead of a robot.</p>
                             <a class="btn-ghost qhit__go" href="../nas/" target="_blank" rel="noopener">Write-up <span aria-hidden="true">↗</span></a>
                         </article>
                     </div>
-                </div>
-            </section>
-
-            <!-- ============ 05 CLOSE ============ -->
-            <section class="wsec wsec--close" id="close" data-reveal>
-                <div class="wsec__no">05</div>
-                <div>
-                    <header class="wsec__head">
-                        <div>
-                            <h2 class="wsec__title">What I'd want to own at Bracket Bot</h2>
-                        </div>
-                        <div class="wsec__aside">
-                            <span class="wsec__meta">Close<br><b>~1 min</b></span>
-                        </div>
-                    </header>
-                    <p class="wclose">I'd want to own a test for how good the maps actually are. Set up a room where everything's been measured, run the SDK's mapping on it, and track the error on every release, worst cases included, since averaging is what hid my ground-hole bug. Then write it up so anyone changing the mapping code can see if they made it better or worse.</p>
                 </div>
             </section>
 
@@ -462,7 +458,7 @@
             </div>
             <div class="foot__bar">
                 <span>© <span id="year">2026</span> Jonathan Earp</span>
-                <span>Walkthrough for Bracket Bot · Nov 2026</span>
+                <span>Updated Nov 2026</span>
             </div>
         </div>
     </footer>

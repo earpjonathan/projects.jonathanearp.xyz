@@ -1,5 +1,5 @@
 /* ============================================================
-   Walkthrough page: keyboard jumps between sections, the figure
+   Highlights page: keyboard jumps between sections, the figure
    tabs, videos that only play while they're on screen, the live
    splat renderer from ../splat/viewer.js, and the before/after wipe.
    ============================================================ */

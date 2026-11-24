@@ -1,0 +1,232 @@
+/* ============================================================
+   WALKTHROUGH — one section per screen, for screen sharing.
+
+   Built from pieces the sites already have: the case-study
+   number column, the index's tags and stat figures, Research's
+   status rows and RGB/thermal pair, the splat page's viewer and
+   wipe. The one deliberate change is size. Prose steps up from
+   --t-body to --t-sub and captions from 10px to the 12px the nav
+   already uses, so the page still reads once it has been squeezed
+   through a video call.
+   ============================================================ */
+
+/* ---------- copied from research.jonathanearp.xyz/style.css ----------
+   These four components only exist on Research. Copied as they are
+   there, so a change to them is a change in two places. */
+html[data-theme="dark"] .fig--light { display: none; }
+html[data-theme="light"] .fig--dark { display: none; }
+
+.ptag {
+  display: inline-block; font-size: var(--t-caption); text-transform: uppercase;
+  color: var(--fg); border: 1px solid var(--fg); padding: 1px 6px; margin-right: 8px;
+}
+.ptag--ir { border-color: var(--accent); color: var(--accent); }
+
+.rcard__imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rcard__imgs figure { position: relative; }
+.rcard__imgs img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.rcard__imgs figcaption { position: absolute; top: 8px; left: 8px; }
+
+.status { border-top: 1px dashed var(--line); margin-top: 6px; }
+.status__row { display: grid; grid-template-columns: 180px 1fr; gap: 24px; padding: 14px 0; border-bottom: 1px dashed var(--line); font-size: var(--t-body); }
+.status__k { font-size: var(--t-caption); text-transform: uppercase; color: var(--accent); }
+.status__v { color: var(--fg-soft); }
+.status__v strong { color: var(--fg); font-weight: 500; }
+
+@media (max-width: 620px) {
+  .rcard__imgs { grid-template-columns: 1fr; }
+  .status__row { grid-template-columns: 1fr; gap: 4px; }
+}
+/* ---------- end of the Research copy ---------- */
+
+
+/* ---------- sizes this page is laid out around ----------
+   --walk-nav is the sticky index's height (14 + 16 + 14 + 1px rule).
+   --walk-foot is the footer's, so the last section and the footer
+   together make exactly one screen. */
+:root { --walk-nav: 45px; --walk-foot: 300px; }
+
+/* ---------- hero ---------- */
+.walk .hero__eyebrow { font-size: 12px; }
+.hero__sub {
+  position: relative; z-index: 1;
+  margin-top: -18px;
+  font-size: var(--t-sub); color: var(--fg-soft);
+}
+.runsheet .metastrip__k { font-size: 12px; }
+.runsheet .metastrip__k b { color: var(--accent); font-weight: 400; }
+.runsheet .metastrip__v { font-size: var(--t-sub); transition: color var(--t-fast); }
+.runsheet a.metastrip__cell:hover .metastrip__v { color: var(--accent); }
+@media (min-width: 901px) {
+  .runsheet { grid-template-columns: repeat(5, 1fr); }
+}
+@media (max-width: 900px) {
+  .runsheet .metastrip__cell { padding-bottom: 18px; }
+}
+
+/* ---------- sticky section index ---------- */
+.walk .chapnav { margin-top: 0; }
+.walk .chapnav a { font-size: 12px; }
+.walk .chapnav a i { font-style: normal; color: var(--fg-soft); }
+.chapnav__keys {
+  margin-left: auto; padding-left: 24px;
+  font-size: 12px; text-transform: uppercase; color: var(--fg-soft); white-space: nowrap;
+}
+
+/* ---------- a section: number column, then one screen of content ---------- */
+.wsec {
+  display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 24px;
+  align-content: start;
+  min-height: calc(100svh - var(--header-h) - var(--walk-nav));
+  padding: 24px 0 31px;
+  border-top: 1px dashed var(--line);
+  scroll-margin-top: calc(var(--header-h) + var(--walk-nav));
+}
+.chapnav + .wsec { border-top: 0; }
+.wsec__no { font-size: 12px; color: var(--accent); padding-top: 15px; }
+
+/* title, tags and links on one line: a laptop screen minus the browser's
+   own toolbars is closer to 800px than 900, and this row is where the
+   height comes back from */
+.wsec__head { display: flex; align-items: center; gap: 24px; }
+.wsec__head > div:first-child { display: flex; align-items: center; flex-wrap: wrap; gap: 14px 24px; }
+.wsec__title { font-size: var(--t-h-lg); line-height: 1; font-weight: 500; text-transform: uppercase; }
+.wsec__head .prow__tags { margin-top: 0; }
+.wsec__head .prow__tags span { font-size: 12px; }
+.wsec__aside {
+  margin-left: auto; flex: none;
+  display: flex; align-items: center; gap: 18px;
+}
+.wsec__meta { font-size: 12px; text-transform: uppercase; color: var(--fg-soft); text-align: right; line-height: 1.5; }
+.wsec__meta b { color: var(--accent); font-weight: 400; }
+.wsec__aside .btn-ghost { white-space: nowrap; }
+
+.wsec__grid {
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 41px; margin-top: 22px; align-items: start;
+}
+
+/* the four blocks, as Research's status rows at presenting size */
+.wsec .status { margin-top: 0; }
+.wsec .status__row {
+  grid-template-columns: 150px minmax(0, 1fr); gap: 18px;
+  padding: 11px 0; font-size: var(--t-sub); line-height: 1.4;
+}
+.wsec .status__k { font-size: 12px; line-height: 1.4; padding-top: 4px; }
+/* full cream rather than Research's muted grey: this is the copy being
+   read out, and grey loses the most in a compressed screen share */
+.wsec .status__v { color: var(--fg); }
+.wsec .callout { font-size: var(--t-sub); line-height: 1.4; margin: 22px 0 0; max-width: none; }
+
+/* ---------- media column ---------- */
+.wsec .demo__ctl { margin-bottom: 12px; }
+.wsec .sbtn { font-size: 12px; padding: 7px 14px; }
+.wpanel[hidden] { display: none; }
+.wcap {
+  padding-top: 10px;
+  font-size: var(--t-body); line-height: 1.5; color: var(--fg-soft);
+}
+.wcap strong {
+  text-transform: uppercase; font-size: 12px; letter-spacing: 0.04em;
+  color: var(--accent); font-weight: 500; margin-right: 6px;
+}
+.wcap[hidden] { display: none; }
+
+/* a fixed 16:9 frame, so switching between a live render, a paired
+   video and a wipe does not move the stat row underneath */
+.wstage { position: relative; aspect-ratio: 16 / 9; display: flex; align-items: center; }
+.wstage > * { width: 100%; }
+.wstage .viewer { height: 100%; margin: 0; padding: 0; border: 0; }
+.wstage .viewer__stage { height: 100%; }
+.wstage .abpair { height: 100%; }
+.wstage .abpair__img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 100%;
+}
+.wstage .vsolo, .wstage .vsolo__frame { height: 100%; }
+.wstage .vsolo__v { height: 100%; aspect-ratio: auto; object-fit: cover; }
+
+/* live viewer controls sit where the caption is */
+/* min-height matches the two-line caption it replaces, so loading the
+   scene doesn't nudge the stat row */
+.wctl {
+  display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start;
+  gap: 8px; padding-top: 10px; min-height: 52px;
+}
+.wctl[hidden] { display: none; }
+.wctl .sgroup + .sgroup { margin-left: 6px; padding-left: 14px; border-left: 1px dashed var(--line); }
+.wctl__read {
+  margin-left: auto; font-size: 12px; text-transform: uppercase; white-space: nowrap;
+  color: var(--fg); border-bottom: 1px solid var(--accent); transition: color var(--t-fast);
+}
+.wctl__read:hover { color: var(--accent); }
+/* the live render's labels, in the same overlay style as the videos' */
+.wlive__l { z-index: 2; font-variant-numeric: tabular-nums; }
+.wlive__l[hidden] { display: none; }
+
+.wsec .stats { margin: 22px 0 0; }
+.wsec .stat { padding-block: 18px; }
+.wsec .stat__l { font-size: 12px; }
+
+/* ---------- 04 quick hits: three columns on dashed rules ---------- */
+.qhits {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line);
+  margin-top: 22px;
+}
+.qhit { display: flex; flex-direction: column; gap: 14px; padding: 24px 24px 24px 0; }
+.qhit + .qhit { border-left: 1px dashed var(--line); padding-left: 24px; }
+.qhit:last-child { padding-right: 0; }
+.qhit__k { font-size: 12px; text-transform: uppercase; color: var(--accent); }
+.qhit__t { font-size: var(--t-h); line-height: 1; font-weight: 500; text-transform: uppercase; }
+.qhit__p { font-size: var(--t-sub); line-height: 1.4; color: var(--fg); }
+.qhit .dlist { font-size: var(--t-sub); max-width: none; color: var(--fg); }
+.qhit .dlist li { line-height: 1.4; }
+.qhit .prow__stats { padding-top: 0; gap: 10px; }
+.qhit .prow__stat b { font-size: var(--t-h-sm); min-width: 104px; }
+.qhit .prow__stat span { font-size: 12px; }
+.qhit .callout { margin: 0; font-size: var(--t-body); }
+.qhit__go { margin-top: auto; align-self: flex-start; }
+
+/* ---------- 05 close, which shares its screen with the footer ---------- */
+.wsec--close { min-height: calc(100svh - var(--header-h) - var(--walk-nav) - var(--walk-foot)); }
+/* the last thing on screen, so one step up from the section copy */
+.wclose { margin-top: 22px; max-width: 58ch; font-size: var(--t-h-sm); line-height: 1.35; color: var(--fg); }
+.walk .foot { margin-top: 0; }
+.foot__big a {
+  font-size: inherit; width: auto; border-bottom: 0; overflow-wrap: anywhere;
+  transition: color var(--t-fast);
+}
+.foot__big a:hover { color: var(--accent); }
+/* The shared rule spans .foot__big across the grid on narrow screens, but
+   .foot__big sits inside a .foot__col, so the span never reaches the grid.
+   A slogan wraps inside half a column; an email address can't, and it
+   pushed the page 58px past a 390px phone. */
+@media (max-width: 900px) {
+  .walk .foot__grid > .foot__col:first-child { grid-column: 1 / -1; }
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) {
+  .wsec__grid { grid-template-columns: 1fr; gap: 31px; }
+}
+@media (max-width: 900px) {
+  .chapnav__keys, .kb { display: none; }
+  .qhits { grid-template-columns: 1fr; }
+  .qhit { padding: 24px 0; }
+  .qhit + .qhit { border-left: 0; padding-left: 0; border-top: 1px dashed var(--line); }
+}
+@media (max-width: 620px) {
+  .wsec { grid-template-columns: 1fr; gap: 8px; min-height: 0; padding: 31px 0; }
+  .wsec__no { padding-top: 0; }
+  .wsec__head { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .wsec__aside { margin-left: 0; flex-wrap: wrap; gap: 14px 18px; }
+  .wsec__meta { text-align: left; }
+  .wsec__title { font-size: var(--t-h); }
+  .wsec .status__row { grid-template-columns: 1fr; gap: 4px; }
+  .wctl__read { margin-left: 0; flex-basis: 100%; }
+  .wctl .sgroup + .sgroup { margin-left: 0; padding-left: 0; border-left: 0; }
+  .wsec--close { min-height: 0; }
+  .wclose { font-size: var(--t-sub); }
+  .hero__sub { margin-top: -14px; }
+}

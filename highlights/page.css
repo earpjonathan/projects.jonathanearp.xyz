@@ -138,6 +138,13 @@ html[data-theme="light"] .fig--dark { display: none; }
    theme, put dark text on a black frame, so they get a solid chip. */
 .wsec .rcard__imgs .ptag { background: var(--bg); }
 
+/* the chicken capture shows three frames: RGB, thermal, zoomed crop */
+.rcard__imgs--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.rcard__imgs--3 .ptag { margin-right: 0; }
+@media (max-width: 620px) {
+  .rcard__imgs--3 { grid-template-columns: 1fr; gap: 14px; }
+}
+
 /* marks the bit of chicken leg on the full frame; the zoomed crop
    next to it is centred on the same spot */
 .wring {

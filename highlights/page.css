@@ -190,18 +190,30 @@ html[data-theme="light"] .fig--dark { display: none; }
   border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line);
   margin-top: 22px;
 }
-.qhit { display: flex; flex-direction: column; gap: 14px; padding: 24px 24px 24px 0; }
+.qhit { display: flex; flex-direction: column; gap: 12px; padding: 22px 24px 22px 0; }
 .qhit + .qhit { border-left: 1px dashed var(--line); padding-left: 24px; }
 .qhit:last-child { padding-right: 0; }
 .qhit__k { font-size: 12px; text-transform: uppercase; color: var(--accent); }
 .qhit__t { font-size: var(--t-h); line-height: 1; font-weight: 500; text-transform: uppercase; }
 .qhit__p { font-size: var(--t-sub); line-height: 1.4; color: var(--fg); }
-.qhit .dlist { font-size: var(--t-sub); max-width: none; color: var(--fg); }
-.qhit .dlist li { line-height: 1.4; }
 .qhit .prow__stats { padding-top: 0; gap: 10px; }
 .qhit .prow__stat b { font-size: var(--t-h-sm); min-width: 104px; }
 .qhit .prow__stat span { font-size: 12px; }
 .qhit__go { margin-top: auto; align-self: flex-start; }
+/* a plot exported on white, so it sits on a white plate in both themes
+   rather than pretending to be one of the site's own charts */
+.qhit__fig a { position: relative; display: block; }
+/* aspect-ratio holds the plot's space while it lazy-loads, so the
+   label above doesn't land on the caption */
+.qhit__fig img { display: block; width: 100%; aspect-ratio: 730 / 570; background: #fff; border: 1px solid var(--line); }
+.qhit__fig .wcap { padding-top: 8px; }
+/* the plot links to the full two-panel figure; this says so, in the
+   plot's own empty top-left corner */
+.qhit__open {
+  position: absolute; top: 8px; left: 8px; margin: 0;
+  background: var(--bg); transition: color var(--t-fast), border-color var(--t-fast);
+}
+.qhit__fig a:hover .qhit__open { color: var(--accent); border-color: var(--accent); }
 
 /* ---------- footer ---------- */
 .walk .foot { margin-top: 0; }

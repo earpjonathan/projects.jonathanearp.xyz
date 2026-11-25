@@ -221,6 +221,12 @@ html[data-theme="light"] .fig--dark { display: none; }
   background: var(--bg); transition: color var(--t-fast), border-color var(--t-fast);
 }
 .qhit__fig a:hover .qhit__open { color: var(--accent); border-color: var(--accent); }
+/* two plots, one frame: the switch sits where the caption's label would,
+   so the second plot costs no height. [hidden] needs restating because
+   the link rule above sets display: block. */
+.qhit__fig [hidden] { display: none; }
+.qhit__sw { display: inline-flex; gap: 4px; margin-right: 6px; vertical-align: top; }
+.wsec .qhit__sw .sbtn { font-size: var(--t-caption); line-height: 1.3; padding: 2px 9px; }
 
 /* ---------- footer ---------- */
 .walk .foot { margin-top: 0; }
